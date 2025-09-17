@@ -2,7 +2,7 @@
 
 
 import 'package:get_it/get_it.dart';
-import 'package:new_project/core/di/core_di.dart';
+import 'package:careplan/core/di/core_di.dart';
 
 GetIt inject = GetIt.instance;
 /// Registration of service dependencies with  service locator GetIt

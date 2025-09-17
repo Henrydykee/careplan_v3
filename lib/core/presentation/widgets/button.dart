@@ -1,9 +1,9 @@
-import 'package:new_project/core/presentation/widgets/text_holder.dart';
+import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:flutter/material.dart';
 
 import '../../platform/color.dart';
 
-class newprojectButton extends StatelessWidget {
+class CustomButtom extends StatelessWidget {
   final Color? btnColor;
   final String? title;
   final Function()? onTap;
@@ -15,7 +15,7 @@ class newprojectButton extends StatelessWidget {
   final String? assetImage;
 
 
-  newprojectButton(
+  CustomButtom(
       {this.btnColor,
       this.title,
       this.onTap,

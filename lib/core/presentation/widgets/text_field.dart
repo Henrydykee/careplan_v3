@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:new_project/core/platform/color.dart';
-import 'package:new_project/core/presentation/widgets/text_holder.dart';
+import 'package:careplan/core/platform/color.dart';
+import 'package:careplan/core/presentation/widgets/text_holder.dart';
 
 class CustomTextField extends StatelessWidget {
   final String? title;

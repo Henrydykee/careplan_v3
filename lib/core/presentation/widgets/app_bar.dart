@@ -1,16 +1,16 @@
-import 'package:new_project/core/presentation/widgets/text_holder.dart';
+import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../platform/color.dart';
 
-class newprojectAppBar extends StatelessWidget implements PreferredSize {
+class Custom extends StatelessWidget implements PreferredSize {
   final String? title;
   final String? image;
   final Function()? onTap;
   final Widget? widget;
   final Color? color;
 
-  newprojectAppBar({this.title, this.image, this.onTap, this.color, this.widget});
+  Custom({this.title, this.image, this.onTap, this.color, this.widget});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,6 @@ class newprojectAppBar extends StatelessWidget implements PreferredSize {
           widget ??
           GestureDetector(
               onTap: onTap ,
-            
               child: SvgPicture.asset(
                 image ?? "assets/svg/back_button.svg",
                 height: 30,

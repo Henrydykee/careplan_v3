@@ -1,5 +1,5 @@
 
-import 'package:new_project/core/platform/storage/secured_storage.dart';
+import 'package:careplan/core/platform/storage/secured_storage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../utils/logger.dart';
 

@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'core/data/enums/type_enums.dart';
 import 'core/di/di_config.dart';
 import 'core/platform/env_config.dart';
-import 'package:new_project/core/platform/string_constants.dart' as Constants;
+import 'package:careplan/core/platform/string_constants.dart' as Constants;
 
 import 'core/presentation/state/provider_initializer.dart';
 import 'features/onboarding/presentation/pages/splash_screen.dart';
@@ -20,10 +20,10 @@ void main() async {
   // await Firebase.initializeApp();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await initInjectors();
-  runApp(newproject());
+  runApp(careplan());
 }
 
-class newproject extends StatelessWidget {
+class careplan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
