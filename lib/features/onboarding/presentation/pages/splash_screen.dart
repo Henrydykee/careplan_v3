@@ -1,29 +1,37 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+
+import '../../../../core/utils/color.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  SplashScreen({Key? key}) : super(key: key);
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  _SplashScreenState createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
-
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.red,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      backgroundColor: CarePlanColor.deep_green,
+      body: Stack(
         children: [
+          Image.asset(
+            "assets/images/splash_background.png",
+            width: MediaQuery.of(context).size.width,
+            fit: BoxFit.cover,
+          ),
+          Center(child: SvgPicture.asset("assets/images/cp_spalsh_image.svg",height: 150,))
         ],
       ),
     );
   }
 }
-
-
-
 
