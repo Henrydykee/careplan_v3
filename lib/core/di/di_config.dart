@@ -1,6 +1,3 @@
-
-
-
 import 'package:get_it/get_it.dart';
 import 'package:careplan/core/di/core_di.dart';
 
@@ -13,9 +10,4 @@ GetIt inject = GetIt.instance;
 Future<void> initInjectors()  async {
   await coreInjector();
   await authInjector();
-  // await authenticationInjector();
-  // await onboardingInjector();
-  // await transactionInjector();
-  // await cardInjector();
-  // await notificationInjector();
 }
