@@ -8,6 +8,7 @@ import 'core/platform/env_config.dart';
 import 'package:careplan/core/platform/string_constants.dart' as Constants;
 
 import 'core/presentation/state/provider_initializer.dart';
+import 'core/presentation/widgets/router.dart';
 import 'features/onboarding/presentation/pages/splash_screen.dart';
 
 void main() async {
@@ -37,6 +38,7 @@ class careplan extends StatelessWidget {
           },
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
+            navigatorKey:  router.navigatorKey,
             theme: ThemeData(
                 fontFamily: 'Syne',
                 useMaterial3: false,

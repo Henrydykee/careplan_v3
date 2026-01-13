@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../platform/color.dart';
 
-class Custom extends StatelessWidget implements PreferredSize {
+class CustomAppBar extends StatelessWidget implements PreferredSize {
   final String? title;
   final String? image;
   final Function()? onTap;
   final Widget? widget;
   final Color? color;
+  final bool showBackIcon;
 
-  Custom({this.title, this.image, this.onTap, this.color, this.widget});
+  CustomAppBar({this.title, this.image, this.onTap, this.color, this.widget, this.showBackIcon = false});
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +20,7 @@ class Custom extends StatelessWidget implements PreferredSize {
       child: AppBar(
         backgroundColor: newprojectColor.white,
         elevation: 0.0,
+        leading: showBackIcon ? IconButton(onPressed: onTap, icon: Icon(Icons.arrow_back)) : null,
         automaticallyImplyLeading: false,
         title: TextHolder(
           title: title ?? "",
