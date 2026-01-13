@@ -40,6 +40,7 @@ class TextHolder extends StatelessWidget {
           color: color ?? Colors.black,
           fontSize: size ?? 16,
             height: fontHeight,
+          fontFamily: 'avenir',
           fontWeight: fontWeight ?? FontWeight.w400,
             decoration: decoration
         ),
@@ -87,7 +88,7 @@ class NumberTextHolder extends StatelessWidget {
             color: color ?? Colors.black,
             fontSize: size ?? 16,
             height: fontHeight,
-            fontFamily: "SpaceGrotesk",
+            fontFamily: "avenir",
             fontWeight: fontWeight ?? FontWeight.w400,
             decoration: decoration
         ),
@@ -143,7 +144,7 @@ class MoneyTextHolder extends StatelessWidget {
             color: color ?? Colors.black,
             fontSize: size ?? 16,
             height: fontHeight,
-            fontFamily: "SpaceGrotesk",
+            fontFamily: "avenir",
             fontWeight: fontWeight ?? FontWeight.w400,
             decoration: decoration
         ),

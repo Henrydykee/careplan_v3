@@ -198,7 +198,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         style: TextStyle(
                           color: CarePlanColor.green,
                           fontSize: 16,
-                          fontFamily: "Avenir",
+                          fontFamily: "avenir",
                           fontWeight: FontWeight.w800,
                         ),
                         children: [
@@ -206,7 +206,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             text: " Sign In",
                             style: TextStyle(
                               color: CarePlanColor.orange,
-                              fontFamily: "Avenir",
+                              fontFamily: "avenir",
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
                             ),

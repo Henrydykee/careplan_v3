@@ -41,9 +41,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: SecondaryAppBar(
+      appBar: CustomAppBar(
         title: 'Web View',
-        textColor: Colors.black,
+        showBackIcon: true,
       ),
       body: Stack(
         children: [

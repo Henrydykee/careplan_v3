@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../core/presentation/widgets/router.dart';
 import '../../../../core/utils/color.dart';
+import '../../../../features/getting_started/get_started_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   SplashScreen({Key? key}) : super(key: key);
@@ -12,9 +14,22 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
+    _timer = Timer(Duration(seconds: 2), () {
+      if (mounted) {
+        router.pushAndRemoveUntil(GetStartedScreen(), (route) => false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
