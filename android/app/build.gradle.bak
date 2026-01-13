@@ -1,0 +1,134 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+    id 'dev.flutter.flutter-gradle-plugin'
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '1'
+def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
+
+def dartEnvironmentVariables = [
+        VAR: 'STAGING',
+]
+
+if (project.hasProperty('dart-define')) {
+    dartEnvironmentVariables = dartEnvironmentVariables + project.property('dart-define')
+            .split(',')
+            .collectEntries { entry ->
+                def pair = entry.split('=')
+                [(pair.first()): pair.last()]
+            }
+}
+
+static def getDate() {
+    new Date().format('yyyy.MM.dd.HH.mm')
+}
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('careplan_key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader('UTF-8') { reader ->
+        keystoreProperties.load(reader)
+    }
+}
+
+def alias = keystoreProperties.getProperty('careplan.keyAlias')
+def pass = keystoreProperties.getProperty('careplan.keyPassword')
+
+android {
+    compileSdkVersion 35
+    namespace "com.careplan.mobile"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+
+    defaultConfig {
+        applicationId "com.careplan.mobile"
+        minSdkVersion 23
+        versionCode 98
+        versionName '1.1.5'
+        targetSdkVersion 34
+        multiDexEnabled = true
+    }
+
+    signingConfigs {
+        debug {
+            keyAlias "upload"
+            keyPassword "careplan365"
+            storeFile file("../careplan365.jks")
+            storePassword "careplan365"
+        }
+        release {
+            keyAlias "upload"
+            keyPassword "careplan365"
+            storeFile file("../careplan365.jks")
+            storePassword "careplan365"
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            signingConfig signingConfigs.release //release_config
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    flavorDimensions "flavors"
+
+    productFlavors {
+        staging {
+            dimension "flavors"
+            applicationIdSuffix ".staging"
+            versionNameSuffix "-stage-${getDate()}"
+            resValue "string", "app_name", "CP365 Stage"
+            resValue "string", "is_debug", "true"
+        }
+        production {
+            dimension "flavors"
+            resValue "string", "app_name", "CP365"
+            resValue "string", "is_debug", "false"
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.android.support:multidex:1.0.3'
+    implementation platform('com.google.firebase:firebase-bom:28.2.0')
+}

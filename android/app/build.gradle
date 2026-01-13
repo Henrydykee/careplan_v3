@@ -1,7 +1,9 @@
 plugins {
-    id "com.android.application"
-    id "kotlin-android"
-    id "dev.flutter.flutter-gradle-plugin"
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+    id 'dev.flutter.flutter-gradle-plugin'
 }
 
 def localProperties = new Properties()
@@ -12,50 +14,126 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
-if (flutterVersionCode == null) {
-    flutterVersionCode = '1'
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '1'
+def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0'
+
+def dartEnvironmentVariables = [
+        VAR: 'STAGING',
+]
+
+if (project.hasProperty('dart-define')) {
+    dartEnvironmentVariables = dartEnvironmentVariables + project.property('dart-define')
+            .split(',')
+            .collectEntries { entry ->
+                def pair = entry.split('=')
+                [(pair.first()): pair.last()]
+            }
 }
 
-def flutterVersionName = localProperties.getProperty('flutter.versionName')
-if (flutterVersionName == null) {
-    flutterVersionName = '1.0'
+static def getDate() {
+    new Date().format('yyyy.MM.dd.HH.mm')
 }
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('careplan_key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader('UTF-8') { reader ->
+        keystoreProperties.load(reader)
+    }
+}
+
+def alias = keystoreProperties.getProperty('careplan.keyAlias')
+def pass = keystoreProperties.getProperty('careplan.keyPassword')
 
 android {
-    namespace "com.example.careplan"
-    compileSdkVersion flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    compileSdkVersion 36
+    namespace "com.careplan.mobile"
+    ndkVersion "28.0.12433566"
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = "17"
     }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+
+    // Add packaging options for 16KB page size compatibility
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.example.careplan"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
+        applicationId "com.careplan.mobile"
         minSdkVersion flutter.minSdkVersion
-        targetSdkVersion flutter.targetSdkVersion
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        versionCode 117
+        versionName '1.2.2'
+        targetSdkVersion 36  // Updated to match compileSdkVersion
+        multiDexEnabled = true
+    }
+
+    signingConfigs {
+        debug {
+            keyAlias "upload"
+            keyPassword "careplan365"
+            storeFile file("../careplan365.jks")
+            storePassword "careplan365"
+        }
+        release {
+            keyAlias "upload"
+            keyPassword "careplan365"
+            storeFile file("../careplan365.jks")
+            storePassword "careplan365"
+        }
     }
 
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+        debug {
             signingConfig signingConfigs.debug
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            ndk {
+                debugSymbolLevel 'SYMBOL_TABLE'
+            }
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // Add NDK configuration for 16KB page size support
+            ndk {
+                debugSymbolLevel 'SYMBOL_TABLE'
+            }
+        }
+    }
+
+    flavorDimensions "flavors"
+
+    productFlavors {
+        staging {
+            dimension "flavors"
+            applicationIdSuffix ".staging"
+            versionNameSuffix "-stage-${getDate()}"
+            resValue "string", "app_name", "CP365 Stage"
+            resValue "string", "is_debug", "true"
+        }
+        production {
+            dimension "flavors"
+            resValue "string", "app_name", "CP365"
+            resValue "string", "is_debug", "false"
         }
     }
 }
@@ -64,4 +142,8 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.multidex:multidex:2.0.1'  // Updated to AndroidX version
+    implementation platform('com.google.firebase:firebase-bom:33.1.2')  // Updated Firebase BOM
+}
