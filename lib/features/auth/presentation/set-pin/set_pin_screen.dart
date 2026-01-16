@@ -55,7 +55,7 @@ class _SetPinScreenState extends State<SetPinScreen> {
               onCompleted: (code) {
                 router.pushAndRemoveUntil(
                     ConfrimPinScreen(
-                      pin: _pinCodeController!.text,
+                          pin: _pinCodeController!.text,
                     ),
                     (route) => false);
               },

@@ -28,62 +28,62 @@ class _CheckEmailScreenState extends State<CheckEmailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        showBackIcon: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 30),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextHolder(
-                  title: "Enter OTP",
-                  size: 20,
-                  fontWeight: FontWeight.w800,
+                  showBackIcon: true,
                 ),
-                Gap(10),
+                body: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 30),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                 TextHolder(
-                  title: "We have sent a OTP reset code to your email.",
-                  size: 15,
-                  fontWeight: FontWeight.w500,
-                  align: TextAlign.center,
-                  color: CarePlanColor.grey,
-                ),
-              ],
-            ),
+                            title: "Enter OTP",
+                            size: 20,
+                            fontWeight: FontWeight.w800,
+                          ),
+                          Gap(10),
+                TextHolder(
+                            title: "We have sent a OTP reset code to your email.",
+                            size: 15,
+                            fontWeight: FontWeight.w500,
+                            align: TextAlign.center,
+                            color: CarePlanColor.grey,
+                          ),
+                        ],
+                      ),
             newprojectPinCode(
-              controller: _pinCodeController,
-              onCompleted: (code) {
+                        controller: _pinCodeController,
+                        onCompleted: (code) {
                 // Logic removed - design only
-              },
-            ),
-            Column(
-              children: [
+                        },
+                      ),
+                      Column(
+                        children: [
                 newprojectKeyPad(onKeyPress: _valueEntered),
-                SizedBox(
-                  height: 20,
-                ),
+                          SizedBox(
+                            height: 20,
+                          ),
                 TextHolder(
-                  title: "Resend Code",
+                            title: "Resend Code",
                   onTap: () {
                     // Logic removed - design only
                   },
-                  color: Color(0xFF215543),
-                  size: 15,
-                  fontWeight: FontWeight.w800,
+                            color: Color(0xFF215543),
+                            size: 15,
+                            fontWeight: FontWeight.w800,
+                          ),
+                          Gap(30),
+                          SizedBox(
+                            height: 50,
+                          ),
+                        ],
+                      )
+                    ],
                 ),
-                Gap(30),
-                SizedBox(
-                  height: 50,
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
+              ),
+            );
   }
 
   _valueEntered(String s) {

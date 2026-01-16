@@ -143,10 +143,10 @@ class _KycVerificatonScreen2State extends State<KycVerificatonScreen2> {
                         return;
                       } else {
                         router.push(KycVerificationScreen3(
-                          street: _streetController?.text,
-                          postalCode: _postalcodeController?.text,
-                          city: _cityController?.text,
-                          state: _stateController?.text,
+                                      street: _streetController?.text,
+                                      postalCode: _postalcodeController?.text,
+                                      city: _cityController?.text,
+                                      state: _stateController?.text,
                         ));
                       }
                     }),

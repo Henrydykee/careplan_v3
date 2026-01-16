@@ -29,50 +29,50 @@ class _ConfrimPinScreenState extends State<ConfrimPinScreen> {
     return Scaffold(
       appBar: CustomAppBar(),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                 TextHolder(
-                  title: "Confirm your 4-digit pin",
-                  size: 20,
-                  fontWeight: FontWeight.w800,
-                ),
+                          title: "Confirm your 4-digit pin",
+                          size: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
                 TextHolder(
-                  title: "Please confirm your pin.",
-                  size: 15,
-                  fontWeight: FontWeight.w500,
-                  align: TextAlign.center,
-                  color: CarePlanColor.grey,
-                ),
-              ],
-            ),
+                          title: "Please confirm your pin.",
+                          size: 15,
+                          fontWeight: FontWeight.w500,
+                          align: TextAlign.center,
+                          color: CarePlanColor.grey,
+                        ),
+                      ],
+                    ),
             newprojectPinCode(
-              controller: _pinCodeController,
-              onCompleted: (code) {
+                      controller: _pinCodeController,
+                      onCompleted: (code) {
                 // Logic removed - design only
-              },
-            ),
-            Column(
-              children: [
+                      },
+                    ),
+                    Column(
+                      children: [
                 newprojectKeyPad(onKeyPress: _valueEntered),
-                SizedBox(
-                  height: 20,
-                ),
-                Gap(30),
-                SizedBox(
-                  height: 50,
-                ),
-              ],
-            )
-          ],
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Gap(30),
+                        SizedBox(
+                          height: 50,
+                        ),
+                      ],
+                    )
+                  ],
         ),
-      ),
-    );
+                ),
+              );
   }
 
   _valueEntered(String s) {

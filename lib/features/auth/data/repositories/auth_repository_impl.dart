@@ -1,11 +1,12 @@
 
 
+import 'package:careplan/features/auth/data/model/user_model.dart';
+
 import '../../../../core/utils/data/guarded_datasource_calls.dart';
 import '../../domain/repositories /auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../model/create_user_model.dart';
 import '../model/kyc_status_model.dart';
-import '../model/login_response_model.dart';
 
 class AuthenticationRepositoryImpl implements AuthenticationRepository {
   // ignore: unused_field
@@ -26,8 +27,8 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
       await guardedApiCall<KycStatusResponse>(() => _remoteDataSource.getKycStatus(), source: "getKycStatus", showNetworkError: true);
 
   @override
-  Future<LoginResponseModel> loginUser({required String email, required String password}) async =>
-      await guardedApiCall<LoginResponseModel>(() => _remoteDataSource.loginUser(email: email, password: password), source: "loginUser" , showNetworkError: true);
+  Future<UserModel> loginUser({required String email, required String password}) async =>
+      await guardedApiCall<UserModel>(() => _remoteDataSource.loginUser(email: email, password: password), source: "loginUser" , showNetworkError: true);
 
   @override
   Future<String> resendVerificationCode({required String email, String verificationType = "registration"}) async =>

@@ -176,46 +176,46 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(bottom: 30),
-              child: Column(
-                children: [
+                    padding: const EdgeInsets.only(bottom: 30),
+                    child: Column(
+                      children: [
                   CustomButtom(
-                    title: "Sign Up",
+                          title: "Sign Up",
                     btnColor: CarePlanColor.orange,
-                    textColor: Colors.white,
-                    onTap: () {
-                      if (_formKey.currentState?.validate() ?? false) {
+                          textColor: Colors.white,
+                          onTap: () {
+                            if (_formKey.currentState?.validate() ?? false) {
                         // Logic removed - design only
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  InkWell(
-                    onTap: () => router.pop(),
-                    child: RichText(
-                      text: TextSpan(
-                        text: "Already have an account?",
-                        style: TextStyle(
-                          color: CarePlanColor.green,
-                          fontSize: 16,
-                          fontFamily: "avenir",
-                          fontWeight: FontWeight.w800,
+                            }
+                          },
                         ),
-                        children: [
-                          TextSpan(
-                            text: " Sign In",
-                            style: TextStyle(
-                              color: CarePlanColor.orange,
+                        const SizedBox(height: 20),
+                        InkWell(
+                    onTap: () => router.pop(),
+                          child: RichText(
+                            text: TextSpan(
+                              text: "Already have an account?",
+                              style: TextStyle(
+                                color: CarePlanColor.green,
+                                fontSize: 16,
+                          fontFamily: "avenir",
+                                fontWeight: FontWeight.w800,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: " Sign In",
+                                  style: TextStyle(
+                                    color: CarePlanColor.orange,
                               fontFamily: "avenir",
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                        ),
+                      ],
               ),
             ),
           ],

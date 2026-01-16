@@ -6,16 +6,15 @@ import '../../../../core/data/network/network_service.dart';
 import '../../../../core/data/network/network_service_response.dart';
 import '../model/create_user_model.dart';
 import '../model/kyc_status_model.dart';
-import '../model/login_response_model.dart';
 import '../model/user_model.dart';
 import 'endpoint.dart';
 
 abstract class AuthenticationRemoteDataSource extends RemoteDataSource {
-  Future<LoginResponseModel> loginUser({required String email, required String password});
-  Future<User> loginWithPin({required String email, required String pin});
+  Future<UserModel> loginUser({required String email, required String password});
+  Future<UserModel> loginWithPin({required String email, required String pin});
   Future<String> setPin({required String pin});
   Future<String> verifyOtp({required String otp});
-  Future<User> getUserDetails();
+  Future<UserModel> getUserDetails();
   Future<String> sendPasswordResetMail({required String email});
   Future<String> resetPassword({required String otp, required String password});
   Future<String> updatePassword({required String oldPassword, required String newPassword});
@@ -30,7 +29,7 @@ abstract class AuthenticationRemoteDataSource extends RemoteDataSource {
     required String idCardType,
   });
   Future<KycStatusResponse> getKycStatus();
-  Future<User> CreateUser(CreateUserModel createUserModel);
+  Future<UserModel> CreateUser(CreateUserModel createUserModel);
 }
 
 class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSource {
@@ -41,7 +40,7 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
   void dispose() {}
 
   @override
-  Future<User> CreateUser(CreateUserModel createUserModel) async {
+  Future<UserModel> CreateUser(CreateUserModel createUserModel) async {
     NetworkServiceResponse response = await _networkService.post(
       AuthenticationEndpoints.registerUser,
       body: {
@@ -57,7 +56,7 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
     final jsonData = data is String ? json.decode(data) : data;
     // Handle nested response structure: data.user or data or direct user
     final userData = jsonData['data']?['user'] ?? jsonData['data'] ?? jsonData['user'] ?? jsonData;
-    return User.fromJson(userData is Map<String, dynamic> ? userData : jsonData);
+    return UserModel.fromJson(userData is Map<String, dynamic> ? userData : jsonData);
   }
 
   @override
@@ -68,10 +67,10 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
   }
 
   @override
-  Future<LoginResponseModel> loginUser({required String email, required String password}) async {
+  Future<UserModel> loginUser({required String email, required String password}) async {
     NetworkServiceResponse response = await _networkService.post(AuthenticationEndpoints.loginUser, body: {"email": email, "password": password});
     final data = handleNetworkResponse(response);
-    return LoginResponseModel.fromJson(json.decode(data));
+    return UserModel.fromJson(json.decode(data));
   }
 
   @override
@@ -104,7 +103,7 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
   }
 
   @override
-  Future<User> loginWithPin({required String email, required String pin}) async {
+  Future<UserModel> loginWithPin({required String email, required String pin}) async {
     NetworkServiceResponse response = await _networkService.post(
       AuthenticationEndpoints.loginWithPin,
       body: {"email": email, "pin": pin},
@@ -113,7 +112,7 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
     final jsonData = data is String ? json.decode(data) : data;
     // Handle nested response structure: data.user or data or direct user
     final userData = jsonData['data']?['user'] ?? jsonData['data'] ?? jsonData['user'] ?? jsonData;
-    return User.fromJson(userData is Map<String, dynamic> ? userData : jsonData);
+    return UserModel.fromJson(userData is Map<String, dynamic> ? userData : jsonData);
   }
 
   @override
@@ -137,13 +136,13 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
   }
 
   @override
-  Future<User> getUserDetails() async {
+  Future<UserModel> getUserDetails() async {
     NetworkServiceResponse response = await _networkService.get(AuthenticationEndpoints.getUserDetails);
     final data = handleNetworkResponse(response);
     final jsonData = data is String ? json.decode(data) : data;
     // Handle nested response structure: data.user or data or direct user
     final userData = jsonData['data']?['user'] ?? jsonData['data'] ?? jsonData['user'] ?? jsonData;
-    return User.fromJson(userData is Map<String, dynamic> ? userData : jsonData);
+    return UserModel.fromJson(userData is Map<String, dynamic> ? userData : jsonData);
   }
 
   @override

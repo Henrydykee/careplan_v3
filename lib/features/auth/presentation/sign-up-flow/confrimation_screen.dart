@@ -26,60 +26,60 @@ class _PhoneNumberConfrimationScreenState extends State<PhoneNumberConfrimationS
     return Scaffold(
       appBar: CustomAppBar(),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              children: [
-                Center(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      children: [
+                        Center(
                   child: TextHolder(
-                    title: "Phone Number Verification",
-                    size: 20,
-                    fontWeight: FontWeight.w800,
+                              title: "Phone Number Verification",
+                          size: 20,
+                          fontWeight: FontWeight.w800,
                   ),
                 ),
                 TextHolder(
-                  title: "Enter the 4-digit verification code sent to the phone number you provided",
-                  size: 15,
-                  fontWeight: FontWeight.w500,
-                  align: TextAlign.center,
-                  color: CarePlanColor.grey,
-                ),
-              ],
-            ),
+                          title: "Enter the 4-digit verification code sent to the phone number you provided",
+                          size: 15,
+                          fontWeight: FontWeight.w500,
+                          align: TextAlign.center,
+                          color: CarePlanColor.grey,
+                        ),
+                      ],
+                    ),
             newprojectPinCode(
-              controller: _pinCodeController,
-              onCompleted: (code) {
+                      controller: _pinCodeController,
+                      onCompleted: (code) {
                 // Logic removed - design only
-              },
-            ),
-            Column(
-              children: [
+                      },
+                    ),
+                    Column(
+                      children: [
                 newprojectKeyPad(onKeyPress: _valueEntered),
-                SizedBox(
-                  height: 20,
-                ),
+                        SizedBox(
+                          height: 20,
+                        ),
                 GestureDetector(
                   onTap: () {
                     // Logic removed - design only
                   },
                   child: TextHolder(
-                    title: "Resend Verification code",
-                    color: Color(0xFF215543),
-                    size: 15,
-                    fontWeight: FontWeight.w800,
-                  ),
+                                  title: "Resend Verification code",
+                                  color: Color(0xFF215543),
+                                  size: 15,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                        ),
+                        Gap(30),
+                        SizedBox(
+                          height: 50,
+                        ),
+                      ],
+                    )
+                  ],
                 ),
-                Gap(30),
-                SizedBox(
-                  height: 50,
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
+          ),
     );
   }
 
