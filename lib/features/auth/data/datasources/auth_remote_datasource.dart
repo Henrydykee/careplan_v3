@@ -4,6 +4,10 @@ import 'dart:convert';
 import '../../../../core/data/datasources/remote_datasource_base.dart';
 import '../../../../core/data/network/network_service.dart';
 import '../../../../core/data/network/network_service_response.dart';
+import '../../../../core/di/di_config.dart';
+import '../../../../core/managers/local_storage_service.dart';
+import '../../../../core/platform/storage/secured_storage.dart';
+import '../../../../core/platform/string_constants.dart';
 import '../model/create_user_model.dart';
 import '../model/kyc_status_model.dart';
 import '../model/user_model.dart';
@@ -54,7 +58,6 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
 
     final data = handleNetworkResponse(response);
     final jsonData = data is String ? json.decode(data) : data;
-    // Handle nested response structure: data.user or data or direct user
     final userData = jsonData['data']?['user'] ?? jsonData['data'] ?? jsonData['user'] ?? jsonData;
     return UserModel.fromJson(userData is Map<String, dynamic> ? userData : jsonData);
   }
@@ -70,7 +73,33 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
   Future<UserModel> loginUser({required String email, required String password}) async {
     NetworkServiceResponse response = await _networkService.post(AuthenticationEndpoints.loginUser, body: {"email": email, "password": password});
     final data = handleNetworkResponse(response);
-    return UserModel.fromJson(json.decode(data));
+    final jsonData = data is String ? json.decode(data) : data;
+    
+    // Extract user and tokens from response structure: {success, message, data: {user: {...}, accessToken: "...", refreshToken: "..."}}
+    final responseData = jsonData['data'] as Map<String, dynamic>?;
+    final userData = responseData?['user'] as Map<String, dynamic>?;
+    final accessToken = responseData?['accessToken'] as String?;
+    final refreshToken = responseData?['refreshToken'] as String?;
+    
+    // Parse user model
+    final userModel = UserModel.fromJson(userData ?? jsonData);
+    
+    // Save user to localStorage
+    if (userData != null) {
+      await inject<LocalStorageService>().setJson("user", userModel.toJson());
+    }
+    
+    // Save accessToken to secured storage
+    if (accessToken != null && accessToken.isNotEmpty) {
+      await inject<SecuredStorage>().add(key: SecureStorageStrings.TOKEN, value: accessToken);
+    }
+    
+    // Save refreshToken to secured storage
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      await inject<SecuredStorage>().add(key: SecureStorageStrings.REFRESH_TOKEN, value: refreshToken);
+    }
+    
+    return userModel;
   }
 
   @override

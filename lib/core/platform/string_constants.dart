@@ -4,9 +4,6 @@ library Constants;
 const String STAGING_BASE_URL = "https://careplan-backend-v2-4552e7abb649.herokuapp.com/v3/";
 const String PROD_BASE_URL = "";
 
-
-
-
 class SPref {
   static const SEEN_ONBOARDING = "onboarding";
   static const FCM_TOKEN = "fcm_token";

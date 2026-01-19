@@ -8,7 +8,7 @@ class RemoteConfigManager {
 
   FirebaseRemoteConfig? remoteConfig;
 
-  String get requiredVersion => remoteConfig!.getString(_getRemoteConfigName("required_version"));
+  String get requiredVersion => remoteConfig?.getString(_getRemoteConfigName("required_version")) ?? "";
 
 
   RemoteConfigManager._internal() {
@@ -20,8 +20,8 @@ class RemoteConfigManager {
   }
 
   void _setup() async {
-    remoteConfig = await  FirebaseRemoteConfig.instance;
     try {
+      remoteConfig = await FirebaseRemoteConfig.instance;
       int hour = 3;
       if (EnvConfig.isStage()  || EnvConfig.isProduction() ) {
         RemoteConfigSettings remoteConfigSettings = RemoteConfigSettings( fetchTimeout: Duration(hours: hour), minimumFetchInterval: Duration(seconds: 1));
@@ -30,7 +30,9 @@ class RemoteConfigManager {
       await Future.delayed(const Duration(seconds: 1));
        await remoteConfig?.fetchAndActivate();
     } catch (e) {
-      logger.e(e);
+      logger.e("Firebase Remote Config initialization failed: $e");
+      // Continue without remote config if Firebase is not initialized
+      remoteConfig = null;
     }
   }
 }
