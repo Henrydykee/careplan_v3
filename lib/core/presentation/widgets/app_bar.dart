@@ -11,21 +11,22 @@ class CustomAppBar extends StatelessWidget implements PreferredSize {
   final Function()? onTap;
   final Widget? widget;
   final Color? color;
+  final Color? backButtonColor;
   final bool showBackIcon;
 
-  CustomAppBar({this.title, this.image, this.onTap, this.color, this.widget, this.showBackIcon = true});
+  CustomAppBar({this.title, this.image, this.onTap, this.color, this.widget, this.showBackIcon = true, this.backButtonColor});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 0),
       child: AppBar(
-        backgroundColor: CarePlanColor.app_bar_color,
+        backgroundColor: color ?? CarePlanColor.app_bar_color,
         centerTitle:   true,
         elevation: 0.0,
         leading: showBackIcon ? IconButton(
           onPressed: onTap ?? () => router.pop(),
-          icon: Icon(Icons.chevron_left, color: CarePlanColor.grey,)
+          icon: Icon(Icons.chevron_left, color: backButtonColor ?? CarePlanColor.grey,)
         ) : null,
         automaticallyImplyLeading: false,
         title: TextHolder(
