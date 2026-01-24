@@ -1,6 +1,10 @@
 
 import 'package:careplan/core/presentation/widgets/router.dart';
+import 'package:careplan/features/assement/presentation/Stressors/stressors_result_screen.dart';
+import 'package:careplan/features/assement/presentation/asrs/asrs_result_screen.dart';
+import 'package:careplan/features/assement/presentation/goals/goals_result_acreen.dart';
 import 'package:careplan/features/assement/presentation/k10/k10_result_screen.dart';
+import 'package:careplan/features/assement/presentation/Stressors/select_stressors_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/utils/color.dart';
@@ -100,10 +104,10 @@ class _SelectAssementHistoryScreenState extends State<SelectAssementHistoryScree
               _buildOptionCard(context, 'K10', onTap: () {
                 router.push(K10ResultScreen());
               }),
-              _buildOptionCard(context, 'ASRS'),
-              _buildOptionCard(context, 'Goals'),
-              _buildOptionCard(context, 'Areas of Stress'),
-            ],
+              _buildOptionCard(context, 'ASRS', onTap: () => router.push(ASRSResultHistoryScreen())),
+              _buildOptionCard(context, 'Goals', onTap: () => router.push(GoalsResultScreen())),
+              _buildOptionCard(context, 'Areas of Stress', onTap: () => router.push(StressorsResultScreen())),
+              ],
           ),
 
         ],
