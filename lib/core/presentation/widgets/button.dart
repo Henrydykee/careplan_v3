@@ -1,4 +1,5 @@
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:flutter/material.dart';
 
 import '../../platform/color.dart';
@@ -31,29 +32,30 @@ class CustomButtom extends StatelessWidget {
     return GestureDetector(
       onTap: isdisabled == true ? (){} : () {
         WidgetsBinding.instance.focusManager.primaryFocus?.unfocus();
-        onTap!();
+        if (onTap != null) {
+          onTap!();
+        } else {
+          // Fallback to router.pop() when onTap is not provided
+          router.pop();
+        }
       },
       child: Container(
-        height: height,
         width: width ?? double.infinity,
-        decoration: isdisabled == true ?
-        BoxDecoration(
-            border: Border.all(color: newprojectColor.grey),
-            borderRadius: BorderRadius.circular(5),
-          color: newprojectColor.light_green,
-        )
-            : BoxDecoration(
-          border: Border.all(color: Colors.black,width: 0.5),
-            borderRadius: BorderRadius.circular(5),
-          image: DecorationImage(image: AssetImage(assetImage ?? "assets/images/button_background.png",),fit: BoxFit.fill)
+        decoration: BoxDecoration(
+          color: isdisabled == true 
+            ? newprojectColor.grey.withOpacity(0.5)
+            : (btnColor ?? const Color(0xFFFD9C43)),
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Padding(
-          padding: const EdgeInsets.only(top: 20, bottom: 20),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           child: Center(
             child: TextHolder(
-              title: title  ?? "",
+              title: title ?? "",
               size: textSize ?? 18,
-              color: isdisabled == true ? newprojectColor.grey : (textColor ?? Colors.black),
+              color: isdisabled == true 
+                ? Colors.white.withOpacity(0.5)
+                : (textColor ?? Colors.white),
               fontWeight: FontWeight.w600,
             ),
           ),

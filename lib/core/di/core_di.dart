@@ -1,3 +1,4 @@
+import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/memory/cache_helpers.dart';
@@ -13,7 +14,7 @@ import 'di_config.dart';
 
 Future<void> coreInjector() async {
   inject.registerSingleton<SecuredStorage>(SecuredStorageImpl());
-  inject.registerSingleton<SharedPreferences>(await SharedPreferences.getInstance());
+  inject.registerSingleton<LocalStorageService>(await LocalStorageService.getInstance());
   inject.registerSingleton<DeviceManager>(DeviceManager.instance);
   inject.registerSingleton<DeviceInfoPlugin>(DeviceInfoPlugin());
   inject.registerFactory<NetworkInterceptor>(() => NetworkInterceptor(networkConfigInterface: inject(), deviceInfo:  inject()));

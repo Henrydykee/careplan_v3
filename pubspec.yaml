@@ -48,6 +48,7 @@ dependencies:
   intl: 0.19.0
   percent_indicator: 4.2.4
   currency_text_input_formatter: 2.2.8
+  webview_flutter: ^4.9.0
 
 
 
@@ -82,10 +83,11 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-assets:
-  - assets/
-  - assets/images/
-  - assets/fonts/
+  assets:
+    - assets/
+    - assets/images/
+    - assets/fonts/
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
@@ -107,5 +109,7 @@ fonts:
         weight: 400
       - asset: assets/fonts/Avenir_Book.ttf
         weight: 500
+      - asset: assets/fonts/Avenir_Heavy.ttf
+        weight: 700
       - asset: assets/fonts/Avenir_Black.ttf
         weight: 600

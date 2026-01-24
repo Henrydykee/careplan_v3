@@ -1,0 +1,48 @@
+
+
+import 'package:careplan/features/auth/data/model/user_model.dart';
+
+import '../../../../core/utils/data/guarded_datasource_calls.dart';
+import '../../domain/repositories /auth_repository.dart';
+import '../datasources/auth_remote_datasource.dart';
+import '../model/create_user_model.dart';
+import '../model/kyc_status_model.dart';
+
+class AuthenticationRepositoryImpl implements AuthenticationRepository {
+  // ignore: unused_field
+  final AuthenticationRemoteDataSource _remoteDataSource;
+
+  AuthenticationRepositoryImpl(
+      this._remoteDataSource,
+      ) {}
+
+
+
+  @override
+  Future<String> CreateUser(CreateUserModel createUserModel) async =>
+      await guardedApiCall<String>(() => _remoteDataSource.CreateUser(createUserModel), source: "CreateUser", showNetworkError: true);
+
+  @override
+  Future<KycStatusResponse> getKycStatus() async =>
+      await guardedApiCall<KycStatusResponse>(() => _remoteDataSource.getKycStatus(), source: "getKycStatus", showNetworkError: true);
+
+  @override
+  Future<UserModel> loginUser({required String email, required String password}) async =>
+      await guardedApiCall<UserModel>(() => _remoteDataSource.loginUser(email: email, password: password), source: "loginUser" , showNetworkError: true);
+
+  @override
+  Future<String> resendVerificationCode({required String email, String verificationType = "registration"}) async =>
+      await guardedApiCall<String>(() => _remoteDataSource.resendVerificationCode(email: email, verificationType: verificationType), source: "resendVerificationCode", showNetworkError: true);
+
+  @override
+  Future<String> verifyBvn({required String bvnNumber}) async =>
+      await guardedApiCall<String>(() => _remoteDataSource.verifyBvn(bvnNumber: bvnNumber), source: "verifyBvn",showNetworkError: true);
+
+  @override
+  Future<String> verifyDocument({required String idImage, required String selfieImage, required String idCardType}) async =>
+      await guardedApiCall<String>(() => _remoteDataSource.verifyDocument(idImage: idImage, selfieImage: selfieImage, idCardType: idCardType), source: "verifyDocument",showNetworkError: true);
+
+  @override
+  Future<String> verifyEmail({required String email, required String verificationCode, String verificationType = "registration"}) async =>
+      await guardedApiCall<String>(() => _remoteDataSource.verifyEmail(email: email, verificationCode: verificationCode, verificationType: verificationType), source: "verifyEmail", showNetworkError: true);
+}

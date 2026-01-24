@@ -1,35 +1,44 @@
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
+import 'package:careplan/core/resources/color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../platform/color.dart';
 
-class Custom extends StatelessWidget implements PreferredSize {
+class CustomAppBar extends StatelessWidget implements PreferredSize {
   final String? title;
   final String? image;
   final Function()? onTap;
   final Widget? widget;
   final Color? color;
+  final Color? backButtonColor;
+  final bool showBackIcon;
 
-  Custom({this.title, this.image, this.onTap, this.color, this.widget});
+  CustomAppBar({this.title, this.image, this.onTap, this.color, this.widget, this.showBackIcon = true, this.backButtonColor});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 0),
       child: AppBar(
-        backgroundColor: newprojectColor.white,
+        backgroundColor: color ?? CarePlanColor.app_bar_color,
+        centerTitle:   true,
         elevation: 0.0,
+        leading: showBackIcon ? IconButton(
+          onPressed: onTap ?? () => router.pop(),
+          icon: Icon(Icons.chevron_left, color: backButtonColor ?? CarePlanColor.grey,)
+        ) : null,
         automaticallyImplyLeading: false,
         title: TextHolder(
           title: title ?? "",
-          size: 24,
-          color: newprojectColor.dark_blue,
+          size: 20,
+          color: CarePlanColor.grey,
           fontWeight: FontWeight.w600,
         ),
         actions: [
           widget ??
           GestureDetector(
-              onTap: onTap ,
+              onTap: onTap ?? () => router.pop(),
               child: SvgPicture.asset(
                 image ?? "assets/svg/back_button.svg",
                 height: 30,

@@ -78,7 +78,15 @@ class DeviceManager {
       address = await platform.invokeMethod(ChannelMethods.GET_IPADDRESS);
     } on PlatformException catch (e) {
       logger.e("Error trying to get the device ip address $e");
-      address;
+      // Return empty string if method channel is not implemented
+      address = "";
+    } on MissingPluginException catch (e) {
+      logger.e("Method channel plugin not found: $e");
+      // Return empty string if plugin is missing
+      address = "";
+    } catch (e) {
+      logger.e("Unexpected error getting IP address: $e");
+      address = "";
     }
     return address;
   }
