@@ -151,7 +151,7 @@ class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAlive
         children: [
           HomeScreen(),
           SelectAssementHistoryScreen(),
-          CareplanScreen(),
+          CarePlanScreen(),
           AccountScreen(),
         ],
       ),

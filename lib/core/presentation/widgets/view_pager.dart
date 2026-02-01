@@ -32,7 +32,7 @@ class ViewPagerHeader extends StatelessWidget {
           child: Center(
             child: TextHolder(
               title: title,
-              color:  Colors.black,
+              color: textColor ?? Colors.black,
               size: 16,
               fontWeight: FontWeight.w800,
             ),
