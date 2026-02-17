@@ -2,6 +2,8 @@ import 'package:get_it/get_it.dart';
 import 'package:careplan/core/di/core_di.dart';
 
 import '../../features/auth/domain/di/auth_injector.dart';
+import '../../features/appointment/domain/di/appointment_injector.dart';
+import '../../features/history/domain/di/history_injector.dart';
 
 GetIt inject = GetIt.instance;
 /// Registration of service dependencies with  service locator GetIt
@@ -10,4 +12,6 @@ GetIt inject = GetIt.instance;
 Future<void> initInjectors()  async {
   await coreInjector();
   await authInjector();
+  await appointmentInjector();
+  await historyInjector();
 }

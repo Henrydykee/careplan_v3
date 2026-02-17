@@ -1,72 +1,58 @@
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
+import 'package:careplan/core/presentation/widgets/web_view_screen.dart';
+import 'package:careplan/features/history/data/models/billing_history_item_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
-
-import '../data/mock_billing_data.dart';
-import 'billing_modal_sheet.dart';
+import 'package:intl/intl.dart';
 
 class BillingDetailScreen extends StatelessWidget {
-  final MockBillingHistory? billingHistoryData;
+  final BillingHistoryItemModel billingHistoryItem;
 
-  const BillingDetailScreen({super.key, this.billingHistoryData});
+  const BillingDetailScreen({super.key, required this.billingHistoryItem});
 
   @override
   Widget build(BuildContext context) {
-    final data = billingHistoryData ?? MockBillingData.billingHistory.first;
+    final data = billingHistoryItem;
+    final formattedDate = DateFormat('d MMM yyyy').format(data.date);
 
     return Scaffold(
       appBar: CustomAppBar(
         showBackIcon: true,
-        title: data.patientName ?? "Billing Details",
+        title: data.patient?.name ?? "Billing Details",
       ),
       body: Column(
         children: [
           const Gap(20),
-          if ((data.type?.toLowerCase() ?? "") != "no claim")
+          if (data.invoiceURL.isNotEmpty)
             InkWell(
-              onTap: () => billingModalBottomSheet(
-                context,
-                billingHistoryData: data,
-              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WebViewScreen(url: data.invoiceURL),
+                  ),
+                );
+              },
               child: _buildSummaryCard(
-                title: (data.type?.toLowerCase() ?? "") != "no claim"
-                    ? "Medicare Summary"
-                    : "No Rebate",
-                amount: "\$${data.totalAmount ?? 0}",
-                imagePath: (data.type?.toLowerCase() ?? "") != "no claim"
-                    ? "assets/images/medicare.png"
-                    : null,
+                title: "Invoice",
+                amount: "\$${data.amount}",
+                subtitle: formattedDate,
+                showChevron: true,
               ),
             ),
           const Gap(20),
-          if ((data.type?.toLowerCase() == "medicare") ||
-              (data.dateOfBilling?.isNotEmpty == true))
-            InkWell(
-              onTap: () {
-                if ((data.source?.toLowerCase() ?? "") == "session") {
-                  pinPaymentModalBottomSheet(
-                    context,
-                    billingHistoryData: data,
-                  );
-                } else {
-                  stripeModalBottomSheet(
-                    context,
-                    billingHistoryData: data,
-                  );
-                }
-              },
-              child: _buildSummaryCard(
-                title: "Bill Summary",
-                amount: "\$${data.totalCardAmount ?? 0}",
-                imagePath: (data.cardType?.toLowerCase() ?? "") == "mastercard"
-                    ? "assets/images/master_card.svg"
-                    : (data.cardType?.toLowerCase() ?? "") == "visa"
-                        ? "assets/images/visa_card.svg"
-                        : null,
-              ),
+          _buildInfoCard(
+            title: "Status",
+            value: data.status,
+          ),
+          if (data.sessionId != null) ...[
+            const Gap(20),
+            _buildInfoCard(
+              title: "Session ID",
+              value: data.sessionId!,
             ),
+          ],
         ],
       ),
     );
@@ -75,7 +61,8 @@ class BillingDetailScreen extends StatelessWidget {
   Widget _buildSummaryCard({
     required String title,
     required String amount,
-    String? imagePath,
+    String? subtitle,
+    bool showChevron = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -91,30 +78,73 @@ class BillingDetailScreen extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextHolder(
-                    title: title,
-                    color: const Color(0xFF68696C),
-                    fontWeight: FontWeight.w600,
-                    size: 14,
-                  ),
-                  const Gap(4),
-                  TextHolder(
-                    title: amount,
-                    color: const Color(0xFF68696C),
-                    fontWeight: FontWeight.w700,
-                    size: 18,
-                  ),
-                  const Gap(4),
-                  if (imagePath != null)
-                    imagePath.endsWith('.svg')
-                        ? SvgPicture.asset(imagePath)
-                        : Image.asset(imagePath),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextHolder(
+                      title: title,
+                      color: const Color(0xFF68696C),
+                      fontWeight: FontWeight.w600,
+                      size: 14,
+                    ),
+                    const Gap(4),
+                    TextHolder(
+                      title: amount,
+                      color: const Color(0xFF68696C),
+                      fontWeight: FontWeight.w700,
+                      size: 18,
+                    ),
+                    if (subtitle != null) ...[
+                      const Gap(4),
+                      TextHolder(
+                        title: subtitle,
+                        color: const Color(0xFF848588),
+                        fontWeight: FontWeight.w400,
+                        size: 12,
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              const Icon(Icons.chevron_right),
+              if (showChevron) const Icon(Icons.chevron_right),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard({
+    required String title,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextHolder(
+                title: title,
+                color: const Color(0xFF848588),
+                fontWeight: FontWeight.w500,
+                size: 14,
+              ),
+              TextHolder(
+                title: value,
+                color: const Color(0xFF4E4F51),
+                fontWeight: FontWeight.w600,
+                size: 14,
+              ),
             ],
           ),
         ),

@@ -150,8 +150,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const Gap(10),
-              // Upcoming Appointment - using mock data
-              UpcomingAppointmentWidget(),
+              // Upcoming Appointment - using real data
+              UpcomingAppointmentWidget(patientId: _user?.id),
               const Gap(40),
               Row(
                 children: [

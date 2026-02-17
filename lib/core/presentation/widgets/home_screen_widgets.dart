@@ -3,14 +3,19 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
+import 'package:careplan/features/appointment/data/models/appointment_model.dart';
+import 'package:careplan/features/appointment/presentation/pages/all_appointments_screen.dart';
+import 'package:careplan/features/appointment/presentation/state/appointment_provider.dart';
 import 'package:careplan/features/auth/data/model/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class K10ScoreHolder extends StatelessWidget {
   final String? k10Date;
@@ -201,205 +206,275 @@ class VerifyAccount extends StatelessWidget {
 
 
 
-class UpcomingAppointmentWidget extends StatelessWidget {
-  final UpcomingAppointment? upcomingAppointment;
+class UpcomingAppointmentWidget extends StatefulWidget {
+  final String? patientId;
 
-  const UpcomingAppointmentWidget({Key? key, this.upcomingAppointment})
-      : super(key: key);
+  const UpcomingAppointmentWidget({Key? key, this.patientId}) : super(key: key);
 
+  @override
+  State<UpcomingAppointmentWidget> createState() => _UpcomingAppointmentWidgetState();
+}
 
-  String? getTitle(String title){
-    print(title);
-    if(title.toLowerCase().contains("therapist")){
+class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.patientId != null && widget.patientId!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<AppointmentProvider>().fetchUpcomingAppointments(
+          patientId: widget.patientId!,
+          page: 1,
+          limit: 20,
+        );
+      });
+    }
+  }
+
+  String? getTitle(String? type) {
+    if (type == null) return "";
+    if (type.toLowerCase().contains("therapist")) {
       return "";
     }
-    if(title.toUpperCase() == "ADHD COACH"){
+    if (type.toUpperCase() == "ADHD COACH") {
       return "ADHD Coach ";
     }
     return "Dr. ";
   }
 
-  String? getProviderType(String type){
-    if(type.toUpperCase() == "MENTAL HEALTH NURSE"){
+  String? getProviderType(String? type) {
+    if (type == null) return "";
+    if (type.toUpperCase() == "MENTAL HEALTH NURSE") {
       return "Care Coordinator";
     }
     return type;
   }
 
-  // Mock appointment data
-  List<UpcomingAppointmentData> _getMockAppointments() {
-    final now = DateTime.now();
-    final nextWeek = now.add(Duration(days: 7));
-    final nextMonth = now.add(Duration(days: 30));
-    
-    return [
-      UpcomingAppointmentData(
-        providerName: "Jane Smith",
-        providerType: "Psychiatrist",
-        startTime: nextWeek.toIso8601String(),
-        endTime: nextWeek.add(Duration(hours: 1)).toIso8601String(),
-      ),
-      UpcomingAppointmentData(
-        providerName: "Michael Johnson",
-        providerType: "Therapist",
-        startTime: nextMonth.toIso8601String(),
-        endTime: nextMonth.add(Duration(hours: 1)).toIso8601String(),
-      ),
-    ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Use mock data if upcomingAppointment is null
-    final rawData = upcomingAppointment?.upcomingAppointmentData != null
-        ? [...upcomingAppointment!.upcomingAppointmentData!]
-        : _getMockAppointments();
-    
-    // Sort the data by date (newest first)
-    final data = _sortAppointmentsByDate(rawData);
-
-    if (data.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          decoration: BoxDecoration(
-            color: CarePlanColor.light_orange,
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(
-              color: CarePlanColor.orange.withOpacity(0.2),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 25),
-            child: Column(
-              children: [
-                SvgPicture.asset(Assets.calender),
-                TextHolder(
-                  title: "No Appointment",
-                  align: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: ListView.builder(
-        padding: EdgeInsets.zero,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: data.length > 5 ? 3 : data.length,
-        shrinkWrap: true,
-        itemBuilder: (c, i) {
-          final rawStartTime = data[i].startTime ?? "";
-          final rawEndTime = data[i].endTime ?? "";
-
-          DateTime? localStart;
-          DateTime? localEnd;
-
-          try {
-            // Parse ISO 8601 date-time strings (e.g., "2025-08-14T08:00:00.000Z")
-            final parsedStartTime = DateTime.parse(rawStartTime);
-            final parsedEndTime = DateTime.parse(rawEndTime);
-
-            // Convert to local timezone
-            localStart = parsedStartTime.toLocal();
-            localEnd = parsedEndTime.toLocal();
-          } catch (e) {
-            // Handle parsing errors gracefully
-            debugPrint("Error parsing date/time: $e");
-          }
-
-          final String month =
-          localStart != null ? DateFormat("MMM").format(localStart) : "";
-          final String day =
-          localStart != null ? DateFormat("dd").format(localStart) : "";
-          final String timeRange = (localStart != null && localEnd != null)
-              ? "${DateFormat.jm().format(localStart)} - ${DateFormat.jm().format(localEnd)}"
-              : "Time not available";
-
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: CarePlanColor.light_orange,
-              ),
-              child: Padding(
-                padding:
-                const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                child: Row(
-                  children: [
-                    Column(
-                      children: [
-                        TextHolder(
-                          title: month,
-                          color: CarePlanColor.grey,
-                          fontWeight: FontWeight.w500,
-                          size: 14,
-                        ),
-                        TextHolder(
-                          title: day,
-                          color: CarePlanColor.grey,
-                          fontWeight: FontWeight.w800,
-                          size: 24,
-                        ),
-                      ],
-                    ),
-                    const Gap(20),
-                    Container(width: 1, height: 50, color: const Color(0xFFEFE2CE)),
-                    const Gap(20),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextHolder(
-                          title: "${getTitle(data[i].providerType?.toString() ?? "")} ${data[i].providerName ?? ""}",
-                          color: CarePlanColor.grey,
-                          fontWeight: FontWeight.w800,
-                          size: 16,
-                        ),
-                        TextHolder(
-                          title: getProviderType(data[i].providerType?.toString() ?? ""),
-                          color: CarePlanColor.grey_2,
-                          fontWeight: FontWeight.w800,
-                          size: 14,
-                        ),
-                        const Gap(8),
-                        TextHolder(
-                          title: timeRange,
-                          color: CarePlanColor.brown,
-                          fontWeight: FontWeight.w800,
-                          size: 14,
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // Helper method to sort appointments by date (newest first)
-  List<UpcomingAppointmentData> _sortAppointmentsByDate(
-      List<UpcomingAppointmentData> appointments) {
+  List<AppointmentModel> _sortAppointmentsByDate(List<AppointmentModel> appointments) {
     return appointments
       ..sort((a, b) {
         try {
           final dateA = DateTime.parse(a.startTime ?? "");
           final dateB = DateTime.parse(b.startTime ?? "");
-          return dateB.compareTo(dateA); // Descending order (newest first)
+          return dateA.compareTo(dateB); // Ascending order (earliest first)
         } catch (e) {
           debugPrint("Error sorting appointments: $e");
-          return 0; // Maintain original order if parsing fails
+          return 0;
         }
       });
+  }
+
+  Widget _buildAppointmentItem(AppointmentModel appointment) {
+    final rawStartTime = appointment.startTime ?? "";
+    final rawEndTime = appointment.endTime ?? "";
+
+    DateTime? localStart;
+    DateTime? localEnd;
+
+    try {
+      final parsedStartTime = DateTime.parse(rawStartTime);
+      final parsedEndTime = DateTime.parse(rawEndTime);
+      localStart = parsedStartTime.toLocal();
+      localEnd = parsedEndTime.toLocal();
+    } catch (e) {
+      debugPrint("Error parsing date/time: $e");
+    }
+
+    final String month = localStart != null ? DateFormat("MMM").format(localStart) : "";
+    final String day = localStart != null ? DateFormat("dd").format(localStart) : "";
+    final String timeRange = (localStart != null && localEnd != null)
+        ? "${DateFormat.jm().format(localStart)} - ${DateFormat.jm().format(localEnd)}"
+        : "Time not available";
+
+    final providerName = appointment.provider?.name ?? "";
+    final providerType = appointment.provider?.type ?? "";
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: CarePlanColor.light_orange,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          child: Row(
+            children: [
+              Column(
+                children: [
+                  TextHolder(
+                    title: month,
+                    color: CarePlanColor.grey,
+                    fontWeight: FontWeight.w500,
+                    size: 14,
+                  ),
+                  TextHolder(
+                    title: day,
+                    color: CarePlanColor.grey,
+                    fontWeight: FontWeight.w800,
+                    size: 24,
+                  ),
+                ],
+              ),
+              const Gap(20),
+              Container(width: 1, height: 50, color: const Color(0xFFEFE2CE)),
+              const Gap(20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextHolder(
+                      title: "${getTitle(providerType)}$providerName",
+                      color: CarePlanColor.grey,
+                      fontWeight: FontWeight.w800,
+                      size: 16,
+                    ),
+                    TextHolder(
+                      title: getProviderType(providerType) ?? "",
+                      color: CarePlanColor.grey_2,
+                      fontWeight: FontWeight.w800,
+                      size: 14,
+                    ),
+                    const Gap(8),
+                    TextHolder(
+                      title: timeRange,
+                      color: CarePlanColor.brown,
+                      fontWeight: FontWeight.w800,
+                      size: 14,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AppointmentProvider>(
+      builder: (context, appointmentProvider, child) {
+        if (appointmentProvider.isLoading && appointmentProvider.appointments == null) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(CarePlanColor.brown),
+                ),
+              ),
+            ),
+          );
+        }
+
+        if (appointmentProvider.hasError && appointmentProvider.errorMessage.isNotEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(
+                color: CarePlanColor.light_orange,
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(
+                  color: Colors.red.withOpacity(0.2),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 25),
+                child: Column(
+                  children: [
+                    TextHolder(
+                      title: "Error loading appointments",
+                      color: Colors.red,
+                      size: 14,
+                      align: TextAlign.center,
+                    ),
+                    const Gap(5),
+                    TextHolder(
+                      title: appointmentProvider.errorMessage,
+                      color: CarePlanColor.grey,
+                      size: 12,
+                      align: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        final appointments = appointmentProvider.appointments?.appointments ?? [];
+        final sortedAppointments = _sortAppointmentsByDate([...appointments]);
+        final displayAppointments = sortedAppointments.take(2).toList();
+        final hasMoreAppointments = sortedAppointments.length > 2;
+
+        if (displayAppointments.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(
+                color: CarePlanColor.light_orange,
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(
+                  color: CarePlanColor.orange.withOpacity(0.2),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 25),
+                child: Column(
+                  children: [
+                    SvgPicture.asset(Assets.calender),
+                    const Gap(10),
+                    TextHolder(
+                      title: "No Appointment",
+                      align: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: displayAppointments.length,
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  return _buildAppointmentItem(displayAppointments[index]);
+                },
+              ),
+            ),
+            if (hasMoreAppointments)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: GestureDetector(
+                  onTap: () {
+                    router.push(AllAppointmentsScreen(patientId: widget.patientId));
+                  },
+                  child: Center(
+                      child: TextHolder(
+                        title: "See All",
+                        color: CarePlanColor.brown,
+                        fontWeight: FontWeight.w800,
+                        size: 16,
+                      ),
+                    ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
   }
 }
 

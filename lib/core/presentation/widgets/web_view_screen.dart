@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'app_bar.dart';
+import '../../resources/color.dart';
 import '../../platform/color.dart';
 
 class WebViewScreen extends StatefulWidget {
@@ -51,7 +52,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
           if (_isLoading)
             Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(newprojectColor.green),
+                valueColor: AlwaysStoppedAnimation<Color>(CarePlanColor.brown),
               ),
             ),
         ],

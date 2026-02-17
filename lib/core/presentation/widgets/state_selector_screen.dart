@@ -89,7 +89,9 @@ class _StateSelectorScreenState extends State<StateSelectorScreen> {
           Expanded(
             child: _isLoading
                 ? Center(
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(CarePlanColor.brown),
+                    ),
                   )
                 : _filteredStates.isEmpty
                     ? Center(

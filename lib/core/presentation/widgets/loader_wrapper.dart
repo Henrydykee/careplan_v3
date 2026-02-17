@@ -44,7 +44,7 @@ class _LoaderWrapperState extends State<LoaderWrapper> {
                   child: Platform.isIOS
                       ? CupertinoActivityIndicator(
                           radius: 20,
-                          color: CarePlanColor.orange,
+                          color: CarePlanColor.brown,
                         )
                       : SizedBox(
                           height: 40,
@@ -53,7 +53,7 @@ class _LoaderWrapperState extends State<LoaderWrapper> {
                             backgroundColor: newprojectColor.grey_4,
                             strokeWidth: 5,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              CarePlanColor.orange,
+                              CarePlanColor.brown,
                             ),
                           ),
                         ),

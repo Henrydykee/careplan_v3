@@ -1,5 +1,5 @@
 class AppointmentEndpoints {
-  static String getUpcomingAppointments = "appointments/patient";
+  static String getUpcomingAppointments = "patients";
 }
 
 
