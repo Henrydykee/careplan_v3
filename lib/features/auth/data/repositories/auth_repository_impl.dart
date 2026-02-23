@@ -31,6 +31,10 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
       await guardedApiCall<UserModel>(() => _remoteDataSource.loginUser(email: email, password: password), source: "loginUser" , showNetworkError: true);
 
   @override
+  Future<String> setPassword({required String newPassword}) async =>
+      await guardedApiCall<String>(() => _remoteDataSource.setPassword(newPassword: newPassword), source: "setPassword", showNetworkError: true);
+
+  @override
   Future<String> resendVerificationCode({required String email, String verificationType = "registration"}) async =>
       await guardedApiCall<String>(() => _remoteDataSource.resendVerificationCode(email: email, verificationType: verificationType), source: "resendVerificationCode", showNetworkError: true);
 
@@ -45,4 +49,16 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   @override
   Future<String> verifyEmail({required String email, required String verificationCode, String verificationType = "registration"}) async =>
       await guardedApiCall<String>(() => _remoteDataSource.verifyEmail(email: email, verificationCode: verificationCode, verificationType: verificationType), source: "verifyEmail", showNetworkError: true);
+
+  @override
+  Future<UserModel> getUserDetails() async =>
+      await guardedApiCall<UserModel>(() => _remoteDataSource.getUserDetails(), source: "getUserDetails", showNetworkError: true);
+
+  @override
+  Future<UserModel> updateProfile({required Map<String, dynamic> payload}) async =>
+      await guardedApiCall<UserModel>(() => _remoteDataSource.updateProfile(payload: payload), source: "updateProfile", showNetworkError: true);
+
+  @override
+  Future<String> updatePin({required String oldPin, required String newPin}) async =>
+      await guardedApiCall<String>(() => _remoteDataSource.updatePin(oldPin: oldPin, newPin: newPin), source: "updatePin", showNetworkError: true);
 }

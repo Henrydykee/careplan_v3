@@ -9,8 +9,13 @@ import 'package:intl/intl.dart';
 
 class EditPersonalProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
+  final Future<void> Function(Map<String, dynamic> personalData)? onSavePersonal;
 
-  const EditPersonalProfileScreen({super.key, this.userData});
+  const EditPersonalProfileScreen({
+    super.key,
+    this.userData,
+    this.onSavePersonal,
+  });
 
   @override
   State<EditPersonalProfileScreen> createState() =>
@@ -26,8 +31,18 @@ class _EditPersonalProfileScreenState extends State<EditPersonalProfileScreen> {
   late TextEditingController medicareController;
   late TextEditingController medicareIRNController;
 
+  static const List<String> _sexOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
+  String? _sex;
+
   DateTime? _date;
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
+  final DateFormat _displayDateFormat = DateFormat('d MMMM yyyy');
+
+  /// Strips Australian dial code (+61 / 61) so the prefix "+61 " is not duplicated in the field.
+  static String _phoneWithoutDialCode(String? phone) {
+    if (phone == null || phone.isEmpty) return '';
+    return phone.trim().replaceFirst(RegExp(r'^\+?61\s*'), '').trim();
+  }
 
   @override
   void initState() {
@@ -39,19 +54,22 @@ class _EditPersonalProfileScreenState extends State<EditPersonalProfileScreen> {
         TextEditingController(text: d['lastName'] ?? 'Smith');
     emailController =
         TextEditingController(text: d['email'] ?? 'john.smith@example.com');
+    final phoneDisplay = _phoneWithoutDialCode(d['phone']?.toString());
     phoneController =
-        TextEditingController(text: d['phone'] ?? '412345678');
-    dodController =
-        TextEditingController(text: d['dateOfBirth'] ?? '1990-01-15');
-    medicareController =
-        TextEditingController(text: d['medicareNum'] ?? '');
-    medicareIRNController =
-        TextEditingController(text: d['medicareReferralNumber'] ?? '1');
+        TextEditingController(text: phoneDisplay.isEmpty ? '412345678' : phoneDisplay);
     try {
       _date = _dateFormat.parse(d['dateOfBirth']?.toString() ?? '1990-01-15');
     } catch (_) {
       _date = DateTime(1990, 1, 15);
     }
+    dodController =
+        TextEditingController(text: _date != null ? _displayDateFormat.format(_date!) : '');
+    medicareController =
+        TextEditingController(text: d['medicareNum'] ?? '');
+    medicareIRNController =
+        TextEditingController(text: d['medicareReferralNumber'] ?? '1');
+    _sex = d['sex']?.toString().trim();
+    if (_sex != null && _sex!.isEmpty) _sex = null;
   }
 
   @override
@@ -84,16 +102,68 @@ class _EditPersonalProfileScreenState extends State<EditPersonalProfileScreen> {
     if (date != null) {
       setState(() {
         _date = date;
-        dodController.text = _dateFormat.format(date);
+        dodController.text = _displayDateFormat.format(date);
       });
     }
   }
 
-  void _onSave() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Profile updated")),
+  Widget _sexDropdown() {
+    final selected = _sex != null && _sexOptions.contains(_sex) ? _sex! : null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Sex",
+          style: TextStyle(
+            fontSize: 14,
+            color: CarePlanColor.brown,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const Gap(8),
+        InputDecorator(
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selected,
+              isExpanded: true,
+              hint: const Text("Select"),
+              items: _sexOptions
+                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                  .toList(),
+              onChanged: (v) => setState(() => _sex = v),
+            ),
+          ),
+        ),
+      ],
     );
-    router.pushAndRemoveUntil(const CarePlanNavBar(), (route) => false);
+  }
+
+  Future<void> _onSave() async {
+    final onSave = widget.onSavePersonal;
+    if (onSave == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile updated")),
+      );
+      router.pushAndRemoveUntil(const CarePlanNavBar(), (route) => false);
+      return;
+    }
+    final phoneRaw = phoneController.text.trim().replaceAll(RegExp(r'\s+'), '');
+    final phone = phoneRaw.isEmpty ? '' : (phoneRaw.startsWith('+') ? phoneRaw : '+61$phoneRaw');
+    final personalData = {
+      'firstName': firstNameController.text.trim(),
+      'lastName': lastNameController.text.trim(),
+      'email': emailController.text.trim(),
+      'phone': phone,
+      'dateOfBirth': _date != null ? _dateFormat.format(_date!) : null,
+      'medicareNum': medicareController.text.trim(),
+      'medicareReferralNumber': medicareIRNController.text.trim(),
+      'sex': _sex,
+    };
+    await onSave(personalData);
   }
 
   @override
@@ -147,6 +217,7 @@ class _EditPersonalProfileScreenState extends State<EditPersonalProfileScreen> {
                 title: "Individual Reference Number (IRN)",
                 controller: medicareIRNController,
               ),
+          
               const Gap(30),
               Padding(
                 padding: const EdgeInsets.only(bottom: 30),

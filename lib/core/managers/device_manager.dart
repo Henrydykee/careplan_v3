@@ -7,7 +7,6 @@ import '../../features/onboarding/data/models/registration_model.dart';
 import '../di/di_config.dart';
 import '../platform/storage/secured_storage.dart';
 import '../platform/string_constants.dart';
-import '../utils/logger.dart';
 import '../utils/string_utils.dart';
 
 class DeviceManager {
@@ -76,16 +75,11 @@ class DeviceManager {
     const platform = MethodChannel(MethodChannelNames.IPADDRESS);
     try {
       address = await platform.invokeMethod(ChannelMethods.GET_IPADDRESS);
-    } on PlatformException catch (e) {
-      logger.e("Error trying to get the device ip address $e");
-      // Return empty string if method channel is not implemented
+    } on PlatformException catch (_) {
       address = "";
-    } on MissingPluginException catch (e) {
-      logger.e("Method channel plugin not found: $e");
-      // Return empty string if plugin is missing
+    } on MissingPluginException catch (_) {
       address = "";
-    } catch (e) {
-      logger.e("Unexpected error getting IP address: $e");
+    } catch (_) {
       address = "";
     }
     return address;

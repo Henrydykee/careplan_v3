@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../../../../core/data/datasources/remote_datasource_base.dart';
 import '../../../../core/data/network/network_service.dart';
 import '../../../../core/data/network/network_service_response.dart';
+import '../models/card_model.dart';
 import 'endpoint.dart';
 
 abstract class CardRemoteDataSource extends RemoteDataSource {
@@ -13,7 +14,7 @@ abstract class CardRemoteDataSource extends RemoteDataSource {
     required String cardName,
     required String cardType,
   });
-  Future<String> getCard();
+  Future<List<CardModel>> getCards();
   Future<String> deleteCard({required String cardId});
   Future<String> markDefaultCard({required String cardId});
   Future<String> getStripeDetails({required String chargeId});
@@ -50,10 +51,17 @@ class CardRemoteDataSourceImpl implements CardRemoteDataSource {
   }
 
   @override
-  Future<String> getCard() async {
-    NetworkServiceResponse response = await _networkService.get(CardEndpoints.getCard);
+  Future<List<CardModel>> getCards() async {
+    NetworkServiceResponse response =
+        await _networkService.get(CardEndpoints.getCards);
     final data = handleNetworkResponse(response);
-    return jsonEncode(data);
+    final raw = data is Map<String, dynamic> && data.containsKey('data')
+        ? data['data']
+        : data;
+    final list = raw is List<dynamic> ? raw : <dynamic>[];
+    return list
+        .map((e) => CardModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override

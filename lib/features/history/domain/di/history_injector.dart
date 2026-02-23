@@ -6,6 +6,7 @@ import '../repositories/history_repository.dart';
 import '../usecases/history_usecases.dart';
 import '../usecases/get_billing_history.dart';
 import '../usecases/get_notes_history.dart';
+import '../usecases/get_session_history.dart';
 
 Future<void> historyInjector() async {
   inject.registerLazySingleton<HistoryRemoteDataSource>(
@@ -20,8 +21,12 @@ Future<void> historyInjector() async {
   inject.registerLazySingleton<GetNotesHistory>(
     () => GetNotesHistory(inject()),
   );
+  inject.registerLazySingleton<GetSessionHistory>(
+    () => GetSessionHistory(inject()),
+  );
   inject.registerLazySingleton<HistoryUseCases>(
     () => HistoryUseCases(
+      inject(),
       inject(),
       inject(),
     ),

@@ -61,7 +61,7 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
             padding: const EdgeInsets.only(bottom: 30),
             child: Column(
               children: [
-                newprojectKeyPad(onKeyPress: _valueEntered),
+                CarePlanKeyPad(onKeyPress: _valueEntered),
                 Gap(10),
                 InkWell(
                   onTap: () {

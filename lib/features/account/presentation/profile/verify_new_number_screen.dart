@@ -1,9 +1,12 @@
+import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
+import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/presentation/widgets/key_pad.dart';
 import 'package:careplan/core/presentation/widgets/pin_code_field.dart';
-import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
+import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
+import 'package:careplan/features/account/domain/usecases/verify_update_user_number.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -26,11 +29,24 @@ class _VerifyNewNumberScreenState extends State<VerifyNewNumberScreen> {
     super.dispose();
   }
 
-  void _onCodeVerified() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Number verified successfully")),
+  Future<void> _onCodeVerified(String code) async {
+    final result = await inject<VerifyUpdateUserNumber>().call(
+      VerifyUpdateUserNumberParams(otp: code),
     );
-    router.pushAndRemoveUntil(const CarePlanNavBar(), (route) => false);
+    if (!mounted) return;
+    result.fold(
+      (error) => showErrorDialog(
+        context,
+        "Verify Number Error",
+        error.message,
+      ),
+      (_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Number verified successfully")),
+        );
+        router.pushAndRemoveUntil(const CarePlanNavBar(), (route) => false);
+      },
+    );
   }
 
   void _valueEntered(String s) {
@@ -80,13 +96,11 @@ class _VerifyNewNumberScreenState extends State<VerifyNewNumberScreen> {
             newprojectPinCode(
               controller: _pinCodeController,
               ignoreTouch: true,
-              onCompleted: (code) {
-                _onCodeVerified();
-              },
+              onCompleted: (code) => _onCodeVerified(code),
             ),
             Column(
               children: [
-                newprojectKeyPad(onKeyPress: _valueEntered),
+                CarePlanKeyPad(onKeyPress: _valueEntered),
                 const SizedBox(height: 20),
                 const Gap(30),
                 const SizedBox(height: 50),

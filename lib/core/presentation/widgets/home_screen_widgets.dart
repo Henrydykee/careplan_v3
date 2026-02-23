@@ -2,6 +2,7 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
+import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
@@ -21,11 +22,13 @@ class K10ScoreHolder extends StatelessWidget {
   final String? k10Date;
   final String? score;
   final String? kycStatus;
+  final VoidCallback? onTakeTestTap;
 
   K10ScoreHolder({
     this.k10Date,
     this.kycStatus,
     this.score,
+    this.onTakeTestTap,
     required this.width,
   });
 
@@ -85,11 +88,11 @@ class K10ScoreHolder extends StatelessWidget {
                     ),
                     Gap(8),
                     CustomButtom(
-                      title: "Click Here",
+                      title: "Take test",
                       onTap: () {
-                        // Placeholder navigation
+                        onTakeTestTap?.call();
                       },
-                      btnColor: Colors.white.withOpacity(0.2),
+                      btnColor: CarePlanColor.orange,
                       textColor: Colors.white,
                     )
                   ],
@@ -361,10 +364,8 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
             child: Container(
               width: MediaQuery.of(context).size.width,
               padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(CarePlanColor.brown),
-                ),
+              child: const Center(
+                child: AppLoadingIndicator(),
               ),
             ),
           );

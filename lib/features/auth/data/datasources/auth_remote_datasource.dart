@@ -18,8 +18,10 @@ abstract class AuthenticationRemoteDataSource extends RemoteDataSource {
   Future<UserModel> loginUser({required String email, required String password});
   Future<UserModel> loginWithPin({required String email, required String pin});
   Future<String> setPin({required String pin});
+  Future<String> setPassword({required String newPassword});
   Future<String> verifyOtp({required String otp});
   Future<UserModel> getUserDetails();
+  Future<UserModel> updateProfile({required Map<String, dynamic> payload});
   Future<String> sendPasswordResetMail({required String email});
   Future<String> resetPassword({required String otp, required String password});
   Future<String> updatePassword({required String oldPassword, required String newPassword});
@@ -203,6 +205,16 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
   }
 
   @override
+  Future<String> setPassword({required String newPassword}) async {
+    NetworkServiceResponse response = await _networkService.patch(
+      AuthenticationEndpoints.setPassword,
+      body: {"newPassword": newPassword},
+    );
+    final data = handleNetworkResponse(response);
+    return data["message"] ?? jsonEncode(data);
+  }
+
+  @override
   Future<String> verifyOtp({required String otp}) async {
     NetworkServiceResponse response = await _networkService.patch(
       AuthenticationEndpoints.verifyOtp,
@@ -235,6 +247,14 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
     }
     
     return userModel;
+  }
+
+  @override
+  Future<UserModel> updateProfile({required Map<String, dynamic> payload}) async {
+    final response = await _networkService.patch(AuthenticationEndpoints.updateProfile, body: payload);
+    handleNetworkResponse(response);
+    // Fetch latest user (auth/me) and save to local storage
+    return getUserDetails();
   }
 
   @override

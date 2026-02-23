@@ -1,5 +1,4 @@
 // ignore_for_file: must_be_immutable
-import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/state_selector_screen.dart';
 import 'package:careplan/core/presentation/widgets/text_field.dart';
@@ -20,8 +19,13 @@ class MockAddress {
 class EditAddressScreen extends StatefulWidget {
   /// Optional; when null, mock data is used.
   final Map<String, dynamic>? addressData;
+  final Future<void> Function(Map<String, dynamic> addressData)? onSaveAddress;
 
-  const EditAddressScreen({super.key, this.addressData});
+  const EditAddressScreen({
+    super.key,
+    this.addressData,
+    this.onSaveAddress,
+  });
 
   @override
   State<EditAddressScreen> createState() => _EditAddressScreenState();
@@ -56,16 +60,27 @@ class _EditAddressScreenState extends State<EditAddressScreen> {
   }
 
   Future<void> _onSave() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Address updated")),
-    );
-    router.pushAndRemoveUntil(const CarePlanNavBar(), (route) => false);
+    final onSave = widget.onSaveAddress;
+    if (onSave == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Address updated")),
+      );
+      router.pushAndRemoveUntil(const CarePlanNavBar(), (route) => false);
+      return;
+    }
+    final addressData = {
+      'street': streetController.text.trim(),
+      'postalCode': postalCodeController.text.trim(),
+      'city': cityController.text.trim(),
+      'state': stateController.text.trim(),
+      'country': countryController.text.trim(),
+    };
+    await onSave(addressData);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(showBackIcon: true),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: SingleChildScrollView(

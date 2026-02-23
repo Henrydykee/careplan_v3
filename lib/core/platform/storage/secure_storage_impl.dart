@@ -1,8 +1,6 @@
 
 import 'package:careplan/core/platform/storage/secured_storage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../utils/logger.dart';
-
 
 class SecuredStorageImpl extends SecuredStorage {
   static final SecuredStorageImpl _singleton =
@@ -23,7 +21,7 @@ class SecuredStorageImpl extends SecuredStorage {
     try {
       value = await securedStorage.read(key: key);
     } catch (e) {
-      logger.e("Error retrieving data from secured storage");
+      // Error retrieving data from secured storage
     }
     return value;
   }
@@ -33,7 +31,7 @@ class SecuredStorageImpl extends SecuredStorage {
     try {
       await securedStorage.write(key: key, value: value);
     } catch (e) {
-      logger.e("Error persisting data to secured storage");
+      // Error persisting data to secured storage
     }
   }
 

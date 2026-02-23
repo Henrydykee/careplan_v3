@@ -1,4 +1,5 @@
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
+import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
@@ -174,10 +175,8 @@ class _AllAppointmentsScreenState extends State<AllAppointmentsScreen> {
       body: Consumer<AppointmentProvider>(
         builder: (context, appointmentProvider, child) {
           if (appointmentProvider.isLoading && appointmentProvider.appointments == null) {
-            return Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(CarePlanColor.brown),
-              ),
+            return const Center(
+              child: AppLoadingIndicator(),
             );
           }
 

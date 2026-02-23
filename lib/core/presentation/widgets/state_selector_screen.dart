@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
+import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
 import 'package:careplan/core/presentation/widgets/text_field.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/utils/color.dart';
@@ -69,83 +70,80 @@ class _StateSelectorScreenState extends State<StateSelectorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(
-        showBackIcon: true,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: CustomTextField(
-              controller: _searchController,
-              hinttitle: "Search states...",
-              title: "Search",
-              onchanged: (value) {
-                // Filter is handled by listener
-              },
+    return LoaderWrapper(
+      isLoading: _isLoading,
+      view: Scaffold(
+        appBar: CustomAppBar(
+          showBackIcon: true,
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: CustomTextField(
+                controller: _searchController,
+                hinttitle: "Search states...",
+                title: "Search",
+                onchanged: (value) {
+                  // Filter is handled by listener
+                },
+              ),
             ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(CarePlanColor.brown),
-                    ),
-                  )
-                : _filteredStates.isEmpty
-                    ? Center(
-                        child: TextHolder(
-                          title: "No states found",
-                          color: CarePlanColor.grey,
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: _filteredStates.length,
-                        itemBuilder: (context, index) {
-                          final state = _filteredStates[index];
-                          final name = state['name'] ?? '';
-                          final abbreviation = state['abbreviation'] ?? '';
+            Expanded(
+              child: _filteredStates.isEmpty
+                  ? Center(
+                      child: TextHolder(
+                        title: "No states found",
+                        color: CarePlanColor.grey,
+                      ),
+                    )
+                  : ListView.builder(
+                  itemCount: _filteredStates.length,
+                  itemBuilder: (context, index) {
+                    final state = _filteredStates[index];
+                    final name = state['name'] ?? '';
+                    final abbreviation = state['abbreviation'] ?? '';
 
-                          return InkWell(
-                            onTap: () => _selectState(name),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 16,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: TextHolder(
-                                      title: name,
-                                      size: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  TextHolder(
-                                    title: abbreviation,
-                                    size: 14,
-                                    color: CarePlanColor.grey,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ],
+                    return InkWell(
+                      onTap: () => _selectState(name),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.grey.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: TextHolder(
+                                title: name,
+                                size: 16,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                          );
-                        },
+                            TextHolder(
+                              title: abbreviation,
+                              size: 14,
+                              color: CarePlanColor.grey,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ],
+                        ),
                       ),
-          ),
-        ],
+                    );
+                  },
+                ),
+            ),
+          ],
+        ),
       ),
     );
   }

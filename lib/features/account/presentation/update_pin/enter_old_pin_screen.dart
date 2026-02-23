@@ -74,11 +74,12 @@ class _EnterOldPinScreenState extends State<EnterOldPinScreen> {
               onCompleted: (code) {
                 router.push(EnterNewPinScreen(oldPin: _oldPinController.text));
                 _oldPinController.clear();
+                setState(() {});
               },
             ),
             Column(
               children: [
-                newprojectKeyPad(onKeyPress: _valueEntered),
+                CarePlanKeyPad(onKeyPress: _valueEntered),
                 const SizedBox(height: 20),
                 const Gap(30),
                 const SizedBox(height: 50),

@@ -4,9 +4,6 @@ import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../di/di_config.dart';
-import '../utils/logger.dart';
-
-
 
 class BioMetricManager {
   static final BioMetricManager instance = BioMetricManager._internal();
@@ -21,7 +18,6 @@ class BioMetricManager {
     try {
       if (await localAuth.canCheckBiometrics) {
         List<BiometricType> biometrics = await localAuth.getAvailableBiometrics();
-        print(biometrics);
         if (biometrics.isNotEmpty) {
           inject<SharedPreferences>().setString("Biometric_Type", biometrics.toString());
           biometricType = biometrics.first;
@@ -29,7 +25,7 @@ class BioMetricManager {
         }
       }
     } catch (e) {
-      logger.e("Device unable to check biometric #checkAvailableBiometrics $e");
+      // Device unable to check biometric
     }
   }
 
@@ -81,7 +77,7 @@ class BioMetricManager {
             }
           }
         } catch (e) {
-          logger.e(e);
+          // Authentication failed
         }
       } else {
         // try {
@@ -100,11 +96,10 @@ class BioMetricManager {
         //     }
         //   }
         // } catch (e) {
-        //   logger.e(e);
         // }
       }
     } catch (e) {
-      logger.e("Error on #authenticateUser: $e");
+      // Error on authenticateUser
     }
     return requireAuthentication;
   }

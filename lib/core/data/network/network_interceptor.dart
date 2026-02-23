@@ -20,12 +20,15 @@ class NetworkInterceptor extends InterceptorsWrapper {
   /// Get token from storage
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    // final androidInfo = await deviceInfo?.androidInfo;
-    // final iosInfo = await deviceInfo?.iosInfo;
+    // Log full URL to verify you're hitting the same URL as in Postman
+    final fullUrl = options.uri.toString();
+    print("🌐 [REQUEST] Full URL: $fullUrl");
 
     var authToken = await inject<SecuredStorage>().get(key: SecureStorageStrings.TOKEN) ?? "";
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     final headers = {
+      "Accept": "application/json",
+      "Content-Type": "application/json",
       "Authorization": "Bearer ${authToken}",
       "build_number": packageInfo.buildNumber,
       "os_type": Platform.isAndroid
@@ -48,24 +51,26 @@ class NetworkInterceptor extends InterceptorsWrapper {
     networkConfigInterface = NetworkConfigImpl(headers: headers);
 
     options.headers.addAll(networkConfigInterface!.headers!);
-    // logger.i(logRequest(options));
     return super.onRequest(options, handler);
   }
 
   /// When error occurs, this interceptor handles it
   @override
-  void onError(
-    DioException err,
-    ErrorInterceptorHandler handler,
-  ) {
-    return super.onError(err, handler);
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    print("❌ [ERROR] ${err.requestOptions.method} ${err.requestOptions.uri}");
+    print("❌ Message: ${err.message}");
+
+    super.onError(err, handler);
   }
 
   /// When it returns a response this interceptor handles it
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    // logger.i(logResponse(response));
-    return super.onResponse(response, handler);
+    print("✅ [SUCCESS] ${response.requestOptions.method} ${response.requestOptions.uri}");
+    print("✅ Status: ${response.statusCode}");
+    print("✅ Data: ${response.data}");
+
+    super.onResponse(response, handler);
   }
 }
 

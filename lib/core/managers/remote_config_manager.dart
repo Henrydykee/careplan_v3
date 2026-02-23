@@ -1,6 +1,5 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import '../platform/env_config.dart';
-import '../utils/logger.dart';
 
 class RemoteConfigManager {
   static final RemoteConfigManager instance = new RemoteConfigManager._internal();
@@ -30,8 +29,6 @@ class RemoteConfigManager {
       await Future.delayed(const Duration(seconds: 1));
        await remoteConfig?.fetchAndActivate();
     } catch (e) {
-      logger.e("Firebase Remote Config initialization failed: $e");
-      // Continue without remote config if Firebase is not initialized
       remoteConfig = null;
     }
   }

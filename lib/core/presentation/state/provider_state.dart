@@ -1,8 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 
-import '../../utils/logger.dart';
-
-
 mixin class ProviderState<T> {
   bool hasError = false;
   bool isReady = false;
@@ -53,7 +50,7 @@ mixin class ProviderState<T> {
         callback();
       });
     } catch (e) {
-      logger.e("Connectivity not responding $e");
+      // Connectivity check failed
     }
   }
 

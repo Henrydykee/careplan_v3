@@ -1,17 +1,18 @@
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/key_pad.dart';
 import 'package:careplan/core/presentation/widgets/pin_code_field.dart';
-import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
+import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
-import 'package:careplan/features/nav_bar/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-class EnterNewPinScreen extends StatefulWidget {
-  final String? oldPin;
+import 'confirm_new_pin_screen.dart';
 
-  const EnterNewPinScreen({super.key, this.oldPin});
+class EnterNewPinScreen extends StatefulWidget {
+  final String oldPin;
+
+  const EnterNewPinScreen({super.key, required this.oldPin});
 
   @override
   State<EnterNewPinScreen> createState() => _EnterNewPinScreenState();
@@ -24,13 +25,6 @@ class _EnterNewPinScreenState extends State<EnterNewPinScreen> {
   void dispose() {
     _pinCodeController.dispose();
     super.dispose();
-  }
-
-  void _onPinSuccess() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("PIN updated successfully")),
-    );
-    router.pushAndRemoveUntil(const CarePlanNavBar(), (route) => false);
   }
 
   void _valueEntered(String s) {
@@ -81,12 +75,17 @@ class _EnterNewPinScreenState extends State<EnterNewPinScreen> {
               controller: _pinCodeController,
               ignoreTouch: true,
               onCompleted: (code) {
-                _onPinSuccess();
+                router.push(ConfirmNewPinScreen(
+                  oldPin: widget.oldPin,
+                  newPin: _pinCodeController.text,
+                ));
+                _pinCodeController.clear();
+                setState(() {});
               },
             ),
             Column(
               children: [
-                newprojectKeyPad(onKeyPress: _valueEntered),
+                CarePlanKeyPad(onKeyPress: _valueEntered),
                 const SizedBox(height: 20),
                 const Gap(30),
                 const SizedBox(height: 50),

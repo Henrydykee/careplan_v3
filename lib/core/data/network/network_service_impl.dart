@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 
 
 import '../../platform/env_config.dart';
-import '../../utils/logger.dart';
 import 'network_config.dart';
 import 'network_exceptions.dart';
 import 'network_interceptor.dart';
@@ -39,7 +38,7 @@ class NetworkServiceImpl implements NetworkService {
       _networkConfiguration = networkConfiguration!;
       registerInterceptor(interceptor!);
     } catch (e) {
-      logger.e("Error while registering interceptors");
+      // Error while registering interceptors
     }
   }
 
@@ -83,7 +82,6 @@ class NetworkServiceImpl implements NetworkService {
       return NetworkServiceResponse(
           result: NetworkResult.SUCCESS, data: response.data);
     } on DioException catch (e, trace) {
-      logger.e(e);
       return handleException(e, trace);
     }
   }
@@ -104,7 +102,6 @@ class NetworkServiceImpl implements NetworkService {
         data: response.data,
       );
     } on DioException catch (e, trace) {
-      logger.e(e);
       return handleException(e, trace);
     }
   }
@@ -127,7 +124,6 @@ class NetworkServiceImpl implements NetworkService {
         data: response.data,
       );
     } on DioException catch (e, trace) {
-      logger.e(e);
       return handleException(e, trace);
     }
   }
@@ -151,7 +147,6 @@ class NetworkServiceImpl implements NetworkService {
         data: response.data,
       );
     } on DioException catch (e, trace) {
-      logger.e(e);
       return handleException(e, trace);
     }
   }
@@ -174,7 +169,6 @@ class NetworkServiceImpl implements NetworkService {
         data: response.data,
       );
     } on DioException catch (e, trace) {
-      logger.e(e.message);
       return handleException(e, trace);
     }
   }

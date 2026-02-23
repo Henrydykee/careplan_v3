@@ -4,9 +4,11 @@ import '../../../../core/presentation/domain/ui_exceptions.dart';
 import '../../../../core/presentation/state/provider_state.dart';
 import '../../data/models/billing_history_response_model.dart';
 import '../../data/models/notes_history_response_model.dart';
+import '../../data/models/session_history_response_model.dart';
 import '../../domain/usecases/history_usecases.dart';
 import '../../domain/usecases/get_billing_history.dart';
 import '../../domain/usecases/get_notes_history.dart';
+import '../../domain/usecases/get_session_history.dart';
 
 class HistoryProvider with ChangeNotifier, ProviderState {
   final HistoryUseCases useCases;
@@ -15,9 +17,11 @@ class HistoryProvider with ChangeNotifier, ProviderState {
 
   BillingHistoryResponseModel? get billingHistory => _billingHistoryPayload;
   NotesHistoryResponseModel? get notesHistory => _notesHistoryPayload;
+  SessionHistoryResponseModel? get sessionHistory => _sessionHistoryPayload;
 
   BillingHistoryResponseModel? _billingHistoryPayload;
   NotesHistoryResponseModel? _notesHistoryPayload;
+  SessionHistoryResponseModel? _sessionHistoryPayload;
 
   void _setState({
     loading = false,
@@ -27,6 +31,7 @@ class HistoryProvider with ChangeNotifier, ProviderState {
     payload,
     billingHistoryPayload,
     notesHistoryPayload,
+    sessionHistoryPayload,
   }) {
     update(
       loading: loading,
@@ -40,6 +45,9 @@ class HistoryProvider with ChangeNotifier, ProviderState {
     }
     if (notesHistoryPayload != null) {
       _notesHistoryPayload = notesHistoryPayload;
+    }
+    if (sessionHistoryPayload != null) {
+      _sessionHistoryPayload = sessionHistoryPayload;
     }
     notifyListeners();
   }
@@ -138,6 +146,56 @@ class HistoryProvider with ChangeNotifier, ProviderState {
         errorMsg: 'Failed to fetch notes history. Please try again.',
         payload: null,
         notesHistoryPayload: null,
+      );
+    }
+  }
+
+  Future<void> fetchSessionHistory({
+    required String patientId,
+    int page = 1,
+    int limit = 10,
+  }) async {
+    _setState(
+      loading: true,
+      hasError: false,
+    );
+    notifyListeners();
+    Either<UIError, SessionHistoryResponseModel>? response =
+        await useCases.getSessionHistory(
+      GetSessionHistoryParams(
+        patientId: patientId,
+        page: page,
+        limit: limit,
+      ),
+    );
+    notifyListeners();
+    if (response != null) {
+      response.fold((l) {
+        _setState(
+          loading: false,
+          isReady: false,
+          hasError: true,
+          errorMsg: l.message,
+          payload: null,
+          sessionHistoryPayload: null,
+        );
+      }, (r) {
+        _setState(
+          loading: false,
+          isReady: true,
+          hasError: false,
+          payload: r,
+          sessionHistoryPayload: r,
+        );
+      });
+    } else {
+      _setState(
+        loading: false,
+        isReady: false,
+        hasError: true,
+        errorMsg: 'Failed to fetch care plan history. Please try again.',
+        payload: null,
+        sessionHistoryPayload: null,
       );
     }
   }

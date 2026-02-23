@@ -36,22 +36,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSize {
           fontWeight: FontWeight.w600,
         ),
         actions: [
-          widget ??
-          GestureDetector(
-              onTap: onTap ?? () => router.pop(),
-              child: SvgPicture.asset(
-                image ?? "assets/svg/back_button.svg",
-                height: 30,
-                width: 30,
-                colorFilter: ColorFilter.mode(
-                  color ?? newprojectColor.dark_blue,
-                  BlendMode.srcIn
-                ),
-              )),
+          widget ?? SizedBox(),
           SizedBox(
             width: 20,
           )
-          // Image.asset(Assets.search,height: 30,width: 30,color: EquityColor.dark_blue,)
         ],
       ),
     );

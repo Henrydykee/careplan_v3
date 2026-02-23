@@ -1,11 +1,16 @@
+import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/local_storage_service.dart';
+import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/core/utils/formatters.dart';
+import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/history/presentation/state/history_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
+import 'package:provider/provider.dart';
 
-import '../data/mock_billing_data.dart';
 import 'care_plan_summary_screen.dart';
 
 String _formatDate(String? dateStr) {
@@ -13,14 +18,59 @@ String _formatDate(String? dateStr) {
   return d.isNotEmpty ? d : "N/A";
 }
 
-class PreviousCareplanScreen extends StatelessWidget {
-  const PreviousCareplanScreen({super.key});
+class PreviousCareplanScreen extends StatefulWidget {
+  final String? patientId;
+
+  const PreviousCareplanScreen({super.key, this.patientId});
+
+  @override
+  State<PreviousCareplanScreen> createState() => _PreviousCareplanScreenState();
+}
+
+class _PreviousCareplanScreenState extends State<PreviousCareplanScreen> {
+  String? _patientId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPatientId();
+  }
+
+  Future<void> _loadPatientId() async {
+    if (widget.patientId != null && widget.patientId!.isNotEmpty) {
+      setState(() => _patientId = widget.patientId);
+      _fetchSessionHistory();
+      return;
+    }
+
+    try {
+      final localStorage = inject<LocalStorageService>();
+      final userJson = localStorage.getJson('user');
+      if (userJson != null) {
+        final user = UserModel.fromJson(userJson);
+        if (user.id != null && user.id!.isNotEmpty) {
+          setState(() => _patientId = user.id);
+          _fetchSessionHistory();
+        }
+      }
+    } catch (_) {}
+  }
+
+  void _fetchSessionHistory() {
+    if (_patientId != null && _patientId!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<HistoryProvider>().fetchSessionHistory(
+              patientId: _patientId!,
+              page: 1,
+              limit: 10,
+            );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final history = MockBillingData.carePlanHistory;
-
-    if (history.isEmpty) {
+    if (_patientId == null || _patientId!.isEmpty) {
       return Center(
         child: TextHolder(
           title: "You don't have any history",
@@ -29,19 +79,72 @@ class PreviousCareplanScreen extends StatelessWidget {
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
-      child: ListView.builder(
-        itemCount: history.length,
-        itemBuilder: (context, i) {
-          final item = history[i];
-          return _PreviousCareplanComponent(
-            date: _formatDate(item.createdAt),
-            id: item.sId,
-            doctorType: item.doctorType,
+    return Consumer<HistoryProvider>(
+      builder: (context, historyProvider, child) {
+        if (historyProvider.isLoading &&
+            historyProvider.sessionHistory == null) {
+          return const Center(
+            child: AppLoadingIndicator(),
           );
-        },
-      ),
+        }
+
+        if (historyProvider.hasError &&
+            historyProvider.sessionHistory == null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextHolder(
+                    title: "Error loading care plan history",
+                    color: Colors.red,
+                    size: 16,
+                  ),
+                  const Gap(10),
+                  TextHolder(
+                    title: historyProvider.errorMessage,
+                    color: CarePlanColor.grey,
+                    size: 14,
+                  ),
+                  const Gap(20),
+                  ElevatedButton(
+                    onPressed: _fetchSessionHistory,
+                    child: const Text("Retry"),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final history =
+            historyProvider.sessionHistory?.carePlanHistory ?? [];
+
+        if (history.isEmpty) {
+          return Center(
+            child: TextHolder(
+              title: "You don't have any history",
+              color: Colors.black,
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
+          child: ListView.builder(
+            itemCount: history.length,
+            itemBuilder: (context, i) {
+              final item = history[i];
+              return _PreviousCareplanComponent(
+                date: _formatDate(item.createdAt),
+                id: item.id,
+                doctorType: item.providerType,
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

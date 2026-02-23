@@ -1,5 +1,6 @@
 import '../../data/models/billing_history_response_model.dart';
 import '../../data/models/notes_history_response_model.dart';
+import '../../data/models/session_history_response_model.dart';
 
 abstract class HistoryRepository {
   Future<BillingHistoryResponseModel> getBillingHistory({
@@ -9,6 +10,12 @@ abstract class HistoryRepository {
   });
 
   Future<NotesHistoryResponseModel> getNotesHistory({
+    required String patientId,
+    int page = 1,
+    int limit = 10,
+  });
+
+  Future<SessionHistoryResponseModel> getSessionHistory({
     required String patientId,
     int page = 1,
     int limit = 10,

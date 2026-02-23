@@ -59,7 +59,7 @@ class _ConfrimPinScreenState extends State<ConfrimPinScreen> {
                     ),
                     Column(
                       children: [
-                newprojectKeyPad(onKeyPress: _valueEntered),
+                CarePlanKeyPad(onKeyPress: _valueEntered),
                         SizedBox(
                           height: 20,
                         ),

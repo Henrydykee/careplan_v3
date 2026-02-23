@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'app_bar.dart';
-import '../../resources/color.dart';
-import '../../platform/color.dart';
+import 'loader_wrapper.dart';
 
 class WebViewScreen extends StatefulWidget {
   final String url;
@@ -41,21 +40,14 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Web View',
-        showBackIcon: true,
-      ),
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _controller),
-          if (_isLoading)
-            Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(CarePlanColor.brown),
-              ),
-            ),
-        ],
+    return LoaderWrapper(
+      isLoading: _isLoading,
+      view: Scaffold(
+        appBar: CustomAppBar(
+          title: 'Web View',
+          showBackIcon: true,
+        ),
+        body: WebViewWidget(controller: _controller),
       ),
     );
   }

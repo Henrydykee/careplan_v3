@@ -3,8 +3,10 @@ class AuthenticationEndpoints {
   static String loginUser = "auth/login";
   static String loginWithPin = "auth/login-pin";
   static String setPin = "auth/set-pin";
+  static String setPassword = "auth/set-password";
   static String verifyOtp = "user/verify";
   static String getUserDetails = "auth/me";
+  static String updateProfile = "users/profile";
   static String sendPasswordResetMail = "user/send-otp";
   static String resetPassword = "user/password/reset";
   static String updatePassword = "user/update/password";

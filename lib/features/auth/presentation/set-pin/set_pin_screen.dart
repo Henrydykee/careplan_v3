@@ -62,7 +62,7 @@ class _SetPinScreenState extends State<SetPinScreen> {
             ),
             Column(
               children: [
-                newprojectKeyPad(onKeyPress: _valueEntered),
+                CarePlanKeyPad(onKeyPress: _valueEntered),
                 SizedBox(
                   height: 20,
                 ),

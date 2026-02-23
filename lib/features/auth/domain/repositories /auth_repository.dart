@@ -8,6 +8,7 @@ import '../../data/model/user_model.dart';
 
 abstract class AuthenticationRepository {
   Future<UserModel> loginUser({required String email, required String password});
+  Future<String> setPassword({required String newPassword});
   Future<String> verifyEmail({required String email, required String verificationCode, String verificationType = "registration"});
   Future<String> resendVerificationCode({required String email, String verificationType = "registration"});
   Future<String> verifyBvn({required String bvnNumber});
@@ -18,4 +19,7 @@ abstract class AuthenticationRepository {
   });
   Future<KycStatusResponse> getKycStatus();
   Future<String> CreateUser(CreateUserModel createUserModel);
+  Future<UserModel> getUserDetails();
+  Future<UserModel> updateProfile({required Map<String, dynamic> payload});
+  Future<String> updatePin({required String oldPin, required String newPin});
 }

@@ -1,48 +1,18 @@
 // ignore_for_file: must_be_immutable
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
+import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
+import 'package:careplan/features/card/data/models/card_model.dart';
+import 'package:careplan/features/card/presentation/state/card_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
+import 'package:provider/provider.dart';
 
 import 'add_card_screen.dart';
-
-/// Mock card data for list of cards screen.
-class MockCard {
-  final String id;
-  final String? cardType;
-  final String lastFourDigits;
-  final String expirationDate;
-  final bool isDefault;
-
-  MockCard({
-    required this.id,
-    this.cardType,
-    required this.lastFourDigits,
-    required this.expirationDate,
-    this.isDefault = false,
-  });
-}
-
-final List<MockCard> mockCards = [
-  MockCard(
-    id: '1',
-    cardType: 'VISA',
-    lastFourDigits: '4242',
-    expirationDate: '12/26',
-    isDefault: true,
-  ),
-  MockCard(
-    id: '2',
-    cardType: 'MASTERCARD',
-    lastFourDigits: '5555',
-    expirationDate: '06/27',
-    isDefault: false,
-  ),
-];
 
 class ListOfCardsScreen extends StatefulWidget {
   const ListOfCardsScreen({super.key});
@@ -52,31 +22,129 @@ class ListOfCardsScreen extends StatefulWidget {
 }
 
 class _ListOfCardsScreenState extends State<ListOfCardsScreen> {
-  late List<MockCard> _cards;
+  bool _initialFetchDone = false;
 
   @override
-  void initState() {
-    super.initState();
-    _cards = List.from(mockCards);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialFetchDone) {
+      _initialFetchDone = true;
+      context.read<CardProvider>().fetchCards();
+    }
   }
 
-  void _setAsDefault(MockCard card) {
-    setState(() {
-      _cards = _cards
-          .map((c) => MockCard(
-                id: c.id,
-                cardType: c.cardType,
-                lastFourDigits: c.lastFourDigits,
-                expirationDate: c.expirationDate,
-                isDefault: c.id == card.id,
-              ))
-          .toList();
-    });
-    Navigator.of(context).pop();
+  Future<void> _setAsDefault(BuildContext context, CardModel card) async {
+    final provider = context.read<CardProvider>();
+    final success = await provider.setDefaultCard(card.id);
+    if (success && context.mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
-  void _deleteCard(MockCard card) {
-    setState(() => _cards.removeWhere((c) => c.id == card.id));
+  Future<void> _deleteCard(BuildContext context, CardModel card) async {
+    final provider = context.read<CardProvider>();
+    final success = await provider.deleteCard(card.id);
+    if (success && context.mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _showDeleteCardModal(BuildContext context, CardModel card) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.credit_card_off_rounded,
+                  size: 36,
+                  color: Colors.red.shade700,
+                ),
+              ),
+              const Gap(20),
+              TextHolder(
+                title: "Remove this card?",
+                color: CarePlanColor.grey,
+                size: 20,
+                fontWeight: FontWeight.w700,
+              ),
+              const Gap(10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: CarePlanColor.light_orange,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextHolder(
+                      title: "**** ${card.lastFourDigits}",
+                      fontWeight: FontWeight.w800,
+                      color: CarePlanColor.brown,
+                      size: 16,
+                    ),
+                    TextHolder(
+                      title: " · ${card.cardType}",
+                      fontWeight: FontWeight.w500,
+                      color: CarePlanColor.brown,
+                      size: 14,
+                    ),
+                  ],
+                ),
+              ),
+              const Gap(14),
+              TextHolder(
+                title:
+                    "This card will be removed from your account.\nYou can add it again anytime.",
+                color: CarePlanColor.grey_3,
+                size: 14,
+                fontWeight: FontWeight.w400,
+                align: TextAlign.center,
+              ),
+              const Gap(24),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomButtom(
+                      title: "Cancel",
+                      btnColor: CarePlanColor.grey_5,
+                      textColor: CarePlanColor.grey,
+                      onTap: () => Navigator.of(dialogContext).pop(),
+                    ),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: CustomButtom(
+                      title: "Remove card",
+                      btnColor: Colors.red.shade700,
+                      textColor: Colors.white,
+                      onTap: () async {
+                        Navigator.of(dialogContext).pop();
+                        await _deleteCard(context, card);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -86,51 +154,73 @@ class _ListOfCardsScreenState extends State<ListOfCardsScreen> {
         showBackIcon: true,
         title: "Cards",
       ),
-      body: _cards.isEmpty
-          ? Center(
+      body: Consumer<CardProvider>(
+        builder: (context, cardProvider, _) {
+          if (cardProvider.isLoading && cardProvider.cards.isEmpty) {
+            return const Center(child: AppLoadingIndicator());
+          }
+          if (cardProvider.hasError && cardProvider.cards.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: TextHolder(
+                  title: cardProvider.errorMessage,
+                  color: Colors.black,
+                  align: TextAlign.center,
+                ),
+              ),
+            );
+          }
+          if (cardProvider.cards.isEmpty) {
+            return Center(
               child: TextHolder(
                 title: "You don't have any Card",
                 color: Colors.black,
               ),
-            )
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _cards.length,
-                    shrinkWrap: true,
-                    itemBuilder: (context, i) {
-                      final card = _cards[i];
-                      return _AddedCardWidget(
-                        card: card,
-                        onTapSetDefault: () =>
-                            _showSetDefaultModal(context, card),
-                        onTapDelete: () => _deleteCard(card),
-                      );
-                    },
-                  ),
+            );
+          }
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: cardProvider.cards.length,
+                  shrinkWrap: true,
+                  itemBuilder: (context, i) {
+                    final card = cardProvider.cards[i];
+                    return _AddedCardWidget(
+                      card: card,
+                      onTapSetDefault: () =>
+                          _showSetDefaultModal(context, card),
+                      onTapDelete: () => _showDeleteCardModal(context, card),
+                    );
+                  },
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                  child: CustomButtom(
-                    title: "Add Card",
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AddCardScreen(),
-                        ),
-                      );
-                      setState(() {});
-                    },
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                child: CustomButtom(
+                  title: "Add Card",
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddCardScreen(),
+                      ),
+                    );
+                    if (context.mounted) {
+                      context.read<CardProvider>().fetchCards();
+                    }
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
-  void _showSetDefaultModal(BuildContext context, MockCard card) {
+  void _showSetDefaultModal(BuildContext context, CardModel card) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -159,7 +249,7 @@ class _ListOfCardsScreenState extends State<ListOfCardsScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 25),
                   child: CustomButtom(
                     title: "Set as Default",
-                    onTap: () => _setAsDefault(card),
+                    onTap: () => _setAsDefault(context, card),
                   ),
                 ),
                 const Gap(30),
@@ -173,7 +263,7 @@ class _ListOfCardsScreenState extends State<ListOfCardsScreen> {
 }
 
 class _AddedCardWidget extends StatelessWidget {
-  final MockCard card;
+  final CardModel card;
   final VoidCallback? onTapSetDefault;
   final VoidCallback? onTapDelete;
 
@@ -262,8 +352,9 @@ class _AddedCardWidget extends StatelessWidget {
   }
 }
 
-String _getCardType(String? cardType) {
+String _getCardType(String cardType) {
   if (cardType == "VISA") return Assets.visa_card;
   if (cardType == "MASTERCARD") return Assets.master_card;
+  if (cardType == "AMEX") return Assets.visa_card;
   return "assets/images/card_placholder.svg";
 }

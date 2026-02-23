@@ -1,7 +1,5 @@
-import 'dart:io';
-import 'package:careplan/core/resources/color.dart';
+import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 
 import '../../platform/color.dart';
 
@@ -29,7 +27,7 @@ class _LoaderWrapperState extends State<LoaderWrapper> {
               color: newprojectColor.dark_blue.withOpacity(0.76),
               child: Center(
                 child: Container(
-                  padding: EdgeInsets.all(25),
+                  padding: const EdgeInsets.all(25),
                   decoration: BoxDecoration(
                     color: newprojectColor.white,
                     borderRadius: BorderRadius.circular(12),
@@ -41,22 +39,7 @@ class _LoaderWrapperState extends State<LoaderWrapper> {
                       ),
                     ],
                   ),
-                  child: Platform.isIOS
-                      ? CupertinoActivityIndicator(
-                          radius: 20,
-                          color: CarePlanColor.brown,
-                        )
-                      : SizedBox(
-                          height: 40,
-                          width: 40,
-                          child: CircularProgressIndicator(
-                            backgroundColor: newprojectColor.grey_4,
-                            strokeWidth: 5,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              CarePlanColor.brown,
-                            ),
-                          ),
-                        ),
+                  child: const AppLoadingIndicator(),
                 ),
               ),
             ),

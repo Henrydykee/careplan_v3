@@ -3,6 +3,7 @@ import '../../domain/repositories/history_repository.dart';
 import '../datasources/history_remote_datasource.dart';
 import '../models/billing_history_response_model.dart';
 import '../models/notes_history_response_model.dart';
+import '../models/session_history_response_model.dart';
 
 class HistoryRepositoryImpl implements HistoryRepository {
   final HistoryRemoteDataSource _remoteDataSource;
@@ -39,6 +40,23 @@ class HistoryRepositoryImpl implements HistoryRepository {
         limit: limit,
       ),
       source: "getNotesHistory",
+      showNetworkError: true,
+    );
+  }
+
+  @override
+  Future<SessionHistoryResponseModel> getSessionHistory({
+    required String patientId,
+    int page = 1,
+    int limit = 10,
+  }) async {
+    return await guardedApiCall<SessionHistoryResponseModel>(
+      () => _remoteDataSource.getSessionHistory(
+        patientId: patientId,
+        page: page,
+        limit: limit,
+      ),
+      source: "getSessionHistory",
       showNetworkError: true,
     );
   }

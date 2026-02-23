@@ -1,8 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/local_storage_service.dart';
+import 'package:careplan/core/platform/storage/secured_storage.dart';
+import 'package:careplan/core/platform/string_constants.dart';
+import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/account/presentation/card/list_of_cards_screen.dart';
+import 'package:careplan/features/auth/data/model/user_model.dart';
 import 'package:careplan/features/auth/presentation/login_flow/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -10,15 +15,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'profile/edit_profile_screen.dart';
 import 'settings_screen.dart';
-
-// Mock user data
-class MockUser {
-  static const String firstName = "John";
-  static const String lastName = "Smith";
-  static const String email = "john.smith@example.com";
-  static const String phone = "+1 234 567 8900";
-  static const String? imageUrl = null;
-}
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -34,11 +30,13 @@ class _AccountScreenState extends State<AccountScreen> {
     packageName: '',
     appName: '',
   );
+  UserModel? _user;
 
   @override
   void initState() {
     super.initState();
     _initPackageInfo();
+    _loadUserData();
   }
 
   Future<void> _initPackageInfo() async {
@@ -48,13 +46,93 @@ class _AccountScreenState extends State<AccountScreen> {
     });
   }
 
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("$feature - Coming Soon"),
-        duration: const Duration(seconds: 2),
+  Future<void> _loadUserData() async {
+    try {
+      final localStorage = inject<LocalStorageService>();
+      final userJson = localStorage.getJson('user');
+      if (userJson != null) {
+        try {
+          final loadedUser = UserModel.fromJson(userJson);
+          if (mounted) setState(() => _user = loadedUser);
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
+
+  void _showLogoutModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
       ),
+      builder: (sheetContext) {
+        return Wrap(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 25,
+                right: 25,
+                top: 20,
+                bottom: 28,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextHolder(
+                    title: "Log out?",
+                    color: CarePlanColor.brown,
+                    size: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  const Gap(10),
+                  TextHolder(
+                    title:
+                        "You will need to sign in again to access your account.",
+                    color: CarePlanColor.grey_3,
+                    size: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  const Gap(24),
+                  CustomButtom(
+                    title: "Cancel",
+                    btnColor: CarePlanColor.grey_5,
+                    textColor: CarePlanColor.grey,
+                    onTap: () => Navigator.of(sheetContext).pop(),
+                  ),
+                  const Gap(12),
+                  CustomButtom(
+                    title: "Log out",
+                    btnColor: Colors.red.shade700,
+                    textColor: Colors.white,
+                    onTap: () async {
+                      Navigator.of(sheetContext).pop();
+                      await _performLogout();
+                      if (context.mounted) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                              builder: (context) => LoginScreen()),
+                          (Route<dynamic> route) => false,
+                        );
+                      }
+                    },
+                  ),
+                  const Gap(30),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  Future<void> _performLogout() async {
+    final securedStorage = inject<SecuredStorage>();
+    await securedStorage.delete(key: SecureStorageStrings.TOKEN);
+    await securedStorage.delete(key: SecureStorageStrings.REFRESH_TOKEN);
+    await inject<LocalStorageService>().remove('user');
   }
 
   @override
@@ -66,12 +144,15 @@ class _AccountScreenState extends State<AccountScreen> {
         child: Column(
           children: [
             const Gap(50),
-            _AccountImageComponent(width: width),
+            _AccountImageComponent(width: width, user: _user),
             const Gap(30),
             AccountActionItems(
               title: "Profile Settings",
               subTitle: "Update or modify your profile",
-              onTap: () => router.push(EditProfileScreen()),
+              onTap: () async {
+                await router.push(EditProfileScreen());
+                _loadUserData();
+              },
             ),
             const Gap(10),
             AccountActionItems(
@@ -92,12 +173,7 @@ class _AccountScreenState extends State<AccountScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => LoginScreen()),
-                    (Route<dynamic> route) => false,
-                  );
-                },
+                onTap: () => _showLogoutModal(context),
                 child: Container(
                   width: MediaQuery.of(context).size.width,
                   decoration: BoxDecoration(
@@ -135,8 +211,25 @@ class _AccountScreenState extends State<AccountScreen> {
 
 class _AccountImageComponent extends StatelessWidget {
   final double width;
+  final UserModel? user;
 
-  const _AccountImageComponent({required this.width});
+  const _AccountImageComponent({required this.width, this.user});
+
+  String get _displayName {
+    if (user?.firstName != null || user?.lastName != null) {
+      return "${user?.firstName ?? ''} ${user?.lastName ?? ''}".trim();
+    }
+    return "User";
+  }
+
+  String get _displayEmail => user?.email ?? "";
+
+  String get _initials {
+    final first = user?.firstName?.isNotEmpty == true ? user!.firstName![0] : '';
+    final last = user?.lastName?.isNotEmpty == true ? user!.lastName![0] : '';
+    if (first.isNotEmpty || last.isNotEmpty) return "$first$last".toUpperCase();
+    return "?";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,27 +240,19 @@ class _AccountImageComponent extends StatelessWidget {
           backgroundColor: CarePlanColor.light_orange,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(50),
-            child: MockUser.imageUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: MockUser.imageUrl!,
-                    fit: BoxFit.cover,
-                    width: 100,
-                    height: 100,
-                    errorWidget: (context, url, error) => _buildInitials(),
-                  )
-                : _buildInitials(),
+            child: _buildInitials(),
           ),
         ),
         const Gap(15),
         TextHolder(
-          title: "${MockUser.firstName} ${MockUser.lastName}",
+          title: _displayName,
           fontWeight: FontWeight.w800,
           color: CarePlanColor.brown,
           size: 20,
         ),
         const Gap(5),
         TextHolder(
-          title: MockUser.email,
+          title: _displayEmail,
           fontWeight: FontWeight.w500,
           color: const Color(0xFF666666),
           size: 14,
@@ -183,7 +268,7 @@ class _AccountImageComponent extends StatelessWidget {
       color: CarePlanColor.light_orange,
       child: Center(
         child: TextHolder(
-          title: "${MockUser.firstName[0]}${MockUser.lastName[0]}",
+          title: _initials,
           fontWeight: FontWeight.w800,
           color: CarePlanColor.brown,
           size: 32,

@@ -1,11 +1,9 @@
 
 // ignore_for_file: unused_catch_stack
 
-import 'dart:developer';
 import '../../data/database/db_exceptions.dart';
 import '../../data/network/network_exceptions.dart';
 import '../error_helpers.dart';
-import '../logger.dart';
 
 /// Make an API call that internally handles exceptions. Throws a [NetworkFailure].
 ///
@@ -30,13 +28,8 @@ Future<T> guardedApiCall<T>(Function run, {String? source, bool showNetworkError
       errorCode: e.data,
     );
   } on NetworkConnectivityException catch (e, s) {
-   // inject<SentryManager>().reportError(error: e, stackTrace: s);
-   //  logger.e("Exception source >>>>> $source");
     throw NetworkFailure("Check your internet connection and try again");
   } catch (e, s) {
-    log(e.toString().toString());
-    // logger.e("Exception source >>>>> $source");
-    // logger.e("Exception stack trace >>>>> $s");
     throw NetworkFailure(showNetworkError ?  e.toString() : "Something went wrong, we are trying to fix it");
   }
 }
@@ -46,8 +39,6 @@ Future<T> guardedCacheAccess<T>(Function run, {String? source}) async {
     final val = await run() as T;
     return val;
   } catch (e, s) {
-    log("---------${e.toString()}");
-    logger.e("Exception source >>>>> $source");
     throw getCacheFailureFromDBFailure(
         DBFailure(
             "Sorry, error occurred while retrieving user data, please uninstall your app and reinstall. If this persist, contact support"),

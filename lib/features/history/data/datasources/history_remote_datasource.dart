@@ -3,6 +3,7 @@ import '../../../../core/data/network/network_service.dart';
 import '../../../../core/data/network/network_service_response.dart';
 import '../models/billing_history_response_model.dart';
 import '../models/notes_history_response_model.dart';
+import '../models/session_history_response_model.dart';
 import 'endpoint.dart';
 
 abstract class HistoryRemoteDataSource extends RemoteDataSource {
@@ -13,6 +14,12 @@ abstract class HistoryRemoteDataSource extends RemoteDataSource {
   });
 
   Future<NotesHistoryResponseModel> getNotesHistory({
+    required String patientId,
+    int page = 1,
+    int limit = 10,
+  });
+
+  Future<SessionHistoryResponseModel> getSessionHistory({
     required String patientId,
     int page = 1,
     int limit = 10,
@@ -40,7 +47,7 @@ class HistoryRemoteDataSourceImpl implements HistoryRemoteDataSource {
     };
 
     NetworkServiceResponse response = await _networkService.get(
-      "${HistoryEndpoints.getBillingHistory}/$patientId/billing",
+      HistoryEndpoints.getBillingHistory(patientId),
       queryParameters: queryParameters,
     );
 
@@ -67,7 +74,7 @@ class HistoryRemoteDataSourceImpl implements HistoryRemoteDataSource {
     };
 
     NetworkServiceResponse response = await _networkService.get(
-      "${HistoryEndpoints.getNotesHistory}/$patientId/notes",
+      HistoryEndpoints.getNotesHistory(patientId),
       queryParameters: queryParameters,
     );
 
@@ -80,5 +87,30 @@ class HistoryRemoteDataSourceImpl implements HistoryRemoteDataSource {
 
     // Fallback: if data is already the notes history data structure
     return NotesHistoryResponseModel.fromJson(data as Map<String, dynamic>);
+  }
+
+  @override
+  Future<SessionHistoryResponseModel> getSessionHistory({
+    required String patientId,
+    int page = 1,
+    int limit = 10,
+  }) async {
+    final queryParameters = {
+      'page': page,
+      'limit': limit,
+    };
+
+    NetworkServiceResponse response = await _networkService.get(
+      HistoryEndpoints.getSessionHistory(patientId),
+      queryParameters: queryParameters,
+    );
+
+    final data = handleNetworkResponse(response);
+
+    if (data is Map<String, dynamic> && data.containsKey('data')) {
+      return SessionHistoryResponseModel.fromJson(
+          data['data'] as Map<String, dynamic>);
+    }
+    return SessionHistoryResponseModel.fromJson(data as Map<String, dynamic>);
   }
 }
