@@ -9,6 +9,7 @@ class UserModel {
     this.isOtpVerified,
     this.type,
     this.multiFactorAuth,
+    this.isPinSet,
     this.createdAt,
     this.city,
     this.country,
@@ -43,6 +44,7 @@ class UserModel {
   final bool? isOtpVerified;
   final String? type;
   final bool? multiFactorAuth;
+  final bool? isPinSet;
   final String? createdAt;
   final String? city;
   final String? country;
@@ -78,6 +80,7 @@ class UserModel {
       isOtpVerified: json['isOtpVerified'] as bool?,
       type: json['type'] as String?,
       multiFactorAuth: json['multiFactorAuth'] as bool?,
+      isPinSet: json['isPinSet'] as bool?,
       createdAt: json['createdAt'] as String?,
       city: json['city'] as String?,
       country: json['country'] as String?,
@@ -122,6 +125,7 @@ class UserModel {
       'isOtpVerified': isOtpVerified,
       'type': type,
       'multiFactorAuth': multiFactorAuth,
+      'isPinSet': isPinSet,
       'createdAt': createdAt,
       'city': city,
       'country': country,

@@ -5,6 +5,7 @@ import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/core/utils/formatters.dart';
 import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/history/data/models/care_plan_history_item_model.dart';
 import 'package:careplan/features/history/presentation/state/history_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -137,8 +138,8 @@ class _PreviousCareplanScreenState extends State<PreviousCareplanScreen> {
             itemBuilder: (context, i) {
               final item = history[i];
               return _PreviousCareplanComponent(
+                item: item,
                 date: _formatDate(item.createdAt),
-                id: item.id,
                 doctorType: item.providerType,
               );
             },
@@ -150,13 +151,13 @@ class _PreviousCareplanScreenState extends State<PreviousCareplanScreen> {
 }
 
 class _PreviousCareplanComponent extends StatelessWidget {
+  final CarePlanHistoryItemModel item;
   final String? date;
-  final String? id;
   final String? doctorType;
 
   const _PreviousCareplanComponent({
+    required this.item,
     this.date,
-    this.id,
     this.doctorType,
   });
 
@@ -167,7 +168,7 @@ class _PreviousCareplanComponent extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CareplanSummaryScreen(careplanId: id),
+            builder: (context) => CareplanSummaryScreen(carePlan: item),
           ),
         );
       },

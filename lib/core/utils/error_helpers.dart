@@ -1,7 +1,5 @@
-
-
-
-
+import 'package:careplan/core/presentation/widgets/router.dart';
+import 'package:careplan/features/auth/presentation/login_flow/welcome_back_screen.dart';
 
 import '../data/database/db_exceptions.dart';
 import '../data/network/network_exceptions.dart';
@@ -64,6 +62,12 @@ NetworkFailure getNetworkFailureFromApiFailure(
 }) {
   String? exceptionMessage = exception!.exceptionMessage;
   if (exceptionMessage != null) {
+
+    if (exceptionMessage == 'Unauthorized') {
+      router.push(
+        const WelcomeBackScreen(fromUnauthorized: true),
+      );
+    }
 
     // bugsnag.notify(exceptionMessage, stackTrace);
     // bugsnag.addOnError((event) {

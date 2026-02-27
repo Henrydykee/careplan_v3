@@ -13,6 +13,7 @@ class CarePlanHistoryItemModel {
   final TherapyModel? therapy;
   final String? homework;
   final String? abilityToCope;
+  final StressorsModel? stressors;
 
   CarePlanHistoryItemModel({
     this.type,
@@ -29,6 +30,7 @@ class CarePlanHistoryItemModel {
     this.therapy,
     this.homework,
     this.abilityToCope,
+    this.stressors,
   });
 
   factory CarePlanHistoryItemModel.fromJson(Map<String, dynamic> json) {
@@ -54,6 +56,9 @@ class CarePlanHistoryItemModel {
           : null,
       homework: json['homework'] as String?,
       abilityToCope: json['abilityToCope'] as String?,
+      stressors: json['stressors'] != null
+          ? StressorsModel.fromJson(json['stressors'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -73,6 +78,7 @@ class CarePlanHistoryItemModel {
       'therapy': therapy?.toJson(),
       'homework': homework,
       'abilityToCope': abilityToCope,
+      'stressors': stressors?.toJson(),
     };
   }
 }
@@ -131,6 +137,58 @@ class TherapyModel {
       'hasCBT': hasCBT,
       'otherIntervention': otherIntervention,
       'hasSafetyPlanning': hasSafetyPlanning,
+      '_id': id,
+    };
+  }
+}
+
+class StressorsModel {
+  final bool? relationship;
+  final bool? work;
+  final bool? finances;
+  final bool? physicalHealth;
+  final bool? school;
+  final bool? alcohol;
+  final bool? trauma;
+  final bool? housing;
+  final String? id;
+
+  StressorsModel({
+    this.relationship,
+    this.work,
+    this.finances,
+    this.physicalHealth,
+    this.school,
+    this.alcohol,
+    this.trauma,
+    this.housing,
+    this.id,
+  });
+
+  factory StressorsModel.fromJson(Map<String, dynamic> json) {
+    return StressorsModel(
+      relationship: json['relationship'] as bool?,
+      work: json['work'] as bool?,
+      finances: json['finances'] as bool?,
+      physicalHealth: json['physicalHealth'] as bool?,
+      school: json['school'] as bool?,
+      alcohol: json['alcohol'] as bool?,
+      trauma: json['trauma'] as bool?,
+      housing: json['housing'] as bool?,
+      id: json['_id'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'relationship': relationship,
+      'work': work,
+      'finances': finances,
+      'physicalHealth': physicalHealth,
+      'school': school,
+      'alcohol': alcohol,
+      'trauma': trauma,
+      'housing': housing,
       '_id': id,
     };
   }

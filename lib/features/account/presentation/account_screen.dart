@@ -283,6 +283,7 @@ class AccountActionItems extends StatelessWidget {
   final String? subTitle;
   final Color? color;
   final Function? onTap;
+  final Widget? trailing;
 
   const AccountActionItems({
     super.key,
@@ -290,6 +291,7 @@ class AccountActionItems extends StatelessWidget {
     this.subTitle,
     this.color,
     this.onTap,
+    this.trailing,
   });
 
   @override
@@ -326,7 +328,7 @@ class AccountActionItems extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Icon(Icons.chevron_right),
+                trailing ?? const Icon(Icons.chevron_right),
               ],
             ),
           ),

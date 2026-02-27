@@ -1,4 +1,5 @@
 import '../../data/models/billing_history_response_model.dart';
+import '../../data/models/care_plan_history_item_model.dart';
 import '../../data/models/notes_history_response_model.dart';
 import '../../data/models/session_history_response_model.dart';
 
@@ -19,5 +20,9 @@ abstract class HistoryRepository {
     required String patientId,
     int page = 1,
     int limit = 10,
+  });
+
+  Future<CarePlanHistoryItemModel?> getCurrentCarePlan({
+    required String patientId,
   });
 }

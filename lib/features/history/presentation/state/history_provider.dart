@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import '../../../../core/presentation/domain/ui_exceptions.dart';
 import '../../../../core/presentation/state/provider_state.dart';
 import '../../data/models/billing_history_response_model.dart';
+import '../../data/models/care_plan_history_item_model.dart';
 import '../../data/models/notes_history_response_model.dart';
 import '../../data/models/session_history_response_model.dart';
-import '../../domain/usecases/history_usecases.dart';
 import '../../domain/usecases/get_billing_history.dart';
+import '../../domain/usecases/get_current_careplan.dart';
 import '../../domain/usecases/get_notes_history.dart';
 import '../../domain/usecases/get_session_history.dart';
+import '../../domain/usecases/history_usecases.dart';
 
 class HistoryProvider with ChangeNotifier, ProviderState {
   final HistoryUseCases useCases;
@@ -18,10 +20,12 @@ class HistoryProvider with ChangeNotifier, ProviderState {
   BillingHistoryResponseModel? get billingHistory => _billingHistoryPayload;
   NotesHistoryResponseModel? get notesHistory => _notesHistoryPayload;
   SessionHistoryResponseModel? get sessionHistory => _sessionHistoryPayload;
+  CarePlanHistoryItemModel? get currentCarePlan => _currentCarePlan;
 
   BillingHistoryResponseModel? _billingHistoryPayload;
   NotesHistoryResponseModel? _notesHistoryPayload;
   SessionHistoryResponseModel? _sessionHistoryPayload;
+  CarePlanHistoryItemModel? _currentCarePlan;
 
   void _setState({
     loading = false,
@@ -32,6 +36,7 @@ class HistoryProvider with ChangeNotifier, ProviderState {
     billingHistoryPayload,
     notesHistoryPayload,
     sessionHistoryPayload,
+    currentCarePlanPayload,
   }) {
     update(
       loading: loading,
@@ -48,6 +53,9 @@ class HistoryProvider with ChangeNotifier, ProviderState {
     }
     if (sessionHistoryPayload != null) {
       _sessionHistoryPayload = sessionHistoryPayload;
+    }
+    if (currentCarePlanPayload != null || payload is CarePlanHistoryItemModel?) {
+      _currentCarePlan = currentCarePlanPayload ?? payload as CarePlanHistoryItemModel?;
     }
     notifyListeners();
   }
@@ -196,6 +204,52 @@ class HistoryProvider with ChangeNotifier, ProviderState {
         errorMsg: 'Failed to fetch care plan history. Please try again.',
         payload: null,
         sessionHistoryPayload: null,
+      );
+    }
+  }
+
+  Future<void> fetchCurrentCarePlan({
+    required String patientId,
+  }) async {
+    _setState(
+      loading: true,
+      hasError: false,
+    );
+    notifyListeners();
+    Either<UIError, CarePlanHistoryItemModel?>? response =
+        await useCases.getCurrentCarePlan(
+      GetCurrentCarePlanParams(
+        patientId: patientId,
+      ),
+    );
+    notifyListeners();
+    if (response != null) {
+      response.fold((l) {
+        _setState(
+          loading: false,
+          isReady: false,
+          hasError: true,
+          errorMsg: l.message,
+          payload: null,
+          currentCarePlanPayload: null,
+        );
+      }, (r) {
+        _setState(
+          loading: false,
+          isReady: true,
+          hasError: false,
+          payload: r,
+          currentCarePlanPayload: r,
+        );
+      });
+    } else {
+      _setState(
+        loading: false,
+        isReady: false,
+        hasError: true,
+        errorMsg: 'Failed to fetch current care plan. Please try again.',
+        payload: null,
+        currentCarePlanPayload: null,
       );
     }
   }

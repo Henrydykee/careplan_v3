@@ -1,34 +1,26 @@
 import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/biometric_manager.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
+import 'package:careplan/core/platform/string_constants.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/presentation/widgets/key_pad.dart';
 import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
 import 'package:careplan/core/presentation/widgets/pin_code_field.dart';
-import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/utils/color.dart';
 import 'package:careplan/features/auth/domain/usecases/login_with_pin.dart';
-import 'package:careplan/features/getting_started/get_started_screen.dart';
-import 'package:careplan/features/nav_bar/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-class WelcomeBackScreen extends StatefulWidget {
-  final String? firstName;
-  final bool fromUnauthorized;
-
-  const WelcomeBackScreen({
-    super.key,
-    this.firstName,
-    this.fromUnauthorized = false,
-  });
+class EnableBiometricScreen extends StatefulWidget {
+  const EnableBiometricScreen({super.key});
 
   @override
-  _WelcomeBackScreenState createState() => _WelcomeBackScreenState();
+  State<EnableBiometricScreen> createState() => _EnableBiometricScreenState();
 }
 
-class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
+class _EnableBiometricScreenState extends State<EnableBiometricScreen> {
   TextEditingController? _pinCodeController;
   bool _isLoading = false;
 
@@ -43,7 +35,10 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
     return LoaderWrapper(
       isLoading: _isLoading,
       view: Scaffold(
-        appBar: CustomAppBar(),
+        appBar: CustomAppBar(
+          showBackIcon: true,
+          title: "Enable biometric login",
+        ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -53,15 +48,15 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Gap(10),
                   TextHolder(
-                    title:
-                        "Welcome back, ${widget.firstName?.isNotEmpty == true ? widget.firstName : "User"}! 👋",
+                    title: "Confirm your PIN",
                     size: 18,
                     fontWeight: FontWeight.w800,
                   ),
-                  Gap(10),
+                  const Gap(10),
                   TextHolder(
-                    title: "Enter your PIN to log in",
+                    title: "Enter your login PIN to turn on biometric login.",
                     size: 15,
                     fontWeight: FontWeight.w500,
                     color: CarePlanColor.grey,
@@ -78,38 +73,17 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
               child: Column(
                 children: [
                   CarePlanKeyPad(onKeyPress: _valueEntered),
-                  Gap(10),
-                  InkWell(
-                    onTap: () {
-                      router.pushAndRemoveUntil(
-                          GetStartedScreen(), (route) => false);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          color: CarePlanColor.light_orange),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        child: TextHolder(
-                          title:
-                              "No, I am not ${widget.firstName?.isNotEmpty == true ? widget.firstName : "User"}!",
-                          fontWeight: FontWeight.w800,
-                          color: CarePlanColor.brown,
-                        ),
-                      ),
-                    ),
-                  )
+                  const Gap(10),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  _valueEntered(String s) {
+  void _valueEntered(String s) {
     if (s.toLowerCase() == 'clear') {
       _pinCodeController?.text = '';
       return;
@@ -118,7 +92,8 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
       final currentText = _pinCodeController?.text;
       if (currentText == null || currentText.isEmpty) return;
       if (currentText.length == 1) _pinCodeController?.text = '';
-      _pinCodeController?.text = currentText.substring(0, currentText.length - 1);
+      _pinCodeController?.text =
+          currentText.substring(0, currentText.length - 1);
       return;
     }
     if (_pinCodeController?.text.length != 4) {
@@ -132,12 +107,13 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
     final email = userJson?['email'] as String?;
 
     if (email == null || email.isEmpty) {
+      if (!mounted) return;
       showErrorDialog(
         context,
-        "Login Error",
+        "Error",
         "We couldn't find your email. Please log in again.",
       );
-      router.pushAndRemoveUntil(GetStartedScreen(), (route) => false);
+      Navigator.of(context).pop(false);
       return;
     }
 
@@ -146,19 +122,23 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
         .call(LoginWithPinParams(email: email, pin: code));
     if (!mounted) return;
     setState(() => _isLoading = false);
+
     result.fold(
-      (error) =>
-          showErrorDialog(context, "Login Error", error.message),
-      (_) {
-        if (widget.fromUnauthorized) {
-          router.pop(true);
-        } else {
-          router.pushAndRemoveUntil(
-            CarePlanNavBar(),
-            (route) => false,
-          );
+      (error) {
+        showErrorDialog(context, "Login Error", error.message);
+      },
+      (_) async {
+        // Store biometric preferences and PIN for future biometric login
+        await localStorage.setBool(SPref.BIOMETRIC, true);
+        await localStorage.setString('biometric_pin', code);
+        await localStorage.setString('biometric_email', email);
+        BioMetricManager().enableBiometric(true);
+
+        if (mounted) {
+          Navigator.of(context).pop(true);
         }
       },
     );
   }
 }
+

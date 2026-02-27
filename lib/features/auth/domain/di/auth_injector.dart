@@ -9,8 +9,10 @@ import '../usecases/create_user.dart';
 import '../usecases/get_kyc_status.dart';
 import '../usecases/get_user_details.dart';
 import '../usecases/login_user.dart';
+import '../usecases/login_with_pin.dart';
 import '../usecases/resend_verification_code.dart';
 import '../usecases/set_password.dart';
+import '../usecases/set_pin.dart';
 import '../usecases/update_pin.dart';
 import '../usecases/update_profile.dart';
 import '../usecases/verify_bvn.dart';
@@ -25,8 +27,10 @@ Future<void> authInjector() async {
   inject.registerLazySingleton<GetKycStatus>(() => GetKycStatus(inject()));
   inject.registerLazySingleton<GetUserDetails>(() => GetUserDetails(inject()));
   inject.registerLazySingleton<LoginUser>(() => LoginUser(inject()));
+  inject.registerLazySingleton<LoginWithPin>(() => LoginWithPin(inject()));
   inject.registerLazySingleton<ResendVerificationCode>(() => ResendVerificationCode(inject()));
   inject.registerLazySingleton<SetPassword>(() => SetPassword(inject()));
+  inject.registerLazySingleton<SetPin>(() => SetPin(inject()));
   inject.registerLazySingleton<UpdatePin>(() => UpdatePin(inject()));
   inject.registerLazySingleton<UpdateProfile>(() => UpdateProfile(inject()));
   inject.registerLazySingleton<VerifyDocument>(() => VerifyDocument(inject()));
@@ -34,16 +38,18 @@ Future<void> authInjector() async {
   inject.registerLazySingleton<VerifyEmail>(() => VerifyEmail(inject()));
 
   inject.registerLazySingleton<AuthenticationUseCases>(() => AuthenticationUseCases(
-        inject(),
-        inject(),
-        inject(),
-        inject(),
-        inject(),
-        inject(),
-        inject(),
-        inject(),
-        inject(),
-        inject(),
-        inject(),
+        inject(), // createUser
+        inject(), // getKycStatus
+        inject(), // getUserDetails
+        inject(), // loginUser
+        inject(), // loginWithPin
+        inject(), // resendVerificationCode
+        inject(), // setPassword
+        inject(), // setPin
+        inject(), // updatePin
+        inject(), // updateProfile
+        inject(), // verifyDocument
+        inject(), // verifyBvn
+        inject(), // verifyEmail
       ));
 }

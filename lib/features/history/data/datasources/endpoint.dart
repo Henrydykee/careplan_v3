@@ -7,4 +7,8 @@ class HistoryEndpoints {
   /// GET {{base_url}}/patients/:id/session-history?page=1&limit=10
   static String getSessionHistory(String patientId) =>
       "patients/$patientId/session-history";
+
+  /// GET {{base_url}}/patients/:id/current-careplan
+  static String getCurrentCarePlan(String patientId) =>
+      "patients/$patientId/current-careplan";
 }

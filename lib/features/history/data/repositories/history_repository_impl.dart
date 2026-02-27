@@ -2,6 +2,7 @@ import '../../../../core/utils/data/guarded_datasource_calls.dart';
 import '../../domain/repositories/history_repository.dart';
 import '../datasources/history_remote_datasource.dart';
 import '../models/billing_history_response_model.dart';
+import '../models/care_plan_history_item_model.dart';
 import '../models/notes_history_response_model.dart';
 import '../models/session_history_response_model.dart';
 
@@ -57,6 +58,19 @@ class HistoryRepositoryImpl implements HistoryRepository {
         limit: limit,
       ),
       source: "getSessionHistory",
+      showNetworkError: true,
+    );
+  }
+
+  @override
+  Future<CarePlanHistoryItemModel?> getCurrentCarePlan({
+    required String patientId,
+  }) async {
+    return await guardedApiCall<CarePlanHistoryItemModel?>(
+      () => _remoteDataSource.getCurrentCarePlan(
+        patientId: patientId,
+      ),
+      source: "getCurrentCarePlan",
       showNetworkError: true,
     );
   }

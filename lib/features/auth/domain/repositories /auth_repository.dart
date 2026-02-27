@@ -8,6 +8,8 @@ import '../../data/model/user_model.dart';
 
 abstract class AuthenticationRepository {
   Future<UserModel> loginUser({required String email, required String password});
+  Future<UserModel> loginWithPin({required String email, required String pin});
+  Future<String> setPin({required String pin});
   Future<String> setPassword({required String newPassword});
   Future<String> verifyEmail({required String email, required String verificationCode, String verificationType = "registration"});
   Future<String> resendVerificationCode({required String email, String verificationType = "registration"});

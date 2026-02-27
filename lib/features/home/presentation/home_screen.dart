@@ -1,16 +1,19 @@
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
+import 'package:careplan/core/presentation/widgets/current_carplan_widget.dart';
 import 'package:careplan/core/presentation/widgets/home_screen_widgets.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/history/presentation/state/history_provider.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -40,6 +43,13 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _user = loadedUser;
           });
+          if (mounted && loadedUser.id != null && loadedUser.id!.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context
+                  .read<HistoryProvider>()
+                  .fetchCurrentCarePlan(patientId: loadedUser.id!);
+            });
+          }
         } catch (e) {
           // Handle error silently
         }
@@ -168,10 +178,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const Gap(10),
-              // Care Plan - using mock empty state
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: EmptyCareplan(),
+              // Care Plan - show current care plan if available, otherwise empty state
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Consumer<HistoryProvider>(
+                  builder: (context, historyProvider, child) {
+                    final carePlan = historyProvider.currentCarePlan;
+
+                    if (historyProvider.isLoading && carePlan == null) {
+                      return const EmptyCareplan();
+                    }
+
+                    if (carePlan != null) {
+                      return MentalHealthCarePlanWidget(carePlan: carePlan);
+                    }
+
+                    return const EmptyCareplan();
+                  },
+                ),
               ),
               const Gap(30),
             ],

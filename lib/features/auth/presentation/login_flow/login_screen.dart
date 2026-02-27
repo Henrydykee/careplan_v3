@@ -1,4 +1,5 @@
 import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:careplan/core/presentation/state/provider_view_model.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
@@ -10,7 +11,9 @@ import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/presentation/widgets/web_view_screen.dart';
 import 'package:careplan/core/resources/string.dart';
 import 'package:careplan/core/utils/color.dart';
+import 'package:careplan/features/auth/data/model/user_model.dart';
 import 'package:careplan/features/auth/domain/usecases/login_user.dart';
+import 'package:careplan/features/auth/presentation/set-pin/set_pin_screen.dart';
 import 'package:careplan/features/auth/presentation/state/auth_provider.dart';
 import 'package:careplan/features/getting_started/get_started_screen.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
@@ -156,13 +159,39 @@ class _LoginScreenState extends State<LoginScreen> {
                         onTap: () async {
                           if (!_formKey.currentState!.validate()) {
                             return;
-                          }else{
-                            LoginParams P = LoginParams(email: emailController?.text ?? '', password: passwordController?.text ?? '');
+                          } else {
+                            LoginParams P = LoginParams(
+                              email: emailController?.text ?? '',
+                              password: passwordController?.text ?? '',
+                            );
                             await vm.login(P);
-                            if(vm.hasError == true){
+                            if (vm.hasError == true) {
                               return showErrorDialog(context, "Login Error", vm.errorMessage);
-                            }else{
-                              router.pushAndRemoveUntil(CarePlanNavBar(), (route) => false);
+                            } else {
+                              // Read latest user from local storage to decide PIN flow
+                              final localStorage = inject<LocalStorageService>();
+                              final userJson = localStorage.getJson('user');
+                              bool isPinSet = false;
+                              if (userJson != null) {
+                                try {
+                                  final user = UserModel.fromJson(userJson);
+                                  isPinSet = user.isPinSet == true;
+                                } catch (_) {
+                                  isPinSet = userJson['isPinSet'] == true;
+                                }
+                              }
+
+                              if (!isPinSet) {
+                                router.pushAndRemoveUntil(
+                                  SetPinScreen(),
+                                  (route) => false,
+                                );
+                              } else {
+                                router.pushAndRemoveUntil(
+                                  CarePlanNavBar(),
+                                  (route) => false,
+                                );
+                              }
                             }
                           }
                         },

@@ -3,15 +3,14 @@ import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/core/utils/formatters.dart';
+import 'package:careplan/features/history/data/models/care_plan_history_item_model.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-import '../data/mock_billing_data.dart';
-
 class CareplanSummaryScreen extends StatelessWidget {
-  final String? careplanId;
+  final CarePlanHistoryItemModel carePlan;
 
-  const CareplanSummaryScreen({super.key, this.careplanId});
+  const CareplanSummaryScreen({super.key, required this.carePlan});
 
   String _getTitle(String? title) {
     if (title == null) return "";
@@ -34,8 +33,6 @@ class CareplanSummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final summary = MockCarePlanSummary.sample;
-
     return Scaffold(
       appBar: CustomAppBar(
         showBackIcon: true,
@@ -48,53 +45,46 @@ class CareplanSummaryScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextHolder(
-                title: "Care Plan Summary - ${FormatUtils.dateTimeFormatter(summary.createdAt, format: "d MMM yyyy")}",
+                title:
+                    "Care Plan Summary - ${FormatUtils.dateTimeFormatter(carePlan.createdAt, format: "d MMM yyyy")}",
                 color: CarePlanColor.grey_1,
                 size: 18,
                 fontWeight: FontWeight.w800,
               ),
               const Gap(15),
-              _buildDoctorPatientCard(context, summary),
+              _buildDoctorPatientCard(context, carePlan),
               const Gap(15),
               _buildSectionTitle("Stressors"),
               const Gap(8),
-              _buildStressorsCard(summary),
+              _buildStressorsCard(carePlan),
               const Gap(15),
               _buildSectionTitle("Assessment"),
               const Gap(8),
-              _buildAssessmentCard(summary),
+              _buildAssessmentCard(carePlan),
               const Gap(15),
               _buildSectionTitle("Short Term Goal"),
               const Gap(8),
-              _GoalsContainer(goal: "- ${summary.assessment?.shortTermGoal ?? "N/A"}"),
+              _GoalsContainer(
+                goal: "- ${carePlan.shortTermGoal?.text ?? "N/A"}",
+              ),
               const Gap(15),
               _buildSectionTitle("Long Term Goal"),
               const Gap(8),
-              _GoalsContainer(goal: "- ${summary.assessment?.longTermGoal ?? "N/A"}"),
+              _GoalsContainer(
+                goal: "- ${carePlan.longTermGoal ?? "N/A"}",
+              ),
               const Gap(15),
               _buildSectionTitle("Diagnosis"),
               const Gap(8),
-              _buildDiagnosisCard(summary),
-              const Gap(15),
-              _buildSectionTitle("Medication"),
-              const Gap(8),
-              _buildMedicationList(summary),
+              _buildDiagnosisCard(carePlan),
               const Gap(15),
               _buildSectionTitle("Therapy"),
               const Gap(8),
-              _buildTherapyCard(summary),
+              _buildTherapyCard(carePlan),
               const Gap(15),
-              _buildSectionTitle("Schedule"),
+              _buildSectionTitle("Homework"),
               const Gap(8),
-              _buildScheduleList(summary),
-              const Gap(15),
-              _buildSectionTitle("Appointment"),
-              const Gap(8),
-              _buildAppointmentCard(summary),
-              const Gap(15),
-              _buildSectionTitle("Request / Orders"),
-              const Gap(8),
-              _buildRequestsCard(summary),
+              _buildHomeworkCard(carePlan),
               const Gap(30),
             ],
           ),
@@ -112,7 +102,10 @@ class CareplanSummaryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDoctorPatientCard(BuildContext context, MockCarePlanSummary summary) {
+  Widget _buildDoctorPatientCard(
+    BuildContext context,
+    CarePlanHistoryItemModel carePlan,
+  ) {
     return Container(
       width: MediaQuery.of(context).size.width,
       decoration: BoxDecoration(
@@ -130,13 +123,14 @@ class CareplanSummaryScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextHolder(
-                      title: "${_getTitle(summary.doctor?.type)}${summary.doctor?.firstName ?? ""} ${summary.doctor?.lastName ?? ""}",
+                      title:
+                          "${_getTitle(carePlan.providerType)}${carePlan.provider ?? ""}",
                       color: Colors.white,
                       size: 16,
                       fontWeight: FontWeight.w900,
                     ),
                     TextHolder(
-                      title: _getProviderType(summary.doctor?.type),
+                      title: _getProviderType(carePlan.providerType),
                       color: Colors.white,
                       size: 11,
                       fontWeight: FontWeight.w500,
@@ -201,7 +195,7 @@ class CareplanSummaryScreen extends StatelessWidget {
                         ),
                         const Gap(6),
                         TextHolder(
-                          title: "${summary.assessment?.score ?? "N/A"}",
+                              title: carePlan.abilityToCope ?? "N/A",
                           color: Colors.white,
                           size: 16,
                           fontWeight: FontWeight.w500,
@@ -233,8 +227,8 @@ class CareplanSummaryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStressorsCard(MockCarePlanSummary summary) {
-    final stressors = summary.assessment?.stressors;
+  Widget _buildStressorsCard(CarePlanHistoryItemModel carePlan) {
+    final stressors = carePlan.stressors;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -246,21 +240,26 @@ class CareplanSummaryScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (stressors?.work == true) _StressorItem(title: "- Work"),
-            if (stressors?.relationship == true) _StressorItem(title: "- Relationship"),
-            if (stressors?.finances == true) _StressorItem(title: "- Finances"),
-            if (stressors?.trauma == true) _StressorItem(title: "- Trauma"),
-            if (stressors?.housing == true) _StressorItem(title: "- Housing"),
-            if (stressors?.alcohol == true) _StressorItem(title: "- Alcohol"),
-            if (stressors?.physicalhealth == true) _StressorItem(title: "- Physical Health"),
-            if (stressors?.school == true) _StressorItem(title: "- School"),
+            if (stressors?.work == true) const _StressorItem(title: "- Work"),
+            if (stressors?.relationship == true)
+              const _StressorItem(title: "- Relationship"),
+            if (stressors?.finances == true)
+              const _StressorItem(title: "- Finances"),
+            if (stressors?.trauma == true) const _StressorItem(title: "- Trauma"),
+            if (stressors?.housing == true)
+              const _StressorItem(title: "- Housing"),
+            if (stressors?.alcohol == true)
+              const _StressorItem(title: "- Alcohol"),
+            if (stressors?.physicalHealth == true)
+              const _StressorItem(title: "- Physical Health"),
+            if (stressors?.school == true) const _StressorItem(title: "- School"),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAssessmentCard(MockCarePlanSummary summary) {
+  Widget _buildAssessmentCard(CarePlanHistoryItemModel carePlan) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(color: Colors.white),
@@ -290,13 +289,13 @@ class CareplanSummaryScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextHolder(
-                  title: summary.riskToSelf ?? "N/A",
+                  title: carePlan.riskToSelf ?? "N/A",
                   color: CarePlanColor.grey_1,
                   size: 14,
                   fontWeight: FontWeight.w500,
                 ),
                 TextHolder(
-                  title: summary.riskToOthers ?? "N/A",
+                  title: carePlan.riskToOthers ?? "N/A",
                   color: CarePlanColor.grey_1,
                   size: 14,
                   fontWeight: FontWeight.w500,
@@ -309,7 +308,7 @@ class CareplanSummaryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDiagnosisCard(MockCarePlanSummary summary) {
+  Widget _buildDiagnosisCard(CarePlanHistoryItemModel carePlan) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -321,7 +320,7 @@ class CareplanSummaryScreen extends StatelessWidget {
           shrinkWrap: true,
           padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: summary.diagnosis?.length ?? 0,
+          itemCount: carePlan.diagnosis?.length ?? 0,
           itemBuilder: (c, i) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Container(
@@ -333,7 +332,7 @@ class CareplanSummaryScreen extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 child: TextHolder(
-                  title: summary.diagnosis?[i] ?? "",
+                  title: carePlan.diagnosis?[i] ?? "",
                   color: CarePlanColor.grey_1,
                   size: 14,
                   fontWeight: FontWeight.w500,
@@ -346,61 +345,19 @@ class CareplanSummaryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMedicationList(MockCarePlanSummary summary) {
-    return ListView.builder(
-      shrinkWrap: true,
-      padding: EdgeInsets.zero,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: summary.medication?.length ?? 0,
-      itemBuilder: (c, i) {
-        final med = summary.medication![i];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              color: Colors.white,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(25),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextHolder(
-                    title: med.drugName ?? "",
-                    color: CarePlanColor.grey_1,
-                    size: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
-                  TextHolder(
-                    title: med.description ?? "",
-                    color: CarePlanColor.grey_1,
-                    size: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  const Gap(12),
-                  TextHolder(
-                    title: "Dose",
-                    color: CarePlanColor.grey_1,
-                    size: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
-                  TextHolder(
-                    title: med.dosage ?? "",
-                    color: CarePlanColor.grey_1,
-                    size: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  Widget _buildTherapyCard(CarePlanHistoryItemModel carePlan) {
+    final therapy = carePlan.therapy;
+    final interventions = <String>[];
+    if (therapy?.hasCBT == true) {
+      interventions.add("CBT");
+    }
+    if (therapy?.hasSafetyPlanning == true) {
+      interventions.add("Safety planning");
+    }
+    if ((therapy?.otherIntervention ?? "").isNotEmpty) {
+      interventions.add(therapy!.otherIntervention!);
+    }
 
-  Widget _buildTherapyCard(MockCarePlanSummary summary) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -413,14 +370,16 @@ class CareplanSummaryScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextHolder(
-              title: "Type of therapy",
+              title: "Therapy / Interventions",
               color: CarePlanColor.grey_1,
               size: 14,
               fontWeight: FontWeight.w900,
             ),
             const Gap(6),
             TextHolder(
-              title: summary.therapy?.therapyType ?? "N/A",
+              title: interventions.isNotEmpty
+                  ? interventions.join(", ")
+                  : "N/A",
               color: CarePlanColor.grey_1,
               size: 13,
               fontWeight: FontWeight.w500,
@@ -431,61 +390,7 @@ class CareplanSummaryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildScheduleList(MockCarePlanSummary summary) {
-    return ListView.builder(
-      shrinkWrap: true,
-      padding: EdgeInsets.zero,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: summary.homework?.length ?? 0,
-      itemBuilder: (c, i) {
-        final hw = summary.homework![i];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              color: Colors.white,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(25),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextHolder(
-                    title: "Task ${i + 1}",
-                    color: CarePlanColor.grey_1,
-                    size: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
-                  TextHolder(
-                    title: hw.task ?? "",
-                    color: CarePlanColor.grey_1,
-                    size: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  const Gap(12),
-                  TextHolder(
-                    title: "Duration",
-                    color: CarePlanColor.grey_1,
-                    size: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
-                  TextHolder(
-                    title: hw.duration ?? "",
-                    color: CarePlanColor.grey_1,
-                    size: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAppointmentCard(MockCarePlanSummary summary) {
+  Widget _buildHomeworkCard(CarePlanHistoryItemModel carePlan) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -498,43 +403,21 @@ class CareplanSummaryScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextHolder(
-              title: FormatUtils.dateTimeFormatter(summary.appointment?.appointmentDate),
+              title: "Homework",
               color: CarePlanColor.grey_1,
               size: 14,
               fontWeight: FontWeight.w900,
             ),
             const Gap(6),
             TextHolder(
-              title: summary.appointment?.meetingLink ?? "",
+              title: carePlan.homework?.isNotEmpty == true
+                  ? carePlan.homework!
+                  : "N/A",
               color: CarePlanColor.grey_1,
               size: 13,
               fontWeight: FontWeight.w500,
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRequestsCard(MockCarePlanSummary summary) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: Colors.white,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(22.0),
-        child: ListView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: summary.requests?.length ?? 0,
-          itemBuilder: (c, i) => TextHolder(
-            title: summary.requests?[i] ?? "",
-            color: CarePlanColor.grey_1,
-            size: 13,
-            fontWeight: FontWeight.w500,
-          ),
         ),
       ),
     );
