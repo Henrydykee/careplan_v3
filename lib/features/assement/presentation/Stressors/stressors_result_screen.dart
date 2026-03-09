@@ -1,14 +1,51 @@
+import 'dart:convert';
+
+import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
+import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
+import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-class StressorsResultScreen extends StatelessWidget {
+class StressorsResultScreen extends StatefulWidget {
   const StressorsResultScreen({super.key});
 
+  @override
+  State<StressorsResultScreen> createState() => _StressorsResultScreenState();
+}
+
+class _StressorsResultScreenState extends State<StressorsResultScreen> {
   static const _mockAbilityToCope = "6";
   static const _mockStressors = ["Work", "Finances", "Relationship"];
+
+  late Future<_StressorsApiData?> _stressorsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _stressorsFuture = _fetchStressors();
+  }
+
+  Future<_StressorsApiData?> _fetchStressors() async {
+    try {
+      final dataSource = AssessmentRemoteDataSourceImpl(inject());
+      final raw = await dataSource.getStressorsHistory();
+      final decoded = jsonDecode(raw);
+
+      if (decoded is Map<String, dynamic>) {
+        final success = decoded['success'] == true;
+        final data = decoded['data'];
+        if (success && data is Map<String, dynamic>) {
+          return _StressorsApiData.fromJson(data);
+        }
+      }
+    } catch (_) {
+      // Swallow errors and fall back to mock values in UI.
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +113,10 @@ class StressorsResultScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(5),
                       color: CarePlanColor.orange,
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
                     child: TextHolder(
                       title: "Update",
                       size: 14,
@@ -89,37 +129,59 @@ class StressorsResultScreen extends StatelessWidget {
             ),
           ),
           const Gap(26),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.white,
-                  ),
+          Expanded(
+            child: FutureBuilder<_StressorsApiData?>(
+              future: _stressorsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: AppLoadingIndicator(),
+                  );
+                }
+
+                final stressorsData = snapshot.data;
+                final abilityToCope = (stressorsData?.abilityToCope ??
+                        _mockAbilityToCope)
+                    .toString();
+                final stressorList = stressorsData?.selectedStressors ??
+                    _mockStressors;
+
+                return SingleChildScrollView(
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
                       children: [
-                        TextHolder(
-                          title: "Ability to cope",
-                          fontWeight: FontWeight.w500,
-                          size: 12,
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                TextHolder(
+                                  title: "Ability to cope",
+                                  fontWeight: FontWeight.w500,
+                                  size: 12,
+                                ),
+                                TextHolder(
+                                  title: abilityToCope,
+                                  fontWeight: FontWeight.w700,
+                                  size: 18,
+                                  color: CarePlanColor.brown,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        TextHolder(
-                          title: _mockAbilityToCope,
-                          fontWeight: FontWeight.w700,
-                          size: 18,
-                          color: CarePlanColor.brown,
-                        ),
+                        StressorsCard(stressors: stressorList),
                       ],
                     ),
                   ),
-                ),
-                StressorsCard(stressors: _mockStressors),
-              ],
+                );
+              },
             ),
           ),
         ],
@@ -189,3 +251,77 @@ class StressorsCard extends StatelessWidget {
     );
   }
 }
+
+class _StressorsApiData {
+  final _StressorsFlags stressors;
+  final int? abilityToCope;
+
+  _StressorsApiData({
+    required this.stressors,
+    required this.abilityToCope,
+  });
+
+  List<String> get selectedStressors {
+    final result = <String>[];
+    if (stressors.work == true) result.add("Work");
+    if (stressors.relationship == true) result.add("Relationship");
+    if (stressors.finances == true) result.add("Finances");
+    if (stressors.physicalHealth == true) {
+      result.add("Physical health or pain");
+    }
+    if (stressors.alcohol == true) {
+      result.add("Alcohol or drugs");
+    }
+    if (stressors.trauma == true) result.add("Trauma");
+    if (stressors.housing == true) result.add("Housing");
+    if (stressors.school == true) result.add("School");
+    return result;
+  }
+
+  factory _StressorsApiData.fromJson(Map<String, dynamic> json) {
+    final stressorsJson =
+        json['stressors'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    return _StressorsApiData(
+      stressors: _StressorsFlags.fromJson(stressorsJson),
+      abilityToCope: json['abilityToCope'] is int
+          ? json['abilityToCope'] as int
+          : int.tryParse(json['abilityToCope']?.toString() ?? ''),
+    );
+  }
+}
+
+class _StressorsFlags {
+  final bool? relationship;
+  final bool? work;
+  final bool? finances;
+  final bool? physicalHealth;
+  final bool? school;
+  final bool? alcohol;
+  final bool? trauma;
+  final bool? housing;
+
+  _StressorsFlags({
+    this.relationship,
+    this.work,
+    this.finances,
+    this.physicalHealth,
+    this.school,
+    this.alcohol,
+    this.trauma,
+    this.housing,
+  });
+
+  factory _StressorsFlags.fromJson(Map<String, dynamic> json) {
+    return _StressorsFlags(
+      relationship: json['relationship'] as bool?,
+      work: json['work'] as bool?,
+      finances: json['finances'] as bool?,
+      physicalHealth: json['physicalHealth'] as bool?,
+      school: json['school'] as bool?,
+      alcohol: json['alcohol'] as bool?,
+      trauma: json['trauma'] as bool?,
+      housing: json['housing'] as bool?,
+    );
+  }
+}
+

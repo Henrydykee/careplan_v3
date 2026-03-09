@@ -8,6 +8,7 @@ class AssessmentEndpoints {
   static String getK10AssessmentHistory = "assessment/k10";
   static String getAsrsHistory = "assessment/asrs";
   static String getGoalsHistory = "assessment/goals";
+  static String getStressorsHistory = "assessment/stressors";
 }
 
 

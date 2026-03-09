@@ -19,6 +19,7 @@ abstract class AssessmentRemoteDataSource extends RemoteDataSource {
   Future<String> getK10AssessmentHistory();
   Future<String> getAsrsHistory();
   Future<String> getGoalsHistory();
+  Future<String> getStressorsHistory();
 }
 
 class AssessmentRemoteDataSourceImpl implements AssessmentRemoteDataSource {
@@ -104,6 +105,13 @@ class AssessmentRemoteDataSourceImpl implements AssessmentRemoteDataSource {
   @override
   Future<String> getGoalsHistory() async {
     NetworkServiceResponse response = await _networkService.get(AssessmentEndpoints.getGoalsHistory);
+    final data = handleNetworkResponse(response);
+    return jsonEncode(data);
+  }
+
+  @override
+  Future<String> getStressorsHistory() async {
+    NetworkServiceResponse response = await _networkService.get(AssessmentEndpoints.getStressorsHistory);
     final data = handleNetworkResponse(response);
     return jsonEncode(data);
   }
