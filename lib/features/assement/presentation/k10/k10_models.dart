@@ -23,9 +23,43 @@ class K10Questions {
     this.ninth,
     this.tenth,
   });
+
+  /// Builds a [K10Questions] instance from the API `questions` array.
+  ///
+  /// The API returns a list of objects with:
+  ///  - `field`: one of `first` ... `tenth`
+  ///  - `answer`: numeric value
+  factory K10Questions.fromApiQuestions(List<dynamic> questionsJson) {
+    int? _scoreFor(String fieldKey) {
+      Map<String, dynamic>? match;
+      for (final item in questionsJson) {
+        if (item is Map<String, dynamic> && item['field'] == fieldKey) {
+          match = item;
+          break;
+        }
+      }
+      final value = match?['answer'];
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      return int.tryParse(value?.toString() ?? '');
+    }
+
+    return K10Questions(
+      first: _scoreFor('first'),
+      second: _scoreFor('second'),
+      third: _scoreFor('third'),
+      fourth: _scoreFor('fourth'),
+      fifth: _scoreFor('fifth'),
+      sixth: _scoreFor('sixth'),
+      seventh: _scoreFor('seventh'),
+      eighth: _scoreFor('eighth'),
+      ninth: _scoreFor('ninth'),
+      tenth: _scoreFor('tenth'),
+    );
+  }
 }
 
-/// Minimal model for K10 assessment list items. Used for mock data and display.
+/// Minimal model for K10 assessment list items. Used for display.
 class K10AssessmentItem {
   final int score;
   final String createdAt;
@@ -36,93 +70,15 @@ class K10AssessmentItem {
     required this.createdAt,
     this.questions,
   });
-}
 
-/// Mock K10 assessments for when API data is null or empty.
-List<K10AssessmentItem> get mockK10Assessments => [
-      K10AssessmentItem(
-        score: 12,
-        createdAt:
-            DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
-        questions: const K10Questions(
-          first: 1,
-          second: 1,
-          third: 1,
-          fourth: 1,
-          fifth: 1,
-          sixth: 1,
-          seventh: 1,
-          eighth: 1,
-          ninth: 1,
-          tenth: 1,
-        ),
-      ),
-      K10AssessmentItem(
-        score: 19,
-        createdAt:
-            DateTime.now().subtract(const Duration(days: 9)).toIso8601String(),
-        questions: const K10Questions(
-          first: 2,
-          second: 2,
-          third: 1,
-          fourth: 2,
-          fifth: 2,
-          sixth: 1,
-          seventh: 2,
-          eighth: 2,
-          ninth: 1,
-          tenth: 2,
-        ),
-      ),
-      K10AssessmentItem(
-        score: 25,
-        createdAt:
-            DateTime.now().subtract(const Duration(days: 16)).toIso8601String(),
-        questions: const K10Questions(
-          first: 3,
-          second: 2,
-          third: 2,
-          fourth: 3,
-          fifth: 2,
-          sixth: 3,
-          seventh: 3,
-          eighth: 2,
-          ninth: 2,
-          tenth: 3,
-        ),
-      ),
-      K10AssessmentItem(
-        score: 33,
-        createdAt:
-            DateTime.now().subtract(const Duration(days: 23)).toIso8601String(),
-        questions: const K10Questions(
-          first: 4,
-          second: 3,
-          third: 3,
-          fourth: 3,
-          fifth: 3,
-          sixth: 4,
-          seventh: 4,
-          eighth: 3,
-          ninth: 3,
-          tenth: 3,
-        ),
-      ),
-      K10AssessmentItem(
-        score: 40,
-        createdAt:
-            DateTime.now().subtract(const Duration(days: 30)).toIso8601String(),
-        questions: const K10Questions(
-          first: 4,
-          second: 4,
-          third: 4,
-          fourth: 4,
-          fifth: 4,
-          sixth: 4,
-          seventh: 4,
-          eighth: 4,
-          ninth: 4,
-          tenth: 4,
-        ),
-      ),
-    ];
+  factory K10AssessmentItem.fromJson(Map<String, dynamic> json) {
+    final questionsJson = json['questions'];
+    return K10AssessmentItem(
+      score: (json['score'] is num) ? (json['score'] as num).toInt() : int.tryParse(json['score']?.toString() ?? '') ?? 0,
+      createdAt: json['createdAt']?.toString() ?? '',
+      questions: questionsJson is List
+          ? K10Questions.fromApiQuestions(questionsJson)
+          : null,
+    );
+  }
+}

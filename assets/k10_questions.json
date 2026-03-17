@@ -1,0 +1,115 @@
+{
+  "title": "K10 Assessment",
+  "questions": [
+    {
+      "id": 1,
+      "text": "About how often did you feel tired out for no good reason?",
+      "options": [
+        "None of the time",
+        "A little of the time",
+        "Some of the time",
+        "Most of the time",
+        "All of the time"
+      ]
+    },
+    {
+      "id": 2,
+      "text": "About how often did you feel nervous?",
+      "options": [
+        "None of the time",
+        "A little of the time",
+        "Some of the time",
+        "Most of the time",
+        "All of the time"
+      ]
+    },
+    {
+      "id": 3,
+      "text": "About how often did you feel so nervous that nothing could calm you down?",
+      "options": [
+        "None of the time",
+        "A little of the time",
+        "Some of the time",
+        "Most of the time",
+        "All of the time"
+      ]
+    },
+    {
+      "id": 4,
+      "text": "About how often did you feel hopeless?",
+      "options": [
+        "None of the time",
+        "A little of the time",
+        "Some of the time",
+        "Most of the time",
+        "All of the time"
+      ]
+    },
+    {
+      "id": 5,
+      "text": "About how often did you feel restless or fidgety?",
+      "options": [
+        "None of the time",
+        "A little of the time",
+        "Some of the time",
+        "Most of the time",
+        "All of the time"
+      ]
+    },
+    {
+      "id": 6,
+      "text": "About how often did you feel so restless you could not sit still?",
+      "options": [
+        "None of the time",
+        "A little of the time",
+        "Some of the time",
+        "Most of the time",
+        "All of the time"
+      ]
+    },
+    {
+      "id": 7,
+      "text": "About how often did you feel depressed?",
+      "options": [
+        "None of the time",
+        "A little of the time",
+        "Some of the time",
+        "Most of the time",
+        "All of the time"
+      ]
+    },
+    {
+      "id": 8,
+      "text": "About how often did you feel that everything was an effort?",
+      "options": [
+        "None of the time",
+        "A little of the time",
+        "Some of the time",
+        "Most of the time",
+        "All of the time"
+      ]
+    },
+    {
+      "id": 9,
+      "text": "About how often did you feel so sad that nothing could cheer you up?",
+      "options": [
+        "None of the time",
+        "A little of the time",
+        "Some of the time",
+        "Most of the time",
+        "All of the time"
+      ]
+    },
+    {
+      "id": 10,
+      "text": "About how often did you feel worthless?",
+      "options": [
+        "None of the time",
+        "A little of the time",
+        "Some of the time",
+        "Most of the time",
+        "All of the time"
+      ]
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
+import 'package:careplan/features/assement/presentation/test_screens/k10_test_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
@@ -49,7 +50,13 @@ class K10DisclaimerScreen extends StatelessWidget {
               CustomButtom(
                 title: 'Continue',
                 btnColor: CarePlanColor.brown,
-                onTap: () => Navigator.of(context).pop(),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const K10TestScreen(),
+                    ),
+                  );
+                },
               ),
               const Gap(30),
             ],

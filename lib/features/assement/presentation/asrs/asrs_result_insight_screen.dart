@@ -4,8 +4,15 @@ import 'package:careplan/core/resources/color.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'asrs_result_models.dart';
+
 class AsrsResultInsightScreen extends StatelessWidget {
-  AsrsResultInsightScreen({super.key});
+  final AsrsAssessmentItem assessment;
+
+  AsrsResultInsightScreen({
+    super.key,
+    required this.assessment,
+  });
 
   static const _questions = [
     "How often do you have trouble wrapping up the final details of a project, once the challenging parts have been done?",
@@ -28,29 +35,25 @@ class AsrsResultInsightScreen extends StatelessWidget {
     "How often do you interrupt others when they are busy?",
   ];
 
-  static const _mockAnswers = [
-    "Never",
-    "Sometimes",
-    "Often",
-    "Very Often",
-    "Never",
-    "Sometimes",
-    "Often",
-    "Sometimes",
-    "Never",
-    "Often",
-    "Sometimes",
-    "Never",
-    "Often",
-    "Sometimes",
-    "Never",
-    "Sometimes",
-    "Often",
-    "Very Often",
-  ];
+  String _answerForIndex(int index) {
+    final questionId = (index + 1).toString();
+    final match = assessment.answers.firstWhere(
+      (a) => a.id == questionId,
+      orElse: () => const AsrsAnswer(id: '', answer: ''),
+    );
+    final value = match.answer.trim();
+    if (value.isEmpty) {
+      return 'No answer';
+    }
+    return value;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final formattedDate = DateFormat('EEEE, MMM d, y').format(
+      DateTime.tryParse(assessment.createdAt) ?? DateTime.now(),
+    );
+
     return Scaffold(
       backgroundColor: CarePlanColor.brown,
       appBar: CustomAppBar(
@@ -74,7 +77,7 @@ class AsrsResultInsightScreen extends StatelessWidget {
                   color: Colors.white,
                 ),
                 TextHolder(
-                  title: "See results for all ASRS tests",
+                  title: formattedDate,
                   size: 16,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
@@ -95,11 +98,12 @@ class AsrsResultInsightScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 itemCount: _questions.length,
                 itemBuilder: (context, index) {
+                  final rawAnswer = _answerForIndex(index);
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 24),
                     child: QuestionCard(
                       question: _questions[index],
-                      answer: _mockAnswers[index],
+                      answer: rawAnswer,
                     ),
                   );
                 },

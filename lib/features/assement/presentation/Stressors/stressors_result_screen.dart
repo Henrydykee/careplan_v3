@@ -111,7 +111,7 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(5),
-                      color: CarePlanColor.orange,
+                      color: CarePlanColor.brown,
                     ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,

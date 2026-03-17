@@ -13,6 +13,11 @@ import '../platform/storage/secured_storage.dart';
 import 'di_config.dart';
 
 Future<void> coreInjector() async {
+  // SharedPreferences is needed by several managers (e.g. BioMetricManager).
+  // Register it once here so any feature can access it via GetIt.
+  final sharedPreferences = await SharedPreferences.getInstance();
+  inject.registerSingleton<SharedPreferences>(sharedPreferences);
+
   inject.registerSingleton<SecuredStorage>(SecuredStorageImpl());
   inject.registerSingleton<LocalStorageService>(await LocalStorageService.getInstance());
   inject.registerSingleton<DeviceManager>(DeviceManager.instance);
