@@ -6,6 +6,7 @@ import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
+import 'package:careplan/features/assement/presentation/Stressors/select_stressors_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -21,6 +22,8 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
   static const _mockStressors = ["Work", "Finances", "Relationship"];
 
   late Future<_StressorsApiData?> _stressorsFuture;
+  String? _overrideAbilityToCope;
+  List<String>? _overrideStressors;
 
   @override
   void initState() {
@@ -45,6 +48,26 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
       // Swallow errors and fall back to mock values in UI.
     }
     return null;
+  }
+
+  Future<void> _onTapUpdate({
+    required List<String> stressors,
+    required String abilityToCope,
+  }) async {
+    final result = await Navigator.of(context).push<StressorsSelectionResult>(
+      MaterialPageRoute(
+        builder: (_) => SelectStressAreasScreen(
+          initialStressors: stressors,
+          initialAbilityToCope: abilityToCope,
+        ),
+      ),
+    );
+
+    if (!mounted || result == null) return;
+    setState(() {
+      _overrideStressors = result.stressors;
+      _overrideAbilityToCope = result.abilityToCope;
+    });
   }
 
   @override
@@ -106,24 +129,38 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
-                      color: CarePlanColor.brown,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 10,
-                    ),
-                    child: TextHolder(
-                      title: "Update",
-                      size: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
+                FutureBuilder<_StressorsApiData?>(
+                  future: _stressorsFuture,
+                  builder: (context, snapshot) {
+                    final stressorsData = snapshot.data;
+                    final abilityToCope = _overrideAbilityToCope ??
+                        (stressorsData?.abilityToCope ?? _mockAbilityToCope)
+                            .toString();
+                    final stressorList =
+                        _overrideStressors ?? stressorsData?.selectedStressors ?? _mockStressors;
+                    return GestureDetector(
+                      onTap: () => _onTapUpdate(
+                        stressors: stressorList,
+                        abilityToCope: abilityToCope,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          color: CarePlanColor.brown,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
+                        child: TextHolder(
+                          title: "Update",
+                          size: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -138,10 +175,11 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
                 }
 
                 final stressorsData = snapshot.data;
-                final abilityToCope = (stressorsData?.abilityToCope ??
-                        _mockAbilityToCope)
-                    .toString();
-                final stressorList = stressorsData?.selectedStressors ??
+                final abilityToCope = (_overrideAbilityToCope ??
+                        (stressorsData?.abilityToCope ?? _mockAbilityToCope)
+                            .toString());
+                final stressorList = _overrideStressors ??
+                    stressorsData?.selectedStressors ??
                     _mockStressors;
 
                 return SingleChildScrollView(

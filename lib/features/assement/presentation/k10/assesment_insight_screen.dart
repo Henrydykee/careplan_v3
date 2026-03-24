@@ -23,6 +23,14 @@ class AssessmentK10Insight extends StatefulWidget {
 }
 
 class _AssessmentK10InsightState extends State<AssessmentK10Insight> {
+  static const List<String> _k10OptionLabels = [
+    'None of the time',
+    'A little of the time',
+    'Some of the time',
+    'Most of the time',
+    'All of the time',
+  ];
+
   static const List<_Q> _questions = [
     _Q('1', 'About how often did you feel tired out for no good reason?'),
     _Q('2', 'About how often did you feel nervous?'),
@@ -54,6 +62,13 @@ class _AssessmentK10InsightState extends State<AssessmentK10Insight> {
     }
   }
 
+  String? _selectedLabelAt(int i) {
+    final score = _scoreAt(i);
+    if (score == null) return null;
+    if (score < 1 || score > _k10OptionLabels.length) return 'N/A';
+    return _k10OptionLabels[score - 1];
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateStr = FormatUtils.dateTimeFormatter(widget.date);
@@ -80,7 +95,7 @@ class _AssessmentK10InsightState extends State<AssessmentK10Insight> {
                     return _K10InsightRow(
                       number: _questions[i].number,
                       question: _questions[i].question,
-                      score: _scoreAt(i),
+                      selectedLabel: _selectedLabelAt(i),
                     );
                   }),
                   const Gap(24),
@@ -163,12 +178,12 @@ class _Q {
 class _K10InsightRow extends StatelessWidget {
   final String number;
   final String question;
-  final int? score;
+  final String? selectedLabel;
 
   const _K10InsightRow({
     required this.number,
     required this.question,
-    this.score,
+    this.selectedLabel,
   });
 
   @override
@@ -218,7 +233,7 @@ class _K10InsightRow extends StatelessWidget {
                   maxLines: 4,
                   textOverflow: TextOverflow.ellipsis,
                 ),
-                if (score != null) ...[
+                if (selectedLabel != null) ...[
                   const Gap(8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -227,7 +242,7 @@ class _K10InsightRow extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: TextHolder(
-                      title: 'Score: $score',
+                      title: 'Selected: $selectedLabel',
                       size: 13,
                       fontWeight: FontWeight.w600,
                       color: CarePlanColor.brown,

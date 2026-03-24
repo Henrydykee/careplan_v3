@@ -6,6 +6,7 @@ import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
+import 'package:careplan/features/assement/presentation/goals/edit_long_term_goal_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -108,7 +109,13 @@ class _GoalsResultScreenState extends State<GoalsResultScreen> {
                 ),
                 const SizedBox(width: 10),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const EditLongTermGoalScreen(),
+                      ),
+                    );
+                  },
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(5),
