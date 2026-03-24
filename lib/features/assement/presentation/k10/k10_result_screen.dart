@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
-import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
+import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
@@ -161,12 +161,7 @@ class _K10ResultScreenState extends State<K10ResultScreen> {
       future: _itemsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.only(top: 40),
-            child: Center(
-              child: AppLoadingIndicator(),
-            ),
-          );
+          return const AssessmentHistoryListShimmer();
         }
 
         final items = snapshot.data ?? const <K10AssessmentItem>[];

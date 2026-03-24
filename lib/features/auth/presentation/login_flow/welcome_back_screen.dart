@@ -1,5 +1,7 @@
 import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/biometric_manager.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
+import 'package:careplan/core/platform/string_constants.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/presentation/widgets/key_pad.dart';
@@ -7,11 +9,13 @@ import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
 import 'package:careplan/core/presentation/widgets/pin_code_field.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
+import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/utils/color.dart';
 import 'package:careplan/features/auth/domain/usecases/login_with_pin.dart';
 import 'package:careplan/features/getting_started/get_started_screen.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 
 class WelcomeBackScreen extends StatefulWidget {
@@ -31,11 +35,13 @@ class WelcomeBackScreen extends StatefulWidget {
 class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
   TextEditingController? _pinCodeController;
   bool _isLoading = false;
+  bool _biometricEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _pinCodeController = TextEditingController();
+    _loadBiometricPreference();
   }
 
   @override
@@ -77,7 +83,20 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
               padding: const EdgeInsets.only(bottom: 30),
               child: Column(
                 children: [
-                  CarePlanKeyPad(onKeyPress: _valueEntered),
+                  CarePlanKeyPad(
+                    onKeyPress: _valueEntered,
+                    rightAction: _biometricEnabled
+                        ? EquityKeyCell.withChild(
+                            value: 'biometric',
+                            onTap: (_) => _onBiometricTap(),
+                            child: SvgPicture.asset(
+                              Assets.biometric,
+                              height: 26,
+                              width: 26,
+                            ),
+                          )
+                        : null,
+                  ),
                   Gap(10),
                   InkWell(
                     onTap: () {
@@ -127,9 +146,57 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
   }
 
   Future<void> _onCompleted(String code) async {
+    await _loginWithPin(code);
+  }
+
+  Future<void> _loadBiometricPreference() async {
+    try {
+      final localStorage = inject<LocalStorageService>();
+      final enabled = localStorage.getBool(SPref.BIOMETRIC) ?? false;
+      final biometricPin = localStorage.getString('biometric_pin');
+      if (!mounted) return;
+      setState(() {
+        _biometricEnabled =
+            enabled && biometricPin != null && biometricPin.isNotEmpty;
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _onBiometricTap() async {
+    if (_isLoading || !_biometricEnabled) return;
+
+    final localStorage = inject<LocalStorageService>();
+    final storedPin = localStorage.getString('biometric_pin');
+    final storedBiometricEmail = localStorage.getString('biometric_email');
+
+    if (storedPin == null || storedPin.isEmpty) {
+      showErrorDialog(
+        context,
+        "Login Error",
+        "Biometric PIN is missing. Please enter your PIN and enable biometric again.",
+      );
+      return;
+    }
+
+    final bioMetricManager = BioMetricManager();
+    await bioMetricManager.checkAvailableBiometrics();
+    final requireAuthentication =
+        await bioMetricManager.authenticateUser();
+
+    if (requireAuthentication) {
+      return;
+    }
+
+    await _loginWithPin(storedPin, emailOverride: storedBiometricEmail);
+  }
+
+  Future<void> _loginWithPin(String code, {String? emailOverride}) async {
     final localStorage = inject<LocalStorageService>();
     final userJson = localStorage.getJson('user');
-    final email = userJson?['email'] as String?;
+    final emailFromUser = userJson?['email'] as String?;
+    final email = (emailOverride != null && emailOverride.isNotEmpty)
+        ? emailOverride
+        : emailFromUser;
 
     if (email == null || email.isEmpty) {
       showErrorDialog(

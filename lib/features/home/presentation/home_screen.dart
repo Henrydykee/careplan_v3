@@ -2,6 +2,7 @@ import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:careplan/core/presentation/widgets/current_carplan_widget.dart';
 import 'package:careplan/core/presentation/widgets/home_screen_widgets.dart';
+import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
@@ -180,13 +181,13 @@ class _HomeScreenState extends State<HomeScreen> {
               const Gap(10),
               // Care Plan - show current care plan if available, otherwise empty state
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 0),
                 child: Consumer<HistoryProvider>(
                   builder: (context, historyProvider, child) {
                     final carePlan = historyProvider.currentCarePlan;
 
                     if (historyProvider.isLoading && carePlan == null) {
-                      return const EmptyCareplan();
+                      return const HomeCarePlanShimmer();
                     }
 
                     if (carePlan != null) {

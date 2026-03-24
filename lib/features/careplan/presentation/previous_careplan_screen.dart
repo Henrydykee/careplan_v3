@@ -1,6 +1,6 @@
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
-import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
+import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/core/utils/formatters.dart';
@@ -84,9 +84,7 @@ class _PreviousCareplanScreenState extends State<PreviousCareplanScreen> {
       builder: (context, historyProvider, child) {
         if (historyProvider.isLoading &&
             historyProvider.sessionHistory == null) {
-          return const Center(
-            child: AppLoadingIndicator(),
-          );
+          return const CareplanHistoryListShimmer();
         }
 
         if (historyProvider.hasError &&

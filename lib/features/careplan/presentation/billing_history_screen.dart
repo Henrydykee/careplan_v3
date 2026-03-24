@@ -1,7 +1,6 @@
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
-import 'package:careplan/core/presentation/widgets/app_bar.dart';
-import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
+import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/auth/data/model/user_model.dart';
@@ -76,9 +75,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
       body: Consumer<HistoryProvider>(
         builder: (context, historyProvider, child) {
           if (historyProvider.isLoading && historyProvider.billingHistory == null) {
-            return const Center(
-              child: AppLoadingIndicator(),
-            );
+            return const BillingHistoryListShimmer();
           }
 
           if (historyProvider.hasError && historyProvider.errorMessage.isNotEmpty) {

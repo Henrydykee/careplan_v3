@@ -2,7 +2,7 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
-import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
+import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
@@ -359,16 +359,7 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
     return Consumer<AppointmentProvider>(
       builder: (context, appointmentProvider, child) {
         if (appointmentProvider.isLoading && appointmentProvider.appointments == null) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: const Center(
-                child: AppLoadingIndicator(),
-              ),
-            ),
-          );
+          return const HomeUpcomingAppointmentsShimmer();
         }
 
         if (appointmentProvider.hasError && appointmentProvider.errorMessage.isNotEmpty) {

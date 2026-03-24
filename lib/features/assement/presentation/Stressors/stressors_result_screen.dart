@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
-import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
+import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
@@ -134,9 +134,7 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
               future: _stressorsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: AppLoadingIndicator(),
-                  );
+                  return const StressorsResultShimmer();
                 }
 
                 final stressorsData = snapshot.data;

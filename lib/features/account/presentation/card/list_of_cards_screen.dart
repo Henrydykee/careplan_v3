@@ -1,7 +1,7 @@
 // ignore_for_file: must_be_immutable
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
-import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
+import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
@@ -157,7 +157,7 @@ class _ListOfCardsScreenState extends State<ListOfCardsScreen> {
       body: Consumer<CardProvider>(
         builder: (context, cardProvider, _) {
           if (cardProvider.isLoading && cardProvider.cards.isEmpty) {
-            return const Center(child: AppLoadingIndicator());
+            return const CardsListShimmer();
           }
           if (cardProvider.hasError && cardProvider.cards.isEmpty) {
             return Center(
