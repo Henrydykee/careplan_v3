@@ -187,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     final carePlan = historyProvider.currentCarePlan;
 
                     if (historyProvider.isLoading && carePlan == null) {
-                      return const HomeCarePlanShimmer();
+                      return Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: const HomeCarePlanShimmer());
                     }
 
                     if (carePlan != null) {

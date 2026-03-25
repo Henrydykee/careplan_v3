@@ -18,12 +18,14 @@ class GoalsResultScreen extends StatefulWidget {
 }
 
 class _GoalsResultScreenState extends State<GoalsResultScreen> {
-  static const _mockShortTermGoal =
-      "Improve sleep schedule and get at least 7 hours of rest each night.";
-  static const _mockLongTermGoal =
-      "Complete professional certification within the next 12 months.";
-
   late Future<_GoalsApiData?> _goalsFuture;
+  String? _overrideLongTermGoal;
+  bool _didInitOverride = false;
+
+  static const String _shortTermGoalPlaceholder =
+      "No short term goal set yet.";
+  static const String _longTermGoalPlaceholder =
+      "No long term goal set yet.";
 
   @override
   void initState() {
@@ -109,12 +111,26 @@ class _GoalsResultScreenState extends State<GoalsResultScreen> {
                 ),
                 const SizedBox(width: 10),
                 GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
+                  onTap: () async {
+                    final initialGoal =
+                        (_overrideLongTermGoal ?? _longTermGoalPlaceholder).trim();
+                    final updatedGoal = await Navigator.of(context)
+                        .push<String>(
                       MaterialPageRoute(
-                        builder: (_) => const EditLongTermGoalScreen(),
+                        builder: (_) => EditLongTermGoalScreen(
+                          initialGoal: initialGoal,
+                        ),
                       ),
                     );
+
+                    if (!mounted) return;
+                    if (updatedGoal == null) return;
+                    final trimmed = updatedGoal.trim();
+                    if (trimmed.isEmpty) return;
+
+                    setState(() {
+                      _overrideLongTermGoal = trimmed;
+                    });
                   },
                   child: Container(
                     decoration: BoxDecoration(
@@ -147,11 +163,24 @@ class _GoalsResultScreenState extends State<GoalsResultScreen> {
 
                 final goals = snapshot.data;
                 final shortTermText =
-                    goals?.shortTermGoal?.message ?? _mockShortTermGoal;
+                    goals?.shortTermGoal?.message ?? _shortTermGoalPlaceholder;
                 final longTermText =
                     (goals?.longTermGoal ?? "").trim().isNotEmpty
                         ? goals!.longTermGoal!
-                        : _mockLongTermGoal;
+                        : _longTermGoalPlaceholder;
+                final displayLongTermText =
+                    _overrideLongTermGoal ?? longTermText;
+
+                if (!_didInitOverride) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    if (_didInitOverride) return;
+                    setState(() {
+                      _overrideLongTermGoal = longTermText;
+                      _didInitOverride = true;
+                    });
+                  });
+                }
 
                 return SingleChildScrollView(
                   child: Padding(
@@ -202,7 +231,7 @@ class _GoalsResultScreenState extends State<GoalsResultScreen> {
                                 child: Align(
                                   alignment: Alignment.centerLeft,
                                   child: TextHolder(
-                                    title: longTermText,
+                                    title: displayLongTermText,
                                     fontWeight: FontWeight.w500,
                                     align: TextAlign.left,
                                     size: 14,

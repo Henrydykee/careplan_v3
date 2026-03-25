@@ -57,6 +57,12 @@ class _ASRSResultHistoryScreenState extends State<ASRSResultHistoryScreen> {
     return <AsrsAssessmentItem>[];
   }
 
+  Future<void> _refresh() async {
+    setState(() {
+      _itemsFuture = _loadItems();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,23 +96,30 @@ class _ASRSResultHistoryScreenState extends State<ASRSResultHistoryScreen> {
             ),
           ),
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const Gap(20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: CustomButtom(
-                      title: "Take Test",
-                      btnColor: CarePlanColor.brown,
-                      onTap: () {
-                        router.push(const AsrsTestScreen());
-                      },
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    const Gap(20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: CustomButtom(
+                        title: "Take Test",
+                        btnColor: CarePlanColor.brown,
+                        onTap: () async {
+                          await router.push(const AsrsTestScreen());
+                          if (!mounted) return;
+                          // Refresh immediately after returning from the test.
+                          await _refresh();
+                        },
+                      ),
                     ),
-                  ),
-                  const Gap(20),
-                  _buildAssessmentList(context),
-                ],
+                    const Gap(20),
+                    _buildAssessmentList(context),
+                  ],
+                ),
               ),
             ),
           ),

@@ -12,6 +12,7 @@ import 'package:careplan/features/appointment/data/models/appointment_model.dart
 import 'package:careplan/features/appointment/presentation/pages/all_appointments_screen.dart';
 import 'package:careplan/features/appointment/presentation/state/appointment_provider.dart';
 import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/presentation/kyc/kyc_step_1_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
@@ -189,7 +190,7 @@ class VerifyAccount extends StatelessWidget {
                       Gap(10),
                       CustomButtom(
                         title: "Begin User Verification",
-                        //onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => KycVerificatonScreen2())),
+                        onTap: () => router.push(const KycVerificatonScreen1()),
                         btnColor: CarePlanColor.orange,
                       ),
                     ],
