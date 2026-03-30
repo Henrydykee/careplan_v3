@@ -5,6 +5,15 @@ import '../data/database/db_exceptions.dart';
 import '../data/network/network_exceptions.dart';
 import '../presentation/domain/ui_exceptions.dart';
 
+/// Tracks whether we are already navigating to the WelcomeBackScreen
+/// to prevent multiple 401 responses from stacking duplicate screens.
+bool _isNavigatingToWelcomeBack = false;
+
+/// Call this after successful re-authentication to allow future 401 redirects.
+void resetUnauthorizedNavigation() {
+  _isNavigatingToWelcomeBack = false;
+}
+
 /// Return a `UIError` with a human readable [message].
 ///
 /// This is intended to be used in the Usecase `NetwokFailure` and `CacheFailure`
@@ -63,7 +72,8 @@ NetworkFailure getNetworkFailureFromApiFailure(
   String? exceptionMessage = exception!.exceptionMessage;
   if (exceptionMessage != null) {
 
-    if (exceptionMessage == 'Unauthorized') {
+    if (exceptionMessage == 'Unauthorized' && !_isNavigatingToWelcomeBack) {
+      _isNavigatingToWelcomeBack = true;
       router.push(
         const WelcomeBackScreen(fromUnauthorized: true),
       );

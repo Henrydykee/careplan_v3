@@ -11,6 +11,7 @@ import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/utils/color.dart';
+import 'package:careplan/core/utils/error_helpers.dart';
 import 'package:careplan/features/auth/domain/usecases/login_with_pin.dart';
 import 'package:careplan/features/getting_started/get_started_screen.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
@@ -217,14 +218,11 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
       (error) =>
           showErrorDialog(context, "Login Error", error.message),
       (_) {
-        if (widget.fromUnauthorized) {
-          router.pop(true);
-        } else {
-          router.pushAndRemoveUntil(
-            CarePlanNavBar(),
-            (route) => false,
-          );
-        }
+        resetUnauthorizedNavigation();
+        router.pushAndRemoveUntil(
+          CarePlanNavBar(),
+          (route) => false,
+        );
       },
     );
   }
