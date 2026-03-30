@@ -23,6 +23,8 @@ class NetworkInterceptor extends InterceptorsWrapper {
     // Log full URL to verify you're hitting the same URL as in Postman
     final fullUrl = options.uri.toString();
     print("🌐 [REQUEST] Full URL: $fullUrl");
+    print("🌐 [REQUEST] Body: ${options.data}");
+
 
     var authToken = await inject<SecuredStorage>().get(key: SecureStorageStrings.TOKEN) ?? "";
     PackageInfo packageInfo = await PackageInfo.fromPlatform();

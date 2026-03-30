@@ -2,6 +2,7 @@
 
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
+import '../../../features/account/presentation/state/kyc_provider.dart';
 import '../../../features/auth/presentation/state/auth_provider.dart';
 import '../../../features/card/presentation/state/card_provider.dart';
 import '../../../features/onboarding/presentation/state/onboarding_provider.dart';
@@ -16,7 +17,6 @@ class ProviderInitializer {
     ChangeNotifierProvider<AppointmentProvider>(create: (_) => AppointmentProvider(inject())),
     ChangeNotifierProvider<HistoryProvider>(create: (_) => HistoryProvider(inject())),
     ChangeNotifierProvider<CardProvider>(create: (_) => CardProvider(inject())),
-    // ChangeNotifierProvider<TransactionProvider>(create: (_) => TransactionProvider(inject())),
-    // ChangeNotifierProvider<NotificationProvider>(create: (_) => NotificationProvider(inject())),
+    ChangeNotifierProvider<KycProvider>(create: (_) => inject<KycProvider>()),
   ];
 }

@@ -13,6 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'package:careplan/features/auth/presentation/kyc/kyc_step_1_screen.dart';
+
 import 'profile/edit_profile_screen.dart';
 import 'settings_screen.dart';
 
@@ -56,7 +58,9 @@ class _AccountScreenState extends State<AccountScreen> {
           if (mounted) setState(() => _user = loadedUser);
         } catch (_) {}
       }
-    } catch (_) {}
+    } catch (_) {
+      
+    }
   }
 
   void _showLogoutModal(BuildContext context) {
@@ -168,6 +172,12 @@ class _AccountScreenState extends State<AccountScreen> {
               title: "Payment",
               subTitle: "Add credit/debit card",
               onTap: () => router.push(ListOfCardsScreen()),
+            ),
+            const Gap(10),
+            AccountActionItems(
+              title: "KYC Verification",
+              subTitle: "Verify your identity",
+              onTap: () => router.push(const KycVerificatonScreen1()),
             ),
             const Gap(50),
             Padding(

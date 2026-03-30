@@ -22,21 +22,18 @@ class _KycVerificatonScreen1State extends State<KycVerificatonScreen1> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _firstNameController;
-  late final TextEditingController _middleNameController;
   late final TextEditingController _lastNameController;
 
   @override
   void initState() {
     super.initState();
     _firstNameController = TextEditingController();
-    _middleNameController = TextEditingController();
     _lastNameController = TextEditingController();
   }
 
   @override
   void dispose() {
     _firstNameController.dispose();
-    _middleNameController.dispose();
     _lastNameController.dispose();
     super.dispose();
   }
@@ -90,12 +87,6 @@ class _KycVerificatonScreen1State extends State<KycVerificatonScreen1> {
                         ),
                         const Gap(10),
                         CustomTextField(
-                          title: "Middle Name (Optional)",
-                          controller: _middleNameController,
-                          hinttitle: "Enter Middle Name",
-                        ),
-                        const Gap(10),
-                        CustomTextField(
                           title: "Last Name",
                           controller: _lastNameController,
                           hinttitle: "Enter Last Name",
@@ -117,7 +108,12 @@ class _KycVerificatonScreen1State extends State<KycVerificatonScreen1> {
                     onTap: () {
                       final valid = _formKey.currentState?.validate() ?? false;
                       if (!valid) return;
-                      router.push(const KycVerificatonScreen2());
+                      router.push(
+                        KycVerificatonScreen2(
+                          firstName: _firstNameController.text.trim(),
+                          lastName: _lastNameController.text.trim(),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -129,4 +125,3 @@ class _KycVerificatonScreen1State extends State<KycVerificatonScreen1> {
     );
   }
 }
-

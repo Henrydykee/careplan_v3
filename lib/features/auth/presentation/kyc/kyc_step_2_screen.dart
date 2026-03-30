@@ -14,7 +14,14 @@ import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 
 class KycVerificatonScreen2 extends StatefulWidget {
-  const KycVerificatonScreen2({super.key});
+  final String firstName;
+  final String lastName;
+
+  const KycVerificatonScreen2({
+    super.key,
+    required this.firstName,
+    required this.lastName,
+  });
 
   @override
   State<KycVerificatonScreen2> createState() => _KycVerificatonScreen2State();
@@ -164,6 +171,8 @@ class _KycVerificatonScreen2State extends State<KycVerificatonScreen2> {
                       if (!valid) return;
                       router.push(
                         KycVerificationScreen3(
+                          firstName: widget.firstName,
+                          lastName: widget.lastName,
                           street: _streetController.text.trim(),
                           postalCode: _postalCodeController.text.trim(),
                           city: _cityController.text.trim(),
@@ -181,4 +190,3 @@ class _KycVerificatonScreen2State extends State<KycVerificatonScreen2> {
     );
   }
 }
-

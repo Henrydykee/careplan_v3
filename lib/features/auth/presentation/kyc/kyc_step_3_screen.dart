@@ -17,6 +17,8 @@ import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 
 class KycVerificationScreen3 extends StatefulWidget {
+  final String firstName;
+  final String lastName;
   final String street;
   final String postalCode;
   final String city;
@@ -24,6 +26,8 @@ class KycVerificationScreen3 extends StatefulWidget {
 
   const KycVerificationScreen3({
     super.key,
+    required this.firstName,
+    required this.lastName,
     required this.street,
     required this.postalCode,
     required this.city,
@@ -132,6 +136,8 @@ class _KycVerificationScreen3State extends State<KycVerificationScreen3> {
 
     router.push(
       KycVerificationScreen4(
+        firstName: widget.firstName,
+        lastName: widget.lastName,
         street: widget.street,
         postalCode: widget.postalCode,
         city: widget.city,
@@ -195,7 +201,7 @@ class _KycVerificationScreen3State extends State<KycVerificationScreen3> {
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(5),
-                          color: Colors.grey.withOpacity(0.3),
+                          color: Colors.grey.withValues(alpha: 0.3),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 5),
                         child: DropdownButton<String>(
@@ -232,4 +238,3 @@ class _KycVerificationScreen3State extends State<KycVerificationScreen3> {
     );
   }
 }
-
