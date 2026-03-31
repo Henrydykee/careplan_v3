@@ -17,13 +17,13 @@ abstract class HistoryRemoteDataSource extends RemoteDataSource {
   Future<NotesHistoryResponseModel> getNotesHistory({
     required String patientId,
     int page = 1,
-    int limit = 10,
+    int limit = 15,
   });
 
   Future<SessionHistoryResponseModel> getSessionHistory({
     required String patientId,
     int page = 1,
-    int limit = 10,
+    int limit = 15,
   });
 
   Future<CarePlanHistoryItemModel?> getCurrentCarePlan({
@@ -71,7 +71,7 @@ class HistoryRemoteDataSourceImpl implements HistoryRemoteDataSource {
   Future<NotesHistoryResponseModel> getNotesHistory({
     required String patientId,
     int page = 1,
-    int limit = 10,
+    int limit = 15,
   }) async {
     final queryParameters = {
       'page': page,
@@ -98,7 +98,7 @@ class HistoryRemoteDataSourceImpl implements HistoryRemoteDataSource {
   Future<SessionHistoryResponseModel> getSessionHistory({
     required String patientId,
     int page = 1,
-    int limit = 10,
+    int limit = 15,
   }) async {
     final queryParameters = {
       'page': page,

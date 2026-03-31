@@ -39,7 +39,6 @@ class AppointmentProvider with ChangeNotifier, ProviderState {
       loading: true,
       hasError: false,
     );
-    notifyListeners();
     Either<UIError, UpcomingAppointmentsResponseModel>? response = await useCases.getUpcomingAppointments(
       GetUpcomingAppointmentsParams(
         patientId: patientId,
@@ -47,7 +46,6 @@ class AppointmentProvider with ChangeNotifier, ProviderState {
         limit: limit,
       ),
     );
-    notifyListeners();
     if (response != null) {
       response.fold((l) {
         _setState(

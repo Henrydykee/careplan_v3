@@ -1,5 +1,3 @@
-
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
@@ -9,10 +7,10 @@ import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/appointment/data/models/appointment_model.dart';
+import 'package:careplan/features/appointment/data/models/upcoming_appointments_response_model.dart';
 import 'package:careplan/features/appointment/presentation/pages/all_appointments_screen.dart';
 import 'package:careplan/features/appointment/presentation/state/appointment_provider.dart';
 import 'package:careplan/features/auth/data/model/user_model.dart';
-import 'package:careplan/features/auth/presentation/kyc/kyc_step_1_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
@@ -53,11 +51,12 @@ class K10ScoreHolder extends StatelessWidget {
   Widget build(BuildContext context) {
     final mockScore = getMockScore();
     final displayScore = mockScore == "0" || mockScore.isEmpty;
-    
+
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 20),
       child: Container(
-        decoration: BoxDecoration(color: Color(0xFF6A451A), borderRadius: BorderRadius.circular(5)),
+        decoration: BoxDecoration(
+            color: CarePlanColor.brown, borderRadius: BorderRadius.circular(5)),
         width: width,
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -108,107 +107,144 @@ class K10ScoreHolder extends StatelessWidget {
   }
 }
 
-class KycPending extends StatelessWidget {
+class VerifyAccount extends StatelessWidget {
+  final String? kycStatus;
+  final VoidCallback? onStartVerification;
+
+  const VerifyAccount({Key? key, this.kycStatus, this.onStartVerification})
+      : super(key: key);
+
+  bool get _isVerified {
+    final status = kycStatus?.toLowerCase().trim() ?? '';
+    return status == 'approved';
+  }
+
+  bool get _isPending {
+    final status = kycStatus?.toLowerCase().trim() ?? '';
+    return status == 'pending';
+  }
+
+  bool get _isRejected {
+    final status = kycStatus?.toLowerCase().trim() ?? '';
+    return status == 'rejected';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final title = _isVerified
+        ? 'Your KYC is verified'
+        : _isPending
+            ? 'KYC verification in progress'
+            : _isRejected
+                ? 'KYC verification rejected'
+                : 'Complete User Verification';
+
+    final subtitle = _isVerified
+        ? 'You have full access to assessments and care planning features.'
+        : _isPending
+            ? 'We are reviewing your identity documents. Please wait for confirmation.'
+            : _isRejected
+                ? 'Your verification was rejected. Please resubmit your KYC details.'
+                : 'Submit your identity details to unlock mental health assessments.';
+
+    final iconAsset = _isVerified
+        ? Assets.kyc_succesful_image
+        : _isPending
+            ? Assets.hour_glass
+            : Assets.notification_icon_2;
+
+    final btnText = _isVerified
+        ? 'Verified'
+        : _isPending
+            ? 'Pending'
+            : _isRejected
+                ? 'Re-submit'
+                : 'Begin Verification';
+
+    final bool hasAction = _isRejected || (!_isVerified && !_isPending);
+    final buttonColor = _isRejected || (!_isVerified && !_isPending)
+        ? CarePlanColor.orange
+        : CarePlanColor.grey_5;
+    final buttonTextColor = hasAction ? Colors.white : CarePlanColor.grey_2;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          Divider(),
-          Gap(10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(color: CarePlanColor.grey_5),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SvgPicture.asset(Assets.hour_glass),
-              Gap(20),
-              Flexible(
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: _isVerified
+                      ? CarePlanColor.green.withOpacity(0.13)
+                      : _isPending
+                          ? CarePlanColor.orange.withOpacity(0.13)
+                          : CarePlanColor.light_orange,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: SvgPicture.asset(
+                    iconAsset,
+                    width: 26,
+                    height: 26,
+                    color: _isVerified
+                        ? CarePlanColor.green
+                        : _isPending
+                            ? CarePlanColor.brown
+                            : CarePlanColor.brown,
+                  ),
+                ),
+              ),
+              const Gap(14),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextHolder(
-                      title: "Your Profile is being reviewed",
+                      title: title,
                       size: 16,
                       fontWeight: FontWeight.w800,
                       color: CarePlanColor.brown,
                     ),
-                    Gap(8),
+                    const Gap(8),
                     TextHolder(
-                      title: "You will get a notification when your Profile has been approved.",
+                      title: subtitle,
                       size: 14,
                       color: CarePlanColor.grey,
+                    ),
+                    const Gap(16),
+                    CustomButtom(
+                      title: btnText,
+                      onTap: hasAction ? onStartVerification : null,
+                      btnColor: buttonColor,
+                      textColor: buttonTextColor,
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          Gap(10),
-          Divider(),
-        ],
+        ),
       ),
     );
   }
 }
-
-class VerifyAccount extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Divider(),
-        Gap(20),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SvgPicture.asset(Assets.notification_icon_2),
-                Gap(20),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextHolder(
-                        title: "Complete User Verification",
-                        size: 16,
-                        fontWeight: FontWeight.w800,
-                        color: CarePlanColor.brown,
-                      ),
-                      Gap(10),
-                      TextHolder(
-                        title: "Afterwards you will be able to take the mental health assessment.",
-                        size: 14,
-                        color: CarePlanColor.brown,
-                      ),
-                      Gap(10),
-                      CustomButtom(
-                        title: "Begin User Verification",
-                        onTap: () => router.push(const KycVerificatonScreen1()),
-                        btnColor: CarePlanColor.orange,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Gap(20),
-        Divider(),
-      ],
-    );
-  }
-}
-
-
-
 
 class UpcomingAppointmentWidget extends StatefulWidget {
   final String? patientId;
@@ -216,7 +252,8 @@ class UpcomingAppointmentWidget extends StatefulWidget {
   const UpcomingAppointmentWidget({Key? key, this.patientId}) : super(key: key);
 
   @override
-  State<UpcomingAppointmentWidget> createState() => _UpcomingAppointmentWidgetState();
+  State<UpcomingAppointmentWidget> createState() =>
+      _UpcomingAppointmentWidgetState();
 }
 
 class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
@@ -226,10 +263,10 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
     if (widget.patientId != null && widget.patientId!.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         context.read<AppointmentProvider>().fetchUpcomingAppointments(
-          patientId: widget.patientId!,
-          page: 1,
-          limit: 20,
-        );
+              patientId: widget.patientId!,
+              page: 1,
+              limit: 20,
+            );
       });
     }
   }
@@ -253,7 +290,8 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
     return type;
   }
 
-  List<AppointmentModel> _sortAppointmentsByDate(List<AppointmentModel> appointments) {
+  List<AppointmentModel> _sortAppointmentsByDate(
+      List<AppointmentModel> appointments) {
     return appointments
       ..sort((a, b) {
         try {
@@ -283,8 +321,10 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
       debugPrint("Error parsing date/time: $e");
     }
 
-    final String month = localStart != null ? DateFormat("MMM").format(localStart) : "";
-    final String day = localStart != null ? DateFormat("dd").format(localStart) : "";
+    final String month =
+        localStart != null ? DateFormat("MMM").format(localStart) : "";
+    final String day =
+        localStart != null ? DateFormat("dd").format(localStart) : "";
     final String timeRange = (localStart != null && localEnd != null)
         ? "${DateFormat.jm().format(localStart)} - ${DateFormat.jm().format(localEnd)}"
         : "Time not available";
@@ -357,13 +397,20 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AppointmentProvider>(
-      builder: (context, appointmentProvider, child) {
-        if (appointmentProvider.isLoading && appointmentProvider.appointments == null) {
+    return Selector<AppointmentProvider,
+        ({bool isLoading, bool hasError, String errorMessage, UpcomingAppointmentsResponseModel? appointments})>(
+      selector: (_, p) => (
+        isLoading: p.isLoading,
+        hasError: p.hasError,
+        errorMessage: p.errorMessage,
+        appointments: p.appointments,
+      ),
+      builder: (context, state, child) {
+        if (state.isLoading && state.appointments == null) {
           return const HomeUpcomingAppointmentsShimmer();
         }
 
-        if (appointmentProvider.hasError && appointmentProvider.errorMessage.isNotEmpty) {
+        if (state.hasError && state.errorMessage.isNotEmpty) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
@@ -376,7 +423,8 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 25),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 25),
                 child: Column(
                   children: [
                     TextHolder(
@@ -387,7 +435,7 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
                     ),
                     const Gap(5),
                     TextHolder(
-                      title: appointmentProvider.errorMessage,
+                      title: state.errorMessage,
                       color: CarePlanColor.grey,
                       size: 12,
                       align: TextAlign.center,
@@ -399,7 +447,7 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
           );
         }
 
-        final appointments = appointmentProvider.appointments?.appointments ?? [];
+        final appointments = state.appointments?.appointments ?? [];
         final sortedAppointments = _sortAppointmentsByDate([...appointments]);
         final displayAppointments = sortedAppointments.take(2).toList();
         final hasMoreAppointments = sortedAppointments.length > 2;
@@ -417,7 +465,8 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 25),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 25),
                 child: Column(
                   children: [
                     SvgPicture.asset(Assets.calender),
@@ -449,19 +498,21 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
             ),
             if (hasMoreAppointments)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: GestureDetector(
                   onTap: () {
-                    router.push(AllAppointmentsScreen(patientId: widget.patientId));
+                    router.push(
+                        AllAppointmentsScreen(patientId: widget.patientId));
                   },
                   child: Center(
-                      child: TextHolder(
-                        title: "See All",
-                        color: CarePlanColor.brown,
-                        fontWeight: FontWeight.w800,
-                        size: 16,
-                      ),
+                    child: TextHolder(
+                      title: "See All",
+                      color: CarePlanColor.brown,
+                      fontWeight: FontWeight.w800,
+                      size: 16,
                     ),
+                  ),
                 ),
               ),
           ],
@@ -471,26 +522,24 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
   }
 }
 
-
-
 class CareplanTeamWidget extends StatelessWidget {
   final CareplanTeam? careplanTeam;
   final List<CarePlanTeamMember>? careTeamMembers;
 
   CareplanTeamWidget({this.careplanTeam, this.careTeamMembers});
 
-  String? getTitle(String title){
-    if(title.toLowerCase().contains("therapist")){
+  String? getTitle(String title) {
+    if (title.toLowerCase().contains("therapist")) {
       return "";
     }
-    if(title.toUpperCase() == "ADHD COACH"){
+    if (title.toUpperCase() == "ADHD COACH") {
       return "ADHD Coach ";
     }
     return "Dr. ";
   }
 
-  String? getProviderType(String type){
-    if(type.toUpperCase() == "MENTAL HEALTH NURSE"){
+  String? getProviderType(String type) {
+    if (type.toUpperCase() == "MENTAL HEALTH NURSE") {
       return "Care Coordinator";
     }
     return type;
@@ -525,12 +574,13 @@ class CareplanTeamWidget extends StatelessWidget {
     // Determine which data source to use
     final List<dynamic> teamList;
     final bool hasRealData;
-    
+
     if (careTeamMembers != null && careTeamMembers!.isNotEmpty) {
       // Use careTeamMembers from user object
       teamList = careTeamMembers!;
       hasRealData = true;
-    } else if (careplanTeam?.data?.doctors != null && careplanTeam!.data!.doctors!.isNotEmpty) {
+    } else if (careplanTeam?.data?.doctors != null &&
+        careplanTeam!.data!.doctors!.isNotEmpty) {
       // Use careplanTeam data structure
       teamList = careplanTeam!.data!.doctors!;
       hasRealData = true;
@@ -539,10 +589,10 @@ class CareplanTeamWidget extends StatelessWidget {
       teamList = _getMockDoctors();
       hasRealData = false;
     }
-    
+
     final displayCount = teamList.length > 3 ? 3 : teamList.length;
     final showSeeMore = teamList.length > 3;
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -563,7 +613,7 @@ class CareplanTeamWidget extends StatelessWidget {
             itemBuilder: (c, i) {
               String doctorName;
               String imageUrl;
-              
+
               if (hasRealData && careTeamMembers != null) {
                 // Use CarePlanTeamMember data
                 final member = careTeamMembers![i];
@@ -575,7 +625,8 @@ class CareplanTeamWidget extends StatelessWidget {
                 final firstName = doctor.firstName ?? "";
                 final lastName = doctor.lastName ?? "";
                 final doctorType = doctor.type?.toString() ?? "";
-                doctorName = "${getTitle(doctorType)} $firstName $lastName".trim();
+                doctorName =
+                    "${getTitle(doctorType)} $firstName $lastName".trim();
                 imageUrl = doctor.imageUrl ?? "";
               } else {
                 // Use mock data
@@ -583,10 +634,11 @@ class CareplanTeamWidget extends StatelessWidget {
                 final firstName = doctor.firstName;
                 final lastName = doctor.lastName;
                 final doctorType = doctor.type;
-                doctorName = "${getTitle(doctorType)} $firstName $lastName".trim();
+                doctorName =
+                    "${getTitle(doctorType)} $firstName $lastName".trim();
                 imageUrl = doctor.imageUrl;
               }
-              
+
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: InkWell(
@@ -620,9 +672,11 @@ class CareplanTeamWidget extends StatelessWidget {
                                     radius: 30,
                                     backgroundColor: Colors.white,
                                     child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(30.0),
+                                        borderRadius:
+                                            BorderRadius.circular(30.0),
                                         child: CachedNetworkImage(
-                                          errorWidget: (context, url, error) => Image.asset(
+                                          errorWidget: (context, url, error) =>
+                                              Image.asset(
                                             "assets/images/new_image_place_holder.png",
                                             fit: BoxFit.contain,
                                           ),
@@ -648,7 +702,11 @@ class CareplanTeamWidget extends StatelessWidget {
                                   ),
                                   if (hasRealData && careplanTeam != null)
                                     TextHolder(
-                                      title: getProviderType(careplanTeam!.data!.doctors![i].type?.toString() ?? "") ?? "",
+                                      title: getProviderType(careplanTeam!
+                                                  .data!.doctors![i].type
+                                                  ?.toString() ??
+                                              "") ??
+                                          "",
                                       color: CarePlanColor.grey,
                                       fontWeight: FontWeight.w500,
                                       size: 11,
@@ -765,7 +823,8 @@ class EmptyCareplan extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(5), color: Color(0xFFF2F2F2)),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5), color: Color(0xFFF2F2F2)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 10),
         child: Column(
@@ -816,10 +875,11 @@ class CareTeamListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Determine which data source to use
     final List<dynamic> teamList;
-    
+
     if (careTeamMembers.isNotEmpty) {
       teamList = careTeamMembers;
-    } else if (careplanTeam?.data?.doctors != null && careplanTeam!.data!.doctors!.isNotEmpty) {
+    } else if (careplanTeam?.data?.doctors != null &&
+        careplanTeam!.data!.doctors!.isNotEmpty) {
       teamList = careplanTeam!.data!.doctors!;
     } else {
       teamList = [];
@@ -855,7 +915,8 @@ class CareTeamListScreen extends StatelessWidget {
                   final firstName = doctor.firstName ?? "";
                   final lastName = doctor.lastName ?? "";
                   final doctorType = doctor.type?.toString() ?? "";
-                  doctorName = "${getTitle(doctorType)} $firstName $lastName".trim();
+                  doctorName =
+                      "${getTitle(doctorType)} $firstName $lastName".trim();
                   imageUrl = doctor.imageUrl ?? "";
                   providerType = getProviderType(doctorType);
                 } else {
@@ -890,7 +951,8 @@ class CareTeamListScreen extends StatelessWidget {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(30.0),
                                 child: CachedNetworkImage(
-                                  errorWidget: (context, url, error) => Image.asset(
+                                  errorWidget: (context, url, error) =>
+                                      Image.asset(
                                     "assets/images/new_image_place_holder.png",
                                     fit: BoxFit.contain,
                                   ),
@@ -931,5 +993,3 @@ class CareTeamListScreen extends StatelessWidget {
     );
   }
 }
-
-

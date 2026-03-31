@@ -1,117 +1,159 @@
-
-import 'package:careplan/core/presentation/widgets/router.dart';
+import 'package:careplan/core/presentation/widgets/text_holder.dart';
+import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/assement/presentation/Stressors/stressors_result_screen.dart';
 import 'package:careplan/features/assement/presentation/asrs/asrs_result_screen.dart';
 import 'package:careplan/features/assement/presentation/goals/goals_result_acreen.dart';
 import 'package:careplan/features/assement/presentation/k10/k10_result_screen.dart';
-import 'package:careplan/features/assement/presentation/Stressors/select_stressors_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:careplan/core/presentation/widgets/text_holder.dart';
-import 'package:careplan/core/utils/color.dart';
 import 'package:gap/gap.dart';
 
 class SelectAssementHistoryScreen extends StatefulWidget {
   const SelectAssementHistoryScreen({Key? key}) : super(key: key);
 
   @override
-  State<SelectAssementHistoryScreen> createState() => _SelectAssementHistoryScreenState();
+  State<SelectAssementHistoryScreen> createState() =>
+      _SelectAssementHistoryScreenState();
 }
 
-class _SelectAssementHistoryScreenState extends State<SelectAssementHistoryScreen> {
+class _SelectAssementHistoryScreenState
+    extends State<SelectAssementHistoryScreen> {
+  int _selectedTab = 0;
+  late final PageController _pageController;
 
-  Widget _buildOptionCard(
-    BuildContext context,
-    String title, {
-    VoidCallback? onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 1,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.brown,
-                  ),
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right,
-                color: Colors.grey,
-                size: 25,
-              ),
-            ],
-          ),
-        ),
-      ),
+  final List<_AssessmentTabItem> _tabs = const [
+    _AssessmentTabItem(title: "K10", icon: Icons.psychology_outlined),
+    _AssessmentTabItem(title: "ASRS", icon: Icons.checklist_outlined),
+    _AssessmentTabItem(title: "Goals", icon: Icons.flag_outlined),
+    _AssessmentTabItem(title: "Stress", icon: Icons.health_and_safety_outlined),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onTabTap(int index) {
+    setState(() => _selectedTab = index);
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: CarePlanColor.brown,
-        automaticallyImplyLeading: false,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            color: CarePlanColor.brown,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextHolder(
-                  title: "Assessments",
-                  size: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-                TextHolder(
-                  title: "Your assessment history",
-                  size: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ],
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Gap(20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextHolder(
+                title: "Assessments",
+                size: 22,
+                fontWeight: FontWeight.w800,
+                color: CarePlanColor.brown,
+              ),
             ),
-          ),
-          Gap(25),
-          Column(
-            children: [
-              _buildOptionCard(context, 'K10', onTap: () {
-                router.push(K10ResultScreen());
-              }),
-              _buildOptionCard(context, 'ASRS', onTap: () => router.push(ASRSResultHistoryScreen())),
-              _buildOptionCard(context, 'Goals', onTap: () => router.push(GoalsResultScreen())),
-              _buildOptionCard(context, 'Areas of Stress', onTap: () => router.push(StressorsResultScreen())),
-              ],
-          ),
-
-        ],
+            const Gap(4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextHolder(
+                title: "Your assessment history",
+                size: 14,
+                color: CarePlanColor.grey_3,
+              ),
+            ),
+            const Gap(20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildTabBar(),
+            ),
+            const Gap(16),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() => _selectedTab = index);
+                },
+                children: [
+                  K10ResultScreen(),
+                  ASRSResultHistoryScreen(),
+                  GoalsResultScreen(),
+                  StressorsResultScreen(),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  Widget _buildTabBar() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: CarePlanColor.grey_5,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: List.generate(_tabs.length, (index) {
+          final isSelected = _selectedTab == index;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => _onTabTap(index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color:
+                      isSelected ? CarePlanColor.brown : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color:
+                                CarePlanColor.brown.withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Center(
+                  child: TextHolder(
+                    title: _tabs[index].title,
+                    size: 14,
+                    fontWeight: FontWeight.w700,
+                    color:
+                        isSelected ? Colors.white : CarePlanColor.grey_3,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _AssessmentTabItem {
+  final String title;
+  final IconData icon;
+
+  const _AssessmentTabItem({required this.title, required this.icon});
 }

@@ -84,26 +84,17 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
     final accessToken = responseData?['accessToken'] as String?;
     final refreshToken = responseData?['refreshToken'] as String?;
     
-    debugPrint('🟢 [Auth] loginUser - userData keys: ${userData?.keys.toList()}');
-    debugPrint('🟢 [Auth] loginUser - firstName: ${userData?['firstName']}, lastName: ${userData?['lastName']}');
     
     // Parse user model
     final userModel = UserModel.fromJson(userData ?? jsonData);
     
-    debugPrint('🟢 [Auth] loginUser - Parsed user: ${userModel.firstName} ${userModel.lastName}');
-    debugPrint('🟢 [Auth] loginUser - Care team count: ${userModel.careplanTeam?.length ?? 0}');
-    
     // Save user to localStorage
     if (userData != null) {
       final userJson = userModel.toJson();
-      debugPrint('🟢 [Auth] loginUser - Saving user to storage with key "user"');
-      debugPrint('🟢 [Auth] loginUser - User JSON keys: ${userJson.keys.toList()}');
       await inject<LocalStorageService>().setJson("user", userJson);
       
       // Verify it was saved
       final saved = inject<LocalStorageService>().getJson("user");
-      debugPrint('🟢 [Auth] loginUser - Verification: Saved user firstName = ${saved?['firstName']}');
-      debugPrint('🟢 [Auth] loginUser - User saved successfully');
     } else {
       debugPrint('🔴 [Auth] loginUser - userData is null, not saving');
     }

@@ -93,10 +93,10 @@ class _K10ResultScreenState extends State<K10ResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(showBackIcon: true,color: CarePlanColor.brown ,backButtonColor: Colors.white),
+  
       body: Column(
         children: [
-          _buildHeader(),
+  
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -114,30 +114,7 @@ class _K10ResultScreenState extends State<K10ResultScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      color: CarePlanColor.brown,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextHolder(
-            title: 'K10 Test',
-            size: 20,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-          TextHolder(
-            title: 'See results for all K10 tests',
-            size: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildTakeTestButton(BuildContext context) {
     return Padding(

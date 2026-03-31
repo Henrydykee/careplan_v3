@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../../../core/data/cache/api_cache_service.dart';
 import '../../../../core/data/datasources/remote_datasource_base.dart';
 import '../../../../core/data/network/network_service.dart';
 import '../../../../core/data/network/network_service_response.dart';
@@ -16,14 +17,15 @@ abstract class AssessmentRemoteDataSource extends RemoteDataSource {
   Future<String> activeAssessment();
   Future<String> createAssessment();
   Future<String> sendAssessment({required Map<String, dynamic> body});
-  Future<String> getK10AssessmentHistory();
-  Future<String> getAsrsHistory();
+  Future<String> getK10AssessmentHistory({int page, int limit});
+  Future<String> getAsrsHistory({int page, int limit});
   Future<String> getGoalsHistory();
   Future<String> getStressorsHistory();
 }
 
 class AssessmentRemoteDataSourceImpl implements AssessmentRemoteDataSource {
   final NetworkService _networkService;
+  final ApiCacheService _cache = ApiCacheService.instance;
   AssessmentRemoteDataSourceImpl(this._networkService);
 
   @override
@@ -44,6 +46,8 @@ class AssessmentRemoteDataSourceImpl implements AssessmentRemoteDataSource {
       },
     );
     final data = handleNetworkResponse(response);
+    // Invalidate all assessment caches since data changed
+    _cache.invalidateGroup('assessment');
     return data["message"] ?? jsonEncode(data);
   }
 
@@ -85,35 +89,71 @@ class AssessmentRemoteDataSourceImpl implements AssessmentRemoteDataSource {
       body: body,
     );
     final data = handleNetworkResponse(response);
+    // Invalidate all assessment caches since data changed
+    _cache.invalidateGroup('assessment');
     return data["message"] ?? jsonEncode(data);
   }
 
   @override
-  Future<String> getK10AssessmentHistory() async {
-    NetworkServiceResponse response = await _networkService.get(AssessmentEndpoints.getK10AssessmentHistory);
+  Future<String> getK10AssessmentHistory({int page = 1, int limit = 15}) async {
+    final cacheKey = '${ApiCacheService.k10History}:$page:$limit';
+    final cached = _cache.get<String>(cacheKey);
+    if (cached != null) return cached;
+
+    NetworkServiceResponse response = await _networkService.get(
+      AssessmentEndpoints.getK10AssessmentHistory,
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+    );
     final data = handleNetworkResponse(response);
-    return jsonEncode(data);
+    final encoded = jsonEncode(data);
+    _cache.put(cacheKey, encoded);
+    return encoded;
   }
 
   @override
-  Future<String> getAsrsHistory() async {
-    NetworkServiceResponse response = await _networkService.get(AssessmentEndpoints.getAsrsHistory);
+  Future<String> getAsrsHistory({int page = 1, int limit = 15}) async {
+    final cacheKey = '${ApiCacheService.asrsHistory}:$page:$limit';
+    final cached = _cache.get<String>(cacheKey);
+    if (cached != null) return cached;
+
+    NetworkServiceResponse response = await _networkService.get(
+      AssessmentEndpoints.getAsrsHistory,
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+    );
     final data = handleNetworkResponse(response);
-    return jsonEncode(data);
+    final encoded = jsonEncode(data);
+    _cache.put(cacheKey, encoded);
+    return encoded;
   }
 
   @override
   Future<String> getGoalsHistory() async {
+    final cached = _cache.get<String>(ApiCacheService.goalsHistory);
+    if (cached != null) return cached;
+
     NetworkServiceResponse response = await _networkService.get(AssessmentEndpoints.getGoalsHistory);
     final data = handleNetworkResponse(response);
-    return jsonEncode(data);
+    final encoded = jsonEncode(data);
+    _cache.put(ApiCacheService.goalsHistory, encoded);
+    return encoded;
   }
 
   @override
   Future<String> getStressorsHistory() async {
+    final cached = _cache.get<String>(ApiCacheService.stressorsHistory);
+    if (cached != null) return cached;
+
     NetworkServiceResponse response = await _networkService.get(AssessmentEndpoints.getStressorsHistory);
     final data = handleNetworkResponse(response);
-    return jsonEncode(data);
+    final encoded = jsonEncode(data);
+    _cache.put(ApiCacheService.stressorsHistory, encoded);
+    return encoded;
   }
 }
 

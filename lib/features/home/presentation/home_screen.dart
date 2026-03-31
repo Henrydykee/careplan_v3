@@ -8,6 +8,8 @@ import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/presentation/kyc/kyc_step_1_screen.dart';
+import 'package:careplan/features/history/data/models/care_plan_history_item_model.dart';
 import 'package:careplan/features/history/presentation/state/history_provider.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +28,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   UserModel? _user;
 
+
   @override
   void initState() {
     super.initState();
@@ -37,20 +40,22 @@ class _HomeScreenState extends State<HomeScreen> {
       // Load from local storage only
       final localStorage = inject<LocalStorageService>();
       final userJson = localStorage.getJson('user');
-      
+
       if (userJson != null) {
         try {
           final loadedUser = UserModel.fromJson(userJson);
           setState(() {
             _user = loadedUser;
           });
-          if (mounted && loadedUser.id != null && loadedUser.id!.isNotEmpty) {
+
+      
+           
             WidgetsBinding.instance.addPostFrameCallback((_) {
               context
                   .read<HistoryProvider>()
                   .fetchCurrentCarePlan(patientId: loadedUser.id!);
             });
-          }
+          
         } catch (e) {
           // Handle error silently
         }
@@ -64,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await _loadUserData();
   }
 
+
   String _getUserName() {
     if (_user?.firstName != null || _user?.lastName != null) {
       final firstName = _user?.firstName ?? '';
@@ -75,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -147,10 +154,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTakeTestTap: () => router.push(CarePlanNavBar(index: 1)),
               ),
               const Gap(30),
-              // KYC Status - using mock data
-              VerifyAccount(),
+              // KYC Status
+              if (_user?.kycStatus?.toLowerCase().trim() != 'approved')
+                VerifyAccount(
+                  kycStatus: _user?.kycStatus,
+                  onStartVerification: () =>
+                      router.push(const KycVerificatonScreen1()),
+                ),
               // Care Plan Team - using user data
-              if (_user?.careplanTeam != null && _user!.careplanTeam!.isNotEmpty)
+              if (_user?.careplanTeam != null &&
+                  _user!.careplanTeam!.isNotEmpty)
                 CareplanTeamWidget(
                   careTeamMembers: _user!.careplanTeam!,
                 ),
@@ -182,16 +195,20 @@ class _HomeScreenState extends State<HomeScreen> {
               // Care Plan - show current care plan if available, otherwise empty state
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 0),
-                child: Consumer<HistoryProvider>(
-                  builder: (context, historyProvider, child) {
-                    final carePlan = historyProvider.currentCarePlan;
-
-                    if (historyProvider.isLoading && carePlan == null) {
-                      return Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: const HomeCarePlanShimmer());
+                child: Selector<HistoryProvider, ({CarePlanHistoryItemModel? carePlan, bool isLoading})>(
+                  selector: (_, provider) => (
+                    carePlan: provider.currentCarePlan,
+                    isLoading: provider.isLoading,
+                  ),
+                  builder: (context, state, child) {
+                    if (state.isLoading && state.carePlan == null) {
+                      return const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: HomeCarePlanShimmer());
                     }
 
-                    if (carePlan != null) {
-                      return MentalHealthCarePlanWidget(carePlan: carePlan);
+                    if (state.carePlan != null) {
+                      return MentalHealthCarePlanWidget(carePlan: state.carePlan!);
                     }
 
                     return const EmptyCareplan();
@@ -205,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   String getTodayDate() {
     final now = DateTime.now();
     return DateFormat('EEE, d MMM yyyy').format(now);

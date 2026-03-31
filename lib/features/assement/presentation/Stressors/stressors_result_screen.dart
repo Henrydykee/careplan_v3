@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
+import 'package:careplan/core/presentation/widgets/button.dart';
+import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
@@ -73,96 +75,29 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        showBackIcon: true,
-        color: CarePlanColor.brown,
-        backButtonColor: Colors.white,
-      ),
       body: Column(
         children: [
-          Container(
-            width: double.infinity,
-            color: CarePlanColor.brown,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextHolder(
-                  title: "Stressors",
-                  size: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-                TextHolder(
-                  title: "See all current stressors",
-                  size: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-          Container(
-            width: MediaQuery.of(context).size.width,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/images/take_test_background.png"),
-                fit: BoxFit.cover,
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextHolder(
-                        title: "💡 Take the Stressors Test",
-                        size: 14,
-                        fontWeight: FontWeight.w600,
-                        color: CarePlanColor.brown,
-                      ),
-                    ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: FutureBuilder<_StressorsApiData?>(
+              future: _stressorsFuture,
+              builder: (context, snapshot) {
+                final stressorsData = snapshot.data;
+                final abilityToCope = _overrideAbilityToCope ??
+                    (stressorsData?.abilityToCope ?? _mockAbilityToCope)
+                        .toString();
+                final stressorList = _overrideStressors ??
+                    stressorsData?.selectedStressors ??
+                    _mockStressors;
+                return CustomButtom(
+                  onTap: () => _onTapUpdate(
+                    stressors: stressorList,
+                    abilityToCope: abilityToCope,
                   ),
-                ),
-                const SizedBox(width: 10),
-                FutureBuilder<_StressorsApiData?>(
-                  future: _stressorsFuture,
-                  builder: (context, snapshot) {
-                    final stressorsData = snapshot.data;
-                    final abilityToCope = _overrideAbilityToCope ??
-                        (stressorsData?.abilityToCope ?? _mockAbilityToCope)
-                            .toString();
-                    final stressorList =
-                        _overrideStressors ?? stressorsData?.selectedStressors ?? _mockStressors;
-                    return GestureDetector(
-                      onTap: () => _onTapUpdate(
-                        stressors: stressorList,
-                        abilityToCope: abilityToCope,
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          color: CarePlanColor.brown,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 10,
-                        ),
-                        child: TextHolder(
-                          title: "Update",
-                          size: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                  title: "Update",
+                  btnColor: CarePlanColor.brown,
+                );
+              },
             ),
           ),
           const Gap(26),
@@ -176,8 +111,8 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
 
                 final stressorsData = snapshot.data;
                 final abilityToCope = (_overrideAbilityToCope ??
-                        (stressorsData?.abilityToCope ?? _mockAbilityToCope)
-                            .toString());
+                    (stressorsData?.abilityToCope ?? _mockAbilityToCope)
+                        .toString());
                 final stressorList = _overrideStressors ??
                     stressorsData?.selectedStressors ??
                     _mockStressors;
@@ -259,7 +194,8 @@ class StressorsCard extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 14,
-                        backgroundColor: CarePlanColor.black_3.withValues(alpha: 0.2),
+                        backgroundColor:
+                            CarePlanColor.black_3.withValues(alpha: 0.2),
                         child: Text(
                           '${index + 1}',
                           style: const TextStyle(
@@ -360,4 +296,3 @@ class _StressorsFlags {
     );
   }
 }
-

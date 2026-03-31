@@ -69,7 +69,6 @@ class HistoryProvider with ChangeNotifier, ProviderState {
       loading: true,
       hasError: false,
     );
-    notifyListeners();
     Either<UIError, BillingHistoryResponseModel>? response = await useCases.getBillingHistory(
       GetBillingHistoryParams(
         patientId: patientId,
@@ -77,48 +76,35 @@ class HistoryProvider with ChangeNotifier, ProviderState {
         limit: limit,
       ),
     );
-    notifyListeners();
-    if (response != null) {
-      response.fold((l) {
-        _setState(
-          loading: false,
-          isReady: false,
-          hasError: true,
-          errorMsg: l.message,
-          payload: null,
-          billingHistoryPayload: null,
-        );
-      }, (r) {
-        _setState(
-          loading: false,
-          isReady: true,
-          hasError: false,
-          payload: r,
-          billingHistoryPayload: r,
-        );
-      });
-    } else {
+    response.fold((l) {
       _setState(
         loading: false,
         isReady: false,
         hasError: true,
-        errorMsg: 'Failed to fetch billing history. Please try again.',
+        errorMsg: l.message,
         payload: null,
         billingHistoryPayload: null,
       );
-    }
+    }, (r) {
+      _setState(
+        loading: false,
+        isReady: true,
+        hasError: false,
+        payload: r,
+        billingHistoryPayload: r,
+      );
+    });
   }
 
   Future<void> fetchNotesHistory({
     required String patientId,
     int page = 1,
-    int limit = 10,
+    int limit = 15,
   }) async {
     _setState(
       loading: true,
       hasError: false,
     );
-    notifyListeners();
     Either<UIError, NotesHistoryResponseModel>? response = await useCases.getNotesHistory(
       GetNotesHistoryParams(
         patientId: patientId,
@@ -126,48 +112,35 @@ class HistoryProvider with ChangeNotifier, ProviderState {
         limit: limit,
       ),
     );
-    notifyListeners();
-    if (response != null) {
-      response.fold((l) {
-        _setState(
-          loading: false,
-          isReady: false,
-          hasError: true,
-          errorMsg: l.message,
-          payload: null,
-          notesHistoryPayload: null,
-        );
-      }, (r) {
-        _setState(
-          loading: false,
-          isReady: true,
-          hasError: false,
-          payload: r,
-          notesHistoryPayload: r,
-        );
-      });
-    } else {
+    response.fold((l) {
       _setState(
         loading: false,
         isReady: false,
         hasError: true,
-        errorMsg: 'Failed to fetch notes history. Please try again.',
+        errorMsg: l.message,
         payload: null,
         notesHistoryPayload: null,
       );
-    }
+    }, (r) {
+      _setState(
+        loading: false,
+        isReady: true,
+        hasError: false,
+        payload: r,
+        notesHistoryPayload: r,
+      );
+    });
   }
 
   Future<void> fetchSessionHistory({
     required String patientId,
     int page = 1,
-    int limit = 10,
+    int limit = 15,
   }) async {
     _setState(
       loading: true,
       hasError: false,
     );
-    notifyListeners();
     Either<UIError, SessionHistoryResponseModel>? response =
         await useCases.getSessionHistory(
       GetSessionHistoryParams(
@@ -176,81 +149,61 @@ class HistoryProvider with ChangeNotifier, ProviderState {
         limit: limit,
       ),
     );
-    notifyListeners();
-    if (response != null) {
-      response.fold((l) {
-        _setState(
-          loading: false,
-          isReady: false,
-          hasError: true,
-          errorMsg: l.message,
-          payload: null,
-          sessionHistoryPayload: null,
-        );
-      }, (r) {
-        _setState(
-          loading: false,
-          isReady: true,
-          hasError: false,
-          payload: r,
-          sessionHistoryPayload: r,
-        );
-      });
-    } else {
+    response.fold((l) {
       _setState(
         loading: false,
         isReady: false,
         hasError: true,
-        errorMsg: 'Failed to fetch care plan history. Please try again.',
+        errorMsg: l.message,
         payload: null,
         sessionHistoryPayload: null,
       );
-    }
+    }, (r) {
+      _setState(
+        loading: false,
+        isReady: true,
+        hasError: false,
+        payload: r,
+        sessionHistoryPayload: r,
+      );
+    });
   }
 
   Future<void> fetchCurrentCarePlan({
     required String patientId,
+    bool forceRefresh = false,
   }) async {
+    if (!forceRefresh && _currentCarePlan != null) {
+      return;
+    }
+
     _setState(
       loading: true,
       hasError: false,
     );
-    notifyListeners();
-    Either<UIError, CarePlanHistoryItemModel?>? response =
+    Either<UIError, CarePlanHistoryItemModel?> response =
         await useCases.getCurrentCarePlan(
       GetCurrentCarePlanParams(
         patientId: patientId,
       ),
     );
-    notifyListeners();
-    if (response != null) {
-      response.fold((l) {
-        _setState(
-          loading: false,
-          isReady: false,
-          hasError: true,
-          errorMsg: l.message,
-          payload: null,
-          currentCarePlanPayload: null,
-        );
-      }, (r) {
-        _setState(
-          loading: false,
-          isReady: true,
-          hasError: false,
-          payload: r,
-          currentCarePlanPayload: r,
-        );
-      });
-    } else {
+    response.fold((l) {
       _setState(
         loading: false,
         isReady: false,
         hasError: true,
-        errorMsg: 'Failed to fetch current care plan. Please try again.',
+        errorMsg: l.message,
         payload: null,
         currentCarePlanPayload: null,
       );
-    }
+    }, (r) {
+      _setState(
+        loading: false,
+        isReady: true,
+        hasError: false,
+        payload: r,
+        currentCarePlanPayload: r,
+      );
+    });
   }
 }

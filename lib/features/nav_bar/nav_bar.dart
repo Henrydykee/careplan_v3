@@ -1,10 +1,14 @@
 
 
+import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/history/presentation/state/history_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/resources/assets.dart';
 import '../../core/resources/color.dart';
@@ -24,14 +28,10 @@ class CarePlanNavBar extends StatefulWidget {
 
 class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAliveClientMixin {
   int selectedTab = 0;
-  UserModel? _userDetails;
   late final PageController _pageController;
 
   // Cache for bottom nav bar items to avoid recreating them
   late final List<FABBottomAppBarItem> _bottomNavItems;
-
-  // Flag to prevent multiple initialization calls
-  bool _isInitialized = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -41,6 +41,10 @@ class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAlive
     super.initState();
     selectedTab = widget.index ?? 0;
     _pageController = PageController(initialPage: selectedTab);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialCurrentCareplan();
+    });
 
     // Initialize bottom nav items once
     _bottomNavItems = [
@@ -122,6 +126,24 @@ class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAlive
   //   }
   // }
 
+  Future<void> _loadInitialCurrentCareplan() async {
+    try {
+      final localStorage = inject<LocalStorageService>();
+      final userJson = localStorage.getJson('user');
+      if (userJson == null) return;
+
+      final loadedUser = UserModel.fromJson(userJson);
+      if (loadedUser.id == null || loadedUser.id!.isEmpty) return;
+
+      final historyProvider = context.read<HistoryProvider>();
+      if (historyProvider.currentCarePlan == null) {
+        await historyProvider.fetchCurrentCarePlan(patientId: loadedUser.id!);
+      }
+    } catch (_) {
+      // ignore errors (safety net)
+    }
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -134,7 +156,7 @@ class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAlive
     return Scaffold(
       bottomNavigationBar: FABBottomAppBar(
         notchedShape: const CircularNotchedRectangle(),
-        selectedColor: CarePlanColor.orange,
+        selectedColor: CarePlanColor.brown,
         color: CarePlanColor.black_3.withOpacity(0.5),
         onTabSelected: _onTabSelected,
         initialIndex: selectedTab,

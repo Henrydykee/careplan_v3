@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
+import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
@@ -22,10 +23,8 @@ class _GoalsResultScreenState extends State<GoalsResultScreen> {
   String? _overrideLongTermGoal;
   bool _didInitOverride = false;
 
-  static const String _shortTermGoalPlaceholder =
-      "No short term goal set yet.";
-  static const String _longTermGoalPlaceholder =
-      "No long term goal set yet.";
+  static const String _shortTermGoalPlaceholder = "No short term goal set yet.";
+  static const String _longTermGoalPlaceholder = "No long term goal set yet.";
 
   @override
   void initState() {
@@ -55,101 +54,33 @@ class _GoalsResultScreenState extends State<GoalsResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        showBackIcon: true,
-        color: CarePlanColor.brown,
-        backButtonColor: Colors.white,
-      ),
       body: Column(
         children: [
-          Container(
-            width: double.infinity,
-            color: CarePlanColor.brown,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextHolder(
-                  title: "Goals",
-                  size: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-                TextHolder(
-                  title: "See your current goals",
-                  size: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: MediaQuery.of(context).size.width,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/images/take_test_background.png"),
-                fit: BoxFit.cover,
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextHolder(
-                        title: "💡 Edit goals",
-                        size: 14,
-                        fontWeight: FontWeight.w600,
-                        color: CarePlanColor.brown,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                GestureDetector(
-                  onTap: () async {
-                    final initialGoal =
-                        (_overrideLongTermGoal ?? _longTermGoalPlaceholder).trim();
-                    final updatedGoal = await Navigator.of(context)
-                        .push<String>(
-                      MaterialPageRoute(
-                        builder: (_) => EditLongTermGoalScreen(
-                          initialGoal: initialGoal,
-                        ),
-                      ),
-                    );
-
-                    if (!mounted) return;
-                    if (updatedGoal == null) return;
-                    final trimmed = updatedGoal.trim();
-                    if (trimmed.isEmpty) return;
-
-                    setState(() {
-                      _overrideLongTermGoal = trimmed;
-                    });
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(5),
-                      color: CarePlanColor.brown,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 10,
-                    ),
-                    child: TextHolder(
-                      title: "Edit Goals",
-                      size: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: CustomButtom(
+              title: "Edit Long Term Goal",
+              btnColor: CarePlanColor.brown,
+              onTap: () async {
+                final initialGoal =
+                    (_overrideLongTermGoal ?? _longTermGoalPlaceholder).trim();
+                final updatedGoal = await Navigator.of(context).push<String>(
+                  MaterialPageRoute(
+                    builder: (_) => EditLongTermGoalScreen(
+                      initialGoal: initialGoal,
                     ),
                   ),
-                ),
-              ],
+                );
+            
+                if (!mounted) return;
+                if (updatedGoal == null) return;
+                final trimmed = updatedGoal.trim();
+                if (trimmed.isEmpty) return;
+            
+                setState(() {
+                  _overrideLongTermGoal = trimmed;
+                });
+              },
             ),
           ),
           const Gap(26),
@@ -294,4 +225,3 @@ class _ShortTermGoalData {
     );
   }
 }
-

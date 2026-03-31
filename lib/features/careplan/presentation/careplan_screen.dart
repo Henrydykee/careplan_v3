@@ -1,10 +1,8 @@
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
-import 'package:careplan/core/presentation/widgets/view_pager.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'billing_history_screen.dart';
 import 'notes_screen.dart';
 import 'previous_careplan_screen.dart';
@@ -20,117 +18,118 @@ class _CarePlanScreenState extends State<CarePlanScreen> {
   PageController pageController = PageController(initialPage: 0);
   int pageChanged = 0;
 
+  final List<String> _tabs = const ["History", "Billing", "Notes"];
+
   @override
   void initState() {
     super.initState();
     pageChanged = 0;
   }
 
+  void _onTabTap(int index) {
+    pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        showBackIcon: false,
-        title: "",
-      ),
-      body: Column(
-        children: [
-          Container(
-            color: Colors.white,
-            width: MediaQuery.of(context).size.width,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextHolder(
-                    title: "Care Plan",
-                    size: 20,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF3A3B3C),
-                  ),
-                  const Gap(5),
-                  TextHolder(
-                    title: "See care plan and billing history.",
-                    size: 15,
-                    color: const Color(0xFF68696C),
-                  ),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Gap(20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextHolder(
+                title: "History",
+                size: 22,
+                fontWeight: FontWeight.w800,
+                color: CarePlanColor.brown,
+              ),
+            ),
+            const Gap(4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextHolder(
+                title: "See care plan and billing history.",
+                size: 14,
+                color: CarePlanColor.grey_3,
+              ),
+            ),
+            const Gap(20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildTabBar(),
+            ),
+            const Gap(16),
+            Expanded(
+              child: PageView(
+                controller: pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    pageChanged = index;
+                  });
+                },
+                children: const [
+                  PreviousCareplanScreen(),
+                  BillingHistoryScreen(),
+                  NotesScreen(),
                 ],
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 20, right: 20),
-            child: _carePlanViewPager(),
-          ),
-          Expanded(
-            child: PageView(
-              controller: pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  pageChanged = index;
-                });
-              },
-              children: const [
-                PreviousCareplanScreen(),
-                BillingHistoryScreen(),
-                NotesScreen(),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _carePlanViewPager() {
+  Widget _buildTabBar() {
     return Container(
-      color: Colors.white,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: CarePlanColor.grey_5,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Expanded(
-            child: ViewPagerHeader(
-              title: "History",
-              textColor: pageChanged == 0 ? CarePlanColor.brown : const Color(0xFF3A3B3C),
-              color: pageChanged == 0 ? const Color(0xFFFD9C42) : Colors.white,
-              borderColor: pageChanged == 0 ? CarePlanColor.orange : Colors.grey.withValues(alpha: 0.3),
-              onTap: () => pageController.animateToPage(
-                0,
-                duration: const Duration(milliseconds: 10),
-                curve: Curves.easeIn,
+        children: List.generate(_tabs.length, (index) {
+          final isSelected = pageChanged == index;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => _onTabTap(index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? CarePlanColor.brown : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: CarePlanColor.brown.withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Center(
+                  child: TextHolder(
+                    title: _tabs[index],
+                    size: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? Colors.white : CarePlanColor.grey_3,
+                  ),
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: ViewPagerHeader(
-              title: "Billing",
-              textColor: pageChanged == 1 ? CarePlanColor.brown : const Color(0xFF3A3B3C),
-              color: pageChanged == 1 ? const Color(0xFFFD9C42) : Colors.white,
-              borderColor: pageChanged == 1 ? CarePlanColor.orange : Colors.grey.withValues(alpha: 0.3),
-              onTap: () => pageController.animateToPage(
-                1,
-                duration: const Duration(milliseconds: 10),
-                curve: Curves.easeIn,
-              ),
-            ),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: ViewPagerHeader(
-              title: "Notes",
-              textColor: pageChanged == 2 ? CarePlanColor.brown : const Color(0xFF3A3B3C),
-              color: pageChanged == 2 ? const Color(0xFFFD9C42) : Colors.white,
-              borderColor: pageChanged == 2 ? CarePlanColor.orange : Colors.grey.withValues(alpha: 0.3),
-              onTap: () => pageController.animateToPage(
-                2,
-                duration: const Duration(milliseconds: 10),
-                curve: Curves.easeIn,
-              ),
-            ),
-          ),
-        ],
+          );
+        }),
       ),
     );
   }

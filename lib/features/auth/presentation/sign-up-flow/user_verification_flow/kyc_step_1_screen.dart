@@ -1,10 +1,13 @@
+import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/local_storage_service.dart';
+import 'package:careplan/features/auth/data/model/user_model.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_field.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/string.dart';
-import 'package:careplan/core/utils/color.dart';
+import 'package:careplan/core/resources/color.dart';
 import 'package:flutter/material.dart';
 
 import 'kyc_step_2_screen.dart';
@@ -22,9 +25,14 @@ class _KycVerificatonScreen1State extends State<KycVerificatonScreen1> {
 
   @override
   void initState() {
-    _firstNameController = TextEditingController();
+    final localStorage = inject<LocalStorageService>();
+    final userJson = localStorage.getJson('user');
+    final user = userJson != null ? UserModel.fromJson(userJson) : null;
+
+    _firstNameController = TextEditingController(text: user?.firstName ?? '');
     _middleNameController = TextEditingController();
-    _lastNameController = TextEditingController();
+    _lastNameController = TextEditingController(text: user?.lastName ?? '');
+
     super.initState();
   }
 
@@ -74,7 +82,9 @@ class _KycVerificatonScreen1State extends State<KycVerificatonScreen1> {
                           title: "First Name",
                           hinttitle: "Enter First Name",
                           controller: _firstNameController,
-                          validator: (val) => val == null || val.isEmpty ? "Field is required" : null),
+                          validator: (val) => val == null || val.isEmpty
+                              ? "Field is required"
+                              : null),
                       SizedBox(
                         height: 10,
                       ),
@@ -90,7 +100,9 @@ class _KycVerificatonScreen1State extends State<KycVerificatonScreen1> {
                           title: "Last Name",
                           controller: _lastNameController,
                           hinttitle: "Enter Last Name",
-                          validator: (val) => val == null || val.isEmpty ? "Field is required" : null)
+                          validator: (val) => val == null || val.isEmpty
+                              ? "Field is required"
+                              : null)
                     ],
                   ),
                 ),

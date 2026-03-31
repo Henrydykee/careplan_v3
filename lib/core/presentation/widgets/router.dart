@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class RouterService {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  Future<T?>? push<T>(Widget page, {Duration duration = const Duration(milliseconds: 400)}) {
+  Future<T?>? push<T>(Widget page, {Duration duration = const Duration(milliseconds: 40)}) {
     return navigatorKey.currentState?.push<T>(_fadeRoute(page, duration: duration));
   }
 
@@ -14,7 +14,7 @@ class RouterService {
   Future<T?>? pushAndRemoveUntil<T>(
       Widget page,
       bool Function(Route<dynamic>) predicate,
-      {Duration duration = const Duration(milliseconds: 400)}
+      {Duration duration = const Duration(milliseconds: 40)}
       ) {
     return navigatorKey.currentState?.pushAndRemoveUntil<T>(
       _fadeRoute(page, duration: duration),
@@ -24,7 +24,7 @@ class RouterService {
 
   Future<T?>? pushReplacement<T, TO>(
       Widget page,
-      {TO? result, Duration duration = const Duration(milliseconds: 400)}
+      {TO? result, Duration duration = const Duration(milliseconds: 40)}
       ) {
     return navigatorKey.currentState?.pushReplacement<T, TO>(
       _fadeRoute(page, duration: duration),

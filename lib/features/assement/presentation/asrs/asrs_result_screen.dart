@@ -66,35 +66,9 @@ class _ASRSResultHistoryScreenState extends State<ASRSResultHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        showBackIcon: true,
-        color: CarePlanColor.brown,
-        backButtonColor: Colors.white,
-      ),
       body: Column(
         children: [
-          Container(
-            width: double.infinity,
-            color: CarePlanColor.brown,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextHolder(
-                  title: "ASRS Test",
-                  size: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-                TextHolder(
-                  title: "See results for all ASRS tests",
-                  size: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ],
-            ),
-          ),
+  
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refresh,

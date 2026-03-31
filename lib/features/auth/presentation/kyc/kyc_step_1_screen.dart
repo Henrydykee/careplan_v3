@@ -1,3 +1,6 @@
+import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/local_storage_service.dart';
+import 'package:careplan/features/auth/data/model/user_model.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
@@ -27,8 +30,13 @@ class _KycVerificatonScreen1State extends State<KycVerificatonScreen1> {
   @override
   void initState() {
     super.initState();
-    _firstNameController = TextEditingController();
-    _lastNameController = TextEditingController();
+
+    final localStorage = inject<LocalStorageService>();
+    final userJson = localStorage.getJson('user');
+    final user = userJson != null ? UserModel.fromJson(userJson) : null;
+
+    _firstNameController = TextEditingController(text: user?.firstName ?? '');
+    _lastNameController = TextEditingController(text: user?.lastName ?? '');
   }
 
   @override

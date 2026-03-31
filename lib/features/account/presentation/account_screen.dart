@@ -143,75 +143,134 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF9F6F2),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const Gap(50),
-            _AccountImageComponent(width: width, user: _user),
-            const Gap(30),
-            AccountActionItems(
-              title: "Profile Settings",
-              subTitle: "Update or modify your profile",
-              onTap: () async {
-                await router.push(EditProfileScreen());
-                _loadUserData();
-              },
-            ),
-            const Gap(10),
-            AccountActionItems(
-              title: "Privacy",
-              subTitle: "Change your pin and password",
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            // Header with colored background
+            Container(
+              width: width,
+              decoration: const BoxDecoration(
+                color: CarePlanColor.light_orange,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20, bottom: 30),
+                  child: _AccountImageComponent(width: width, user: _user),
+                ),
               ),
             ),
-            const Gap(10),
-            AccountActionItems(
-              title: "Payment",
-              subTitle: "Add credit/debit card",
-              onTap: () => router.push(ListOfCardsScreen()),
-            ),
-            const Gap(10),
-            AccountActionItems(
-              title: "KYC Verification",
-              subTitle: "Verify your identity",
-              onTap: () => router.push(const KycVerificatonScreen1()),
-            ),
-            const Gap(50),
+            const Gap(24),
+            // Menu section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: GestureDetector(
-                onTap: () => _showLogoutModal(context),
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
-                    color: Colors.white,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Center(
-                      child: TextHolder(
-                        title: "Logout",
-                        fontWeight: FontWeight.w800,
-                        color: Colors.red,
-                        size: 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    AccountActionItems(
+                      icon: Icons.person_outline_rounded,
+                      title: "Profile Settings",
+                      subTitle: "Update or modify your profile",
+                      onTap: () async {
+                        await router.push(EditProfileScreen());
+                        _loadUserData();
+                      },
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 56,
+                      color: Colors.grey.shade100,
+                    ),
+                    AccountActionItems(
+                      icon: Icons.lock_outline_rounded,
+                      title: "Privacy",
+                      subTitle: "Change your pin and password",
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SettingsScreen()),
                       ),
                     ),
+                    Divider(
+                      height: 1,
+                      indent: 56,
+                      color: Colors.grey.shade100,
+                    ),
+                    AccountActionItems(
+                      icon: Icons.credit_card_rounded,
+                      title: "Payment",
+                      subTitle: "Add credit/debit card",
+                      onTap: () => router.push(ListOfCardsScreen()),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Gap(24),
+            // Logout button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: InkWell(
+                onTap: () => _showLogoutModal(context),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: width,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.logout_rounded,
+                          color: Colors.red.shade600, size: 20),
+                      const Gap(8),
+                      TextHolder(
+                        title: "Log out",
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red.shade600,
+                        size: 15,
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-            const Gap(10),
+            const Gap(20),
             Center(
               child: TextHolder(
-                title: "V: ${_packageInfo.version} (${_packageInfo.buildNumber})",
-                size: 10,
+                title:
+                    "Version ${_packageInfo.version} (${_packageInfo.buildNumber})",
+                size: 12,
+                color: CarePlanColor.grey_3,
+                fontWeight: FontWeight.w400,
               ),
             ),
-            const Gap(20),
+            const Gap(30),
           ],
         ),
       ),
@@ -289,6 +348,7 @@ class _AccountImageComponent extends StatelessWidget {
 }
 
 class AccountActionItems extends StatelessWidget {
+  final IconData? icon;
   final String? title;
   final String? subTitle;
   final Color? color;
@@ -297,6 +357,7 @@ class AccountActionItems extends StatelessWidget {
 
   const AccountActionItems({
     super.key,
+    this.icon,
     this.title,
     this.subTitle,
     this.color,
@@ -306,42 +367,47 @@ class AccountActionItems extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: InkWell(
-        onTap: onTap as void Function()?,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: const Color(0xFFF8EEDF),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextHolder(
-                      title: title ?? "",
-                      fontWeight: FontWeight.w800,
-                      color: CarePlanColor.brown,
-                      size: 16,
-                    ),
-                    const Gap(5),
-                    TextHolder(
-                      title: subTitle ?? "",
-                      fontWeight: FontWeight.w500,
-                      size: 14,
-                      color: const Color(0xFF666666),
-                    ),
-                  ],
+    return InkWell(
+      onTap: onTap as void Function()?,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            if (icon != null)
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: CarePlanColor.light_orange,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                trailing ?? const Icon(Icons.chevron_right),
-              ],
+                child: Icon(icon, size: 20, color: CarePlanColor.brown),
+              ),
+            if (icon != null) const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextHolder(
+                    title: title ?? "",
+                    fontWeight: FontWeight.w700,
+                    color: CarePlanColor.brown,
+                    size: 15,
+                  ),
+                  const Gap(3),
+                  TextHolder(
+                    title: subTitle ?? "",
+                    fontWeight: FontWeight.w400,
+                    size: 13,
+                    color: CarePlanColor.grey_3,
+                  ),
+                ],
+              ),
             ),
-          ),
+            trailing ??
+                Icon(Icons.chevron_right_rounded,
+                    color: CarePlanColor.grey_3, size: 22),
+          ],
         ),
       ),
     );

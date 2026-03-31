@@ -61,7 +61,7 @@ class _NotesScreenState extends State<NotesScreen> {
         context.read<HistoryProvider>().fetchNotesHistory(
               patientId: _patientId!,
               page: 1,
-              limit: 10,
+              limit: 15,
             );
       });
     }
@@ -141,7 +141,7 @@ class _NotesScreenState extends State<NotesScreen> {
                 await historyProvider.fetchNotesHistory(
                   patientId: _patientId!,
                   page: 1,
-                  limit: 10,
+                  limit: 15,
                 );
               }
             },

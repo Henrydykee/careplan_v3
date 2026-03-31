@@ -1,6 +1,7 @@
 import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../data/cache/api_cache_service.dart';
 import '../data/memory/cache_helpers.dart';
 import '../data/network/network_config.dart';
 import '../data/network/network_interceptor.dart';
@@ -30,4 +31,5 @@ Future<void> coreInjector() async {
   // inject.registerSingleton<SentryManager>(SentryManager.instance);
   // inject.registerSingleton<FirebaseCloudMessagingManager>(FirebaseCloudMessagingManager.instance);
   inject.registerLazySingleton<InMemory>(() => InMemory.instance);
+  inject.registerLazySingleton<ApiCacheService>(() => ApiCacheService.instance);
 }

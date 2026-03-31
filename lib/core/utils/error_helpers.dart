@@ -1,18 +1,6 @@
-import 'package:careplan/core/presentation/widgets/router.dart';
-import 'package:careplan/features/auth/presentation/login_flow/welcome_back_screen.dart';
-
 import '../data/database/db_exceptions.dart';
 import '../data/network/network_exceptions.dart';
 import '../presentation/domain/ui_exceptions.dart';
-
-/// Tracks whether we are already navigating to the WelcomeBackScreen
-/// to prevent multiple 401 responses from stacking duplicate screens.
-bool _isNavigatingToWelcomeBack = false;
-
-/// Call this after successful re-authentication to allow future 401 redirects.
-void resetUnauthorizedNavigation() {
-  _isNavigatingToWelcomeBack = false;
-}
 
 /// Return a `UIError` with a human readable [message].
 ///
@@ -69,25 +57,8 @@ NetworkFailure getNetworkFailureFromApiFailure(
   StackTrace? stackTrace, {
   dynamic errorCode,
 }) {
-  String? exceptionMessage = exception!.exceptionMessage;
-  if (exceptionMessage != null) {
-
-    if (exceptionMessage == 'Unauthorized' && !_isNavigatingToWelcomeBack) {
-      _isNavigatingToWelcomeBack = true;
-      router.push(
-        const WelcomeBackScreen(fromUnauthorized: true),
-      );
-    }
-
-    // bugsnag.notify(exceptionMessage, stackTrace);
-    // bugsnag.addOnError((event) {
-    //   event.addMetadata('$event', {'NetworkFailureFromApiFailure': '$errorCode ${exception.data} $stackTrace '});
-    //   // Return false if you'd like to stop this error being reported
-    //   return true;
-    // });
-    // Sentry.captureException(exception,stackTrace: stackTrace);
-    //  inject<SentryManager>().reportError(error: exception.exceptionMessage, stackTrace: stackTrace);
-  }
-
-  return NetworkFailure(exceptionMessage!);
+  // 401 handling is now done at the interceptor level (NetworkInterceptor).
+  // This function just propagates the error message.
+  final exceptionMessage = exception!.exceptionMessage ?? 'An unexpected error occurred';
+  return NetworkFailure(exceptionMessage);
 }

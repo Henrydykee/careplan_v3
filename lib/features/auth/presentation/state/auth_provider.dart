@@ -49,15 +49,12 @@ class AuthenticationProvider with ChangeNotifier, ProviderState {
       loading: true,
       hasError: false,
     );
-    notifyListeners();
     Either<UIError, UserModel>? response = await useCases.loginUser(params);
-    notifyListeners();
     response.fold((l) {
       _setState(
           loading: false, hasError: true, errorMsg: l.message, payload: null);
     }, (r) {
       _setState(loading: false, hasError: false, payload: r.toString());
-      notifyListeners();
     });
   }
 }

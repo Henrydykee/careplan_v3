@@ -13,7 +13,8 @@ import 'network_service_response.dart';
 class NetworkServiceImpl implements NetworkService {
   static var networkSetupOptions = BaseOptions(
     //include request timeout of 60secs to through exception
-    connectTimeout:  const Duration(seconds: 3000),
+    connectTimeout:  const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
     baseUrl: EnvConfig.instance!.values!.baseUrl,
   );
 
