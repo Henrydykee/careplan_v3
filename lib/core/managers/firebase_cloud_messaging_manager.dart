@@ -1,154 +1,152 @@
-// import 'dart:convert';
-// import 'dart:io';
-//
-// ;
-//
-// class FirebaseCloudMessagingManager {
-//   static final FirebaseCloudMessagingManager instance = new FirebaseCloudMessagingManager._internal();
-//   factory FirebaseCloudMessagingManager() => instance;
-//   FirebaseCloudMessagingManager._internal() {}
-//
-//   final FirebaseMessaging _fcmInstance = FirebaseMessaging.instance;
-//
-//   Future<void> registerFirebaseCloudMessaging() async {
-//     try {
-//       if (Platform.isIOS) {
-//         await _iOSPermissions();
-//       } else {
-//         await _initFirebaseToken();
-//       }
-//     } catch (e) {
-//       logger.e(e);
-//       if (kDebugMode) logger.e("Error registering firebase: ${e.toString()}");
-//     }
-//   }
-//
-//   Future<void> _initFirebaseToken() async {
-//     try {
-//       final String? token = await _fcmInstance.getToken();
-//       if (token != null) {
-//         Object? existingToken = inject<SharedPreferences>().get(SPref.FCM_TOKEN);
-//         bool? sent = inject<SharedPreferences>().get(SPref.SENT_FCM) as bool?;
-//         if (existingToken == null || sent != null) {
-//           await inject<SharedPreferences>().setString(SPref.FCM_TOKEN, token);
-//           await _sendTokenToServer(token);
-//         }
-//         FirebaseMessaging.instance
-//             .subscribeToTopic("getEquityNotification_string")
-//             .catchError(
-//               (_) => logger.e(_.toString()),
-//         );
-//         _listenToToken();
-//         _configureNotificationEvents();
-//       }
-//     } catch (e) {
-//     }
-//   }
-//
-//   Future<void> _iOSPermissions() async {
-//     _fcmInstance .requestPermission(
-//       alert: true,
-//       announcement: false,
-//       badge: true,
-//       carPlay: false,
-//       criticalAlert: false,
-//       provisional: false,
-//       sound: true,
-//     );
-//     _initFirebaseToken();
-//   }
-//
-//   void _listenToToken() {
-//     // In case the token changes, update cache and server
-//     _fcmInstance.onTokenRefresh.listen((token) async {
-//       inject<InMemory>().oldFcmToken =
-//           inject<SharedPreferences>().getString(SPref.FCM_TOKEN);
-//       await inject<SharedPreferences>().setString(SPref.FCM_TOKEN, token);
-//       await _sendTokenToServer(token, update: true);
-//     });
-//   }
-//
-//   // Push Message Payload is different on iOS
-//   Map<String, dynamic> _convertMessageForIOS(Map<String, dynamic> message) {
-//     if (Platform.isIOS) {
-//       Map<String, dynamic> iosMessage;
-//       if (message["aps"] != null) {
-//         iosMessage = {
-//           "notification": message["aps"]["alert"],
-//           "data": message,
-//         };
-//       } else {
-//         iosMessage = {
-//           "notification": message["notification"],
-//           "data": message["payload"] ?? message,
-//         };
-//       }
-//       message = iosMessage;
-//     }
-//     return message;
-//   }
-//
-//   void pushMessage(Map<String, dynamic> message, {required bool fromBackground}) {
-//     // Sometimes, data object varies
-//     if (message["data"] != null && message["data"]["payload"] != null) {
-//       message["data"] = jsonDecode(message["data"]["payload"].toString());
-//     }
-//     message = _convertMessageForIOS(message);
-//     if (kDebugMode) logger.i('pushMessage => $message');
-//   }
-//
-//   void _configureNotificationEvents() {
-//     try {
-//       FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
-//       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-//         AlertView(
-//           message.data["notification"]['title'],
-//           bodyMessage: message.data["notification"]['body'],
-//         ).show();
-//         logger.i("On notification received $message");
-//         pushMessage(message.data, fromBackground: false);
-//         inject<InMemory>().messageReceived.add(message.data);
-//       });
-//       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-//         pushMessage(message.data, fromBackground: true);
-//         if (kDebugMode) logger.i('On resume: Payload $message');
-//       });
-//       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-//         pushMessage(message.data, fromBackground: true);
-//         if (kDebugMode) logger.i('On resume: Payload $message');
-//       });
-//     } catch (e, s) {
-//       if (kDebugMode) {
-//         logger.e("error in listener: ${e.toString()}");
-//       }
-//     }
-//   }
-//
-//   void _handleMessage(RemoteMessage message) {}
-//
-//   Future<void> _sendTokenToServer(String token, {update = false}) async {
-//     try {
-//       if (update) {
-//         await inject<OnboardingRepository>().updateFcm(token);
-//       } else {
-//         await inject<OnboardingRepository>().register(token);
-//       }
-//     } catch (e) {
-//       if (kDebugMode) logger.e(e.toString());
-//     }
-//   }
-//
-//   Future<void> unRegisterNotification() async {
-//     String? deviceIdDb = inject<SharedPreferences>().get(SPref.DEVICE_ID_DB) as String?;
-//     logger.e(deviceIdDb);
-//     try {
-//       String? deviceIdDb = inject<SharedPreferences>().get(SPref.DEVICE_ID_DB) as String?;
-//
-//       await inject<OnboardingRepository>().unSubscribe(deviceIdDb!).then(
-//               (_) async =>
-//           await inject<SharedPreferences>().remove(SPref.FCM_TOKEN));
-//     } catch (e) {
-//       logger.e(e.toString());
-//     }
-//   }
-// }
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import 'package:overlay_support/overlay_support.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../features/notifications/presentation/state/notification_provider.dart';
+import '../di/di_config.dart';
+import '../platform/string_constants.dart';
+
+final _logger = Logger();
+
+/// Top-level handler — must be a top-level function for background messages.
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  if (kDebugMode) _logger.i('Background message received: ${message.messageId}');
+}
+
+class FirebaseCloudMessagingManager {
+  static final FirebaseCloudMessagingManager instance =
+      FirebaseCloudMessagingManager._internal();
+
+  factory FirebaseCloudMessagingManager() => instance;
+
+  FirebaseCloudMessagingManager._internal();
+
+  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+  bool _initialized = false;
+
+  /// Request permission, obtain the FCM token, and configure message handlers.
+  /// Call this after the user has logged in.
+  Future<void> initialize() async {
+    if (_initialized) return;
+    try {
+      final settings = await _requestPermission();
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        if (kDebugMode) _logger.w('User declined push notification permission');
+        return;
+      }
+
+      // Set foreground notification presentation options (iOS).
+      await _fcm.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      await _initToken();
+      _listenToTokenRefresh();
+      _configureForegroundHandler();
+
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+      _initialized = true;
+      if (kDebugMode) _logger.i('FCM initialized successfully');
+    } catch (e, s) {
+      if (kDebugMode) _logger.e('Error initialising FCM: $e\n$s');
+    }
+  }
+
+  /// Request notification permission (required on iOS, Android 13+).
+  Future<NotificationSettings> _requestPermission() async {
+    return await _fcm.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      announcement: false,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+    );
+  }
+
+  /// Get the current FCM token and send it to the server.
+  Future<void> _initToken() async {
+    // getToken() works on both physical devices and simulators.
+    // On iOS it internally waits for the APNs token.
+    String? token = await _fcm.getToken();
+
+    if (token == null) {
+      if (kDebugMode) _logger.w('FCM token is null');
+      return;
+    }
+
+    if (kDebugMode) _logger.i('FCM token: $token');
+
+    final prefs = inject<SharedPreferences>();
+    final existingToken = prefs.getString(SPref.FCM_TOKEN);
+
+    // Only register if the token is new or changed.
+    if (existingToken != token) {
+      await prefs.setString(SPref.FCM_TOKEN, token);
+      await _sendTokenToServer(token);
+    }
+  }
+
+  /// Listen for token rotations from the OS and re-register.
+  void _listenToTokenRefresh() {
+    _fcm.onTokenRefresh.listen((newToken) async {
+      final prefs = inject<SharedPreferences>();
+      await prefs.setString(SPref.FCM_TOKEN, newToken);
+      await _sendTokenToServer(newToken);
+    });
+  }
+
+  /// Handle messages received while the app is in the foreground.
+  void _configureForegroundHandler() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (kDebugMode) {
+        _logger.i('Foreground message: ${message.notification?.title}');
+      }
+
+      final notification = message.notification;
+      if (notification != null) {
+        showSimpleNotification(
+          Text(notification.title ?? ''),
+          subtitle: Text(notification.body ?? ''),
+          background: const Color(0xFF215543),
+          foreground: const Color(0xFFFFFFFF),
+          duration: const Duration(seconds: 4),
+        );
+      }
+
+      // Refresh the notification list so the badge count updates.
+      try {
+        inject<NotificationProvider>().fetchNotifications(limit: 20);
+      } catch (_) {}
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      if (kDebugMode) {
+        _logger.i('Notification tapped: ${message.notification?.title}');
+      }
+      // Refresh notifications when user taps a notification to open the app.
+      try {
+        inject<NotificationProvider>().fetchNotifications(limit: 20);
+      } catch (_) {}
+    });
+  }
+
+  /// Send the FCM token to the backend via the notification provider.
+  Future<void> _sendTokenToServer(String token) async {
+    try {
+      final provider = inject<NotificationProvider>();
+      await provider.registerPushToken(fcmToken: token);
+      if (kDebugMode) _logger.i('FCM token registered with server');
+    } catch (e) {
+      if (kDebugMode) _logger.e('Failed to send FCM token to server: $e');
+    }
+  }
+}

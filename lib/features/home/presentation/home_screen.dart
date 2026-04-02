@@ -12,6 +12,9 @@ import 'package:careplan/features/auth/presentation/kyc/kyc_step_1_screen.dart';
 import 'package:careplan/features/history/data/models/care_plan_history_item_model.dart';
 import 'package:careplan/features/history/presentation/state/history_provider.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
+import 'package:careplan/features/notifications/presentation/pages/notification_center_screen.dart';
+import 'package:careplan/features/notifications/presentation/state/notification_provider.dart';
+import 'package:careplan/core/managers/firebase_cloud_messaging_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
@@ -33,6 +36,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUserData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationProvider>().fetchNotifications(limit: 20);
+      FirebaseCloudMessagingManager.instance.initialize();
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -137,10 +144,50 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     GestureDetector(
-                      onTap: () {},
-                      child: SvgPicture.asset(
-                        Assets.notification_icon,
-                        color: CarePlanColor.grey,
+                      onTap: () {
+                        router.push(const NotificationCenterScreen());
+                      },
+                      child: Consumer<NotificationProvider>(
+                        builder: (context, notifProvider, child) {
+                          return Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              SvgPicture.asset(
+                                Assets.notification_icon,
+                                color: CarePlanColor.grey,
+                              ),
+                              if (notifProvider.unreadCount > 0)
+                                Positioned(
+                                  right: -6,
+                                  top: -6,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 18,
+                                      minHeight: 18,
+                                    ),
+                                    decoration: const BoxDecoration(
+                                      color: CarePlanColor.orange,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        notifProvider.unreadCount > 99
+                                            ? '99+'
+                                            : '${notifProvider.unreadCount}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                          fontFamily: 'avenir',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ],

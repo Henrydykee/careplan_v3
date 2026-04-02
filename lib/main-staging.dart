@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -18,7 +19,7 @@ void main() async {
       values: EnvVar(
         baseUrl: Constants.STAGING_BASE_URL,
       ));
-  // await Firebase.initializeApp();
+  await Firebase.initializeApp();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await initInjectors();
   runApp(careplan());

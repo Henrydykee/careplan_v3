@@ -125,7 +125,7 @@ android {
     productFlavors {
         staging {
             dimension "flavors"
-            applicationIdSuffix ".staging"
+            applicationId "com.careplan.staging"
             versionNameSuffix "-stage-${getDate()}"
             resValue "string", "app_name", "CP365 Stage"
             resValue "string", "is_debug", "true"

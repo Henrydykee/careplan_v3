@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "978726669257",
     "project_id": "cp365-11a3e",
-    "storage_bucket": "cp365-11a3e.appspot.com"
+    "storage_bucket": "cp365-11a3e.firebasestorage.app"
   },
   "client": [
     {
@@ -12,12 +12,7 @@
           "package_name": "com.careplan.mobile"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "978726669257-s4b6djcem0ouqqk0hbvfcve104ltl79k.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
           "current_key": "AIzaSyCJYphEkwBE2xNP6g6KZCnWY-F686Yh6Fc"
@@ -25,35 +20,18 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "978726669257-s4b6djcem0ouqqk0hbvfcve104ltl79k.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "978726669257-3s59ed2ilj0u1g4ddrplt5ajpgnnuova.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.cp365"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:978726669257:android:0d2eb09c917d29ad01f618",
+        "mobilesdk_app_id": "1:978726669257:android:58ff558f5738ba8901f618",
         "android_client_info": {
-          "package_name": "com.careplan.mobile.staging"
+          "package_name": "com.careplan.staging"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "978726669257-s4b6djcem0ouqqk0hbvfcve104ltl79k.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
           "current_key": "AIzaSyCJYphEkwBE2xNP6g6KZCnWY-F686Yh6Fc"
@@ -61,19 +39,7 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "978726669257-s4b6djcem0ouqqk0hbvfcve104ltl79k.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "978726669257-3s59ed2ilj0u1g4ddrplt5ajpgnnuova.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.cp365"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

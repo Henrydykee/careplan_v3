@@ -6,6 +6,7 @@ import '../../features/auth/domain/di/auth_injector.dart';
 import '../../features/appointment/domain/di/appointment_injector.dart';
 import '../../features/card/domain/di/card_injector.dart';
 import '../../features/history/domain/di/history_injector.dart';
+import '../../features/notifications/domain/di/notification_injector.dart';
 
 GetIt inject = GetIt.instance;
 /// Registration of service dependencies with  service locator GetIt
@@ -18,4 +19,5 @@ Future<void> initInjectors()  async {
   await appointmentInjector();
   await historyInjector();
   await cardInjector();
+  await notificationInjector();
 }
