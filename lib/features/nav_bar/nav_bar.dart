@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/managers/google_analytics_manager.dart';
 import '../../core/resources/assets.dart';
 import '../../core/resources/color.dart';
 import '../../core/resources/string.dart';
@@ -98,8 +99,11 @@ class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAlive
   //   }
   // }
 
+  static const _tabNames = ['Home', 'Assessments', 'History', 'Account'];
+
   void _onTabSelected(int? index) {
     if (index == null || index == selectedTab) return;
+    googleAnalytics.logScreenView(screenName: _tabNames[index]);
     setState(() {
       selectedTab = index;
     });

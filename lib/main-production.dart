@@ -1,4 +1,9 @@
+import 'dart:async';
+
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -8,21 +13,36 @@ import 'core/di/di_config.dart';
 import 'core/platform/env_config.dart';
 import 'package:careplan/core/platform/string_constants.dart' as Constants;
 
+import 'core/managers/google_analytics_manager.dart';
 import 'core/presentation/state/provider_initializer.dart';
 import 'core/presentation/widgets/router.dart';
 import 'features/onboarding/presentation/pages/splash_screen.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  EnvConfig(
-      flavor: Env.PRODUCTION,
-      values: EnvVar(
-        baseUrl: Constants.PROD_BASE_URL,
-      ));
-  await Firebase.initializeApp();
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  await initInjectors();
-  runApp(careplan());
+  runZonedGuarded<Future<void>>(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    EnvConfig(
+        flavor: Env.PRODUCTION,
+        values: EnvVar(
+          baseUrl: Constants.PROD_BASE_URL,
+        ));
+    await Firebase.initializeApp();
+
+    // Crashlytics
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+    // Analytics
+    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+
+    // Performance monitoring
+    await FirebasePerformance.instance.setPerformanceCollectionEnabled(true);
+
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    await initInjectors();
+    runApp(careplan());
+  }, (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+  });
 }
 
 class careplan extends StatelessWidget {
@@ -40,6 +60,7 @@ class careplan extends StatelessWidget {
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
             navigatorKey:  router.navigatorKey,
+            navigatorObservers: [googleAnalytics.observer],
             theme: ThemeData(
                 fontFamily: 'avenir',
                 useMaterial3: false,

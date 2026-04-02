@@ -15,6 +15,7 @@ import 'package:careplan/features/nav_bar/nav_bar.dart';
 import 'package:careplan/features/notifications/presentation/pages/notification_center_screen.dart';
 import 'package:careplan/features/notifications/presentation/state/notification_provider.dart';
 import 'package:careplan/core/managers/firebase_cloud_messaging_manager.dart';
+import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
@@ -54,9 +55,10 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _user = loadedUser;
           });
-
-      
-           
+            if (loadedUser.id != null) {
+              googleAnalytics.setUserId(loadedUser.id!);
+            }
+            googleAnalytics.logScreenView(screenName: 'Home');
             WidgetsBinding.instance.addPostFrameCallback((_) {
               context
                   .read<HistoryProvider>()

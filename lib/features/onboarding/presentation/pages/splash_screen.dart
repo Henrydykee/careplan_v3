@@ -9,6 +9,7 @@ import 'package:careplan/features/auth/presentation/set-pin/set_pin_screen.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../core/managers/google_analytics_manager.dart';
 import '../../../../core/presentation/widgets/router.dart';
 import '../../../../core/utils/color.dart';
 import '../../../../features/getting_started/get_started_screen.dart';
@@ -40,9 +41,11 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (token == null || token.isEmpty || userJson == null) {
+      googleAnalytics.logEvent(eventName: 'app_open', parameters: {'state': 'unauthenticated'});
       router.pushAndRemoveUntil(GetStartedScreen(), (route) => false);
       return;
     }
+    googleAnalytics.logEvent(eventName: 'app_open', parameters: {'state': 'returning_user'});
 
     bool isPinSet = false;
     String? firstName;

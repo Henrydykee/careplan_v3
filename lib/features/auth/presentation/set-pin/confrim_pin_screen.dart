@@ -11,6 +11,7 @@ import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/utils/color.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
+import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -134,6 +135,7 @@ class _ConfrimPinScreenState extends State<ConfrimPinScreen> {
         await inject<SecuredStorage>()
             .add(key: SecureStorageStrings.PASSWORD_TOKEN, value: code);
 
+        googleAnalytics.logEvent(eventName: 'pin_set');
         router.pushAndRemoveUntil(const CarePlanNavBar(), (route) => false);
       },
     );

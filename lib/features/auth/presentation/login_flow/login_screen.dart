@@ -17,6 +17,7 @@ import 'package:careplan/features/auth/presentation/set-pin/set_pin_screen.dart'
 import 'package:careplan/features/auth/presentation/state/auth_provider.dart';
 import 'package:careplan/features/getting_started/get_started_screen.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
+import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:flutter/material.dart';
 
 import '../reset-password-flow/enter_email_screen.dart';
@@ -166,8 +167,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             );
                             await vm.login(P);
                             if (vm.hasError == true) {
+                              googleAnalytics.logEvent(eventName: 'login_failed');
                               return showErrorDialog(context, "Login Error", vm.errorMessage);
                             } else {
+                              googleAnalytics.logEvent(eventName: 'login', parameters: {'method': 'email'});
                               // Read latest user from local storage to decide PIN flow
                               final localStorage = inject<LocalStorageService>();
                               final userJson = localStorage.getJson('user');

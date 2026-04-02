@@ -11,6 +11,7 @@ import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
+import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:gap/gap.dart';
@@ -88,6 +89,7 @@ class _K10TestScreenState extends State<K10TestScreen> {
     try {
       await dataSource.sendAssessment(body: payload);
       if (!mounted) return;
+      googleAnalytics.logEvent(eventName: 'assessment_submitted', parameters: {'type': 'K10'});
       router.push(const CarePlanNavBar(index: 1,));
     } catch (e) {
       if (!mounted) return;

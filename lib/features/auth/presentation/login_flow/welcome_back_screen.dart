@@ -15,6 +15,7 @@ import 'package:careplan/core/data/network/network_interceptor.dart';
 import 'package:careplan/features/auth/domain/usecases/login_with_pin.dart';
 import 'package:careplan/features/getting_started/get_started_screen.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
+import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
@@ -219,6 +220,7 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
           showErrorDialog(context, "Login Error", error.message),
       (_) {
         resetUnauthorizedNavigation();
+        googleAnalytics.logEvent(eventName: 'login', parameters: {'method': 'pin'});
         router.pushAndRemoveUntil(
           CarePlanNavBar(),
           (route) => false,

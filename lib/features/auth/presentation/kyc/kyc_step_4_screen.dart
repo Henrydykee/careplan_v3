@@ -11,6 +11,7 @@ import 'package:careplan/features/account/domain/usecases/register_kyc.dart';
 import 'package:careplan/features/account/presentation/state/kyc_provider.dart';
 import 'package:careplan/features/auth/presentation/kyc/widgets/kyc_step_indicator.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
+import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
@@ -91,6 +92,7 @@ class _KycVerificationScreen4State extends State<KycVerificationScreen4> {
       return;
     }
 
+    googleAnalytics.logEvent(eventName: 'kyc_completed');
     router.pushAndRemoveUntil(const CarePlanNavBar(), (route) => false);
   }
 
