@@ -51,6 +51,7 @@ android {
     ndkVersion "28.0.12433566"
 
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
@@ -143,7 +144,8 @@ flutter {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.multidex:multidex:2.0.1'  // Updated to AndroidX version
     implementation platform('com.google.firebase:firebase-bom:33.1.2')  // Updated Firebase BOM
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 }

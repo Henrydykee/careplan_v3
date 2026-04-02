@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "978726669257",
     "project_id": "cp365-11a3e",
-    "storage_bucket": "cp365-11a3e.appspot.com"
+    "storage_bucket": "cp365-11a3e.firebasestorage.app"
   },
   "client": [
     {
@@ -43,9 +43,9 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:978726669257:android:0d2eb09c917d29ad01f618",
+        "mobilesdk_app_id": "1:978726669257:android:58ff558f5738ba8901f618",
         "android_client_info": {
-          "package_name": "com.careplan.mobile.staging"
+          "package_name": "com.careplan.staging"
         }
       },
       "oauth_client": [

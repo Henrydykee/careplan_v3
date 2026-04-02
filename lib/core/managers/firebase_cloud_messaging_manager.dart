@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:logger/logger.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,6 +11,17 @@ import '../di/di_config.dart';
 import '../platform/string_constants.dart';
 
 final _logger = Logger();
+
+/// Android notification channel for high-importance messages.
+const AndroidNotificationChannel _androidChannel = AndroidNotificationChannel(
+  'high_importance_channel',
+  'High Importance Notifications',
+  description: 'This channel is used for important notifications.',
+  importance: Importance.high,
+);
+
+final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 /// Top-level handler — must be a top-level function for background messages.
 @pragma('vm:entry-point')
@@ -33,6 +45,19 @@ class FirebaseCloudMessagingManager {
   Future<void> initialize() async {
     if (_initialized) return;
     try {
+      // Create the Android notification channel before requesting permission.
+      await _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(_androidChannel);
+
+      await _flutterLocalNotificationsPlugin.initialize(
+        const InitializationSettings(
+          android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+          iOS: DarwinInitializationSettings(),
+        ),
+      );
+
       final settings = await _requestPermission();
       if (settings.authorizationStatus == AuthorizationStatus.denied) {
         if (kDebugMode) _logger.w('User declined push notification permission');
@@ -113,6 +138,7 @@ class FirebaseCloudMessagingManager {
 
       final notification = message.notification;
       if (notification != null) {
+        // Show in-app overlay banner.
         showSimpleNotification(
           Text(notification.title ?? ''),
           subtitle: Text(notification.body ?? ''),
@@ -120,6 +146,24 @@ class FirebaseCloudMessagingManager {
           foreground: const Color(0xFFFFFFFF),
           duration: const Duration(seconds: 4),
         );
+
+        // Also show as a system notification on Android.
+        final android = message.notification?.android;
+        if (android != null) {
+          _flutterLocalNotificationsPlugin.show(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                _androidChannel.id,
+                _androidChannel.name,
+                channelDescription: _androidChannel.description,
+                icon: '@mipmap/ic_launcher',
+              ),
+            ),
+          );
+        }
       }
 
       // Refresh the notification list so the badge count updates.
