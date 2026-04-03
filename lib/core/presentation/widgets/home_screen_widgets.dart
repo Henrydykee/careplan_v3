@@ -232,6 +232,7 @@ class VerifyAccount extends StatelessWidget {
                     CustomButtom(
                       title: btnText,
                       onTap: hasAction ? onStartVerification : null,
+                      isdisabled: !hasAction,
                       btnColor: buttonColor,
                       textColor: buttonTextColor,
                     ),

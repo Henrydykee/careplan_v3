@@ -180,16 +180,26 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
       return;
     }
 
-    final bioMetricManager = BioMetricManager();
-    await bioMetricManager.checkAvailableBiometrics();
-    final requireAuthentication =
-        await bioMetricManager.authenticateUser();
+    try {
+      final bioMetricManager = BioMetricManager();
+      await bioMetricManager.checkAvailableBiometrics();
+      final requireAuthentication =
+          await bioMetricManager.authenticateUser();
 
-    if (requireAuthentication) {
-      return;
+      if (requireAuthentication) {
+        return;
+      }
+
+      await _loginWithPin(storedPin, emailOverride: storedBiometricEmail);
+    } catch (e) {
+      if (mounted) {
+        showErrorDialog(
+          context,
+          "Biometric Error",
+          "Biometric authentication failed. Please use your PIN instead.",
+        );
+      }
     }
-
-    await _loginWithPin(storedPin, emailOverride: storedBiometricEmail);
   }
 
   Future<void> _loginWithPin(String code, {String? emailOverride}) async {

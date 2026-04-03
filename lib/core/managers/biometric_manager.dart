@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../di/di_config.dart';
@@ -13,6 +15,7 @@ class BioMetricManager {
   BiometricType? biometricType;
   bool requireAuthentication = true;
   bool canDisableSecurity = false;
+  final _logger = Logger();
 
   Future checkAvailableBiometrics() async {
     try {
@@ -24,8 +27,10 @@ class BioMetricManager {
           return biometricType;
         }
       }
+    } on PlatformException catch (e) {
+      _logger.e("Platform error checking biometrics", error: e);
     } catch (e) {
-      // Device unable to check biometric
+      _logger.e("Error checking biometrics", error: e);
     }
   }
 
@@ -53,53 +58,33 @@ class BioMetricManager {
       bool canAuthenticate = await localAuth.canCheckBiometrics;
 
       if (canAuthenticate && biometricType != null) {
-        // Handle authentication for device with faceId and finger Print
-        try {
-          bool didAuthenticate = await localAuth.authenticate(
-              localizedReason: "Unlock your account",
-              options: AuthenticationOptions(biometricOnly: true,stickyAuth: true)
-          );
-          if (didAuthenticate) {
-            if (Platform.isAndroid) {
-              localAuth.stopAuthentication();
-            }
+        bool didAuthenticate = await localAuth.authenticate(
+            localizedReason: "Unlock your account",
+            options: const AuthenticationOptions(biometricOnly: true, stickyAuth: true),
+        );
 
-            if (turnOffSecurity) {
-              canDisableSecurity = true;
-            } else {
-              requireAuthentication = false;
-            }
-          } else {
-            if (!turnOffSecurity) {
-              requireAuthentication = true;
-            } else {
-              canDisableSecurity = false;
-            }
+        if (didAuthenticate) {
+          if (Platform.isAndroid) {
+            localAuth.stopAuthentication();
           }
-        } catch (e) {
-          // Authentication failed
+
+          if (turnOffSecurity) {
+            canDisableSecurity = true;
+          } else {
+            requireAuthentication = false;
+          }
+        } else {
+          if (!turnOffSecurity) {
+            requireAuthentication = true;
+          } else {
+            canDisableSecurity = false;
+          }
         }
-      } else {
-        // try {
-        //   bool deviceAuthenticated = await DeviceUnlock().request(localizedReason: "Enter pin to verify your account");
-        //   if (deviceAuthenticated != null && deviceAuthenticated) {
-        //     if (turnOffSecurity) {
-        //       canDisableSecurity = true;
-        //     } else {
-        //       requireAuthentication = false;
-        //     }
-        //   } else {
-        //     if (!turnOffSecurity) {
-        //       requireAuthentication = true;
-        //     } else {
-        //       canDisableSecurity = false;
-        //     }
-        //   }
-        // } catch (e) {
-        // }
       }
+    } on PlatformException catch (e) {
+      _logger.e("Platform error during biometric auth", error: e);
     } catch (e) {
-      // Error on authenticateUser
+      _logger.e("Error during biometric auth", error: e);
     }
     return requireAuthentication;
   }

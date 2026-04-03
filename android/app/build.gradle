@@ -78,8 +78,8 @@ android {
     defaultConfig {
         applicationId "com.careplan.mobile"
         minSdkVersion flutter.minSdkVersion
-        versionCode 117
-        versionName '1.2.2'
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
         targetSdkVersion 36  // Updated to match compileSdkVersion
         multiDexEnabled = true
     }

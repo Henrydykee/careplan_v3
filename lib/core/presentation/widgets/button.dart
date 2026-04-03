@@ -35,8 +35,8 @@ class CustomButtom extends StatelessWidget {
         if (onTap != null) {
           onTap!();
         } else {
-          // Fallback to router.pop() when onTap is not provided
-          router.pop();
+          // // Fallback to router.pop() when onTap is not provided
+          // router.pop();
         }
       },
       child: Container(

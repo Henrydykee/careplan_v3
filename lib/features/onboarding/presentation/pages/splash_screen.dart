@@ -9,6 +9,7 @@ import 'package:careplan/features/auth/presentation/set-pin/set_pin_screen.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../core/managers/app_update_manager.dart';
 import '../../../../core/managers/google_analytics_manager.dart';
 import '../../../../core/presentation/widgets/router.dart';
 import '../../../../core/utils/color.dart';
@@ -31,6 +32,12 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _bootstrap() async {
     // Keep the existing 2s splash experience
     await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    // Check for app updates before proceeding
+    final canContinue = await AppUpdateManager.checkForUpdate(context);
+    if (!canContinue) return;
 
     final securedStorage = inject<SecuredStorage>();
     final token =

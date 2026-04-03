@@ -20,8 +20,9 @@ abstract class AuthenticationRepository {
     required String idCardType,
   });
   Future<KycStatusResponse> getKycStatus();
-  Future<String> CreateUser(CreateUserModel createUserModel);
+  Future<UserModel> CreateUser(CreateUserModel createUserModel);
   Future<UserModel> getUserDetails();
   Future<UserModel> updateProfile({required Map<String, dynamic> payload});
   Future<String> updatePin({required String oldPin, required String newPin});
+  Future<String> recoverPassword({required String email, required String otp, required String newPassword});
 }

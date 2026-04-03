@@ -17,4 +17,5 @@ class AuthenticationEndpoints {
   static String verifyBvn = "auth/verify-bvn";
   static String verifyId = "auth/verify-id";
   static String getKYCStatus = "auth/kyc-status";
+  static String recoverPassword = "auth/recover";
 }

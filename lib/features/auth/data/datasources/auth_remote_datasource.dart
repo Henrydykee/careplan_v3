@@ -37,6 +37,7 @@ abstract class AuthenticationRemoteDataSource extends RemoteDataSource {
   });
   Future<KycStatusResponse> getKycStatus();
   Future<UserModel> CreateUser(CreateUserModel createUserModel);
+  Future<String> recoverPassword({required String email, required String otp, required String newPassword});
 }
 
 class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSource {
@@ -50,19 +51,32 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
   Future<UserModel> CreateUser(CreateUserModel createUserModel) async {
     NetworkServiceResponse response = await _networkService.post(
       AuthenticationEndpoints.registerUser,
-      body: {
-        "email": createUserModel.email,
-        "first_name": createUserModel.firstName,
-        "last_name": createUserModel.lastName,
-        "phone_number": "${createUserModel.phoneNumber}",
-        "password": createUserModel.password,
-      }
+      body: createUserModel.toJson(),
     );
 
     final data = handleNetworkResponse(response);
     final jsonData = data is String ? json.decode(data) : data;
-    final userData = jsonData['data']?['user'] ?? jsonData['data'] ?? jsonData['user'] ?? jsonData;
-    return UserModel.fromJson(userData is Map<String, dynamic> ? userData : jsonData);
+
+    final responseData = jsonData['data'] as Map<String, dynamic>?;
+    final userData = responseData?['user'] as Map<String, dynamic>?;
+    final accessToken = responseData?['accessToken'] as String?;
+    final refreshToken = responseData?['refreshToken'] as String?;
+
+    final userModel = UserModel.fromJson(userData ?? jsonData);
+
+    if (userData != null) {
+      await inject<LocalStorageService>().setJson("user", userModel.toJson());
+    }
+
+    if (accessToken != null && accessToken.isNotEmpty) {
+      await inject<SecuredStorage>().add(key: SecureStorageStrings.TOKEN, value: accessToken);
+    }
+
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      await inject<SecuredStorage>().add(key: SecureStorageStrings.REFRESH_TOKEN, value: refreshToken);
+    }
+
+    return userModel;
   }
 
   @override
@@ -136,9 +150,10 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
 
   @override
   Future<String> verifyEmail({required String email, required String verificationCode, String verificationType = "registration"}) async {
-    NetworkServiceResponse response = await _networkService.post(AuthenticationEndpoints.verifyEmail, body: {"email": email, "verification_code": verificationCode, "verification_type": verificationType});
+    NetworkServiceResponse response = await _networkService.post(AuthenticationEndpoints.verifyEmail, body: {"otp": verificationCode});
     final data = handleNetworkResponse(response);
-    return data["message"];
+    final jsonData = data is String ? json.decode(data) : data;
+    return jsonData["message"] ?? "Verification successful";
   }
 
   @override
@@ -287,6 +302,17 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
     );
     final data = handleNetworkResponse(response);
     return data["message"] ?? jsonEncode(data);
+  }
+
+  @override
+  Future<String> recoverPassword({required String email, required String otp, required String newPassword}) async {
+    NetworkServiceResponse response = await _networkService.post(
+      AuthenticationEndpoints.recoverPassword,
+      body: {"email": email, "otp": otp, "newPassword": newPassword},
+    );
+    final data = handleNetworkResponse(response);
+    final jsonData = data is String ? json.decode(data) : data;
+    return jsonData["message"] ?? jsonEncode(data);
   }
 
   @override

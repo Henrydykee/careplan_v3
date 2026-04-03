@@ -9,7 +9,6 @@ class RemoteConfigManager {
 
   String get requiredVersion => remoteConfig?.getString(_getRemoteConfigName("required_version")) ?? "";
 
-
   RemoteConfigManager._internal() {
     _setup();
   }

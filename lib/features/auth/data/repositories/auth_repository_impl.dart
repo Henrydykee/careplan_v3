@@ -19,8 +19,8 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
 
 
   @override
-  Future<String> CreateUser(CreateUserModel createUserModel) async =>
-      await guardedApiCall<String>(() => _remoteDataSource.CreateUser(createUserModel), source: "CreateUser", showNetworkError: true);
+  Future<UserModel> CreateUser(CreateUserModel createUserModel) async =>
+      await guardedApiCall<UserModel>(() => _remoteDataSource.CreateUser(createUserModel), source: "CreateUser", showNetworkError: true);
 
   @override
   Future<KycStatusResponse> getKycStatus() async =>
@@ -69,4 +69,8 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   @override
   Future<String> updatePin({required String oldPin, required String newPin}) async =>
       await guardedApiCall<String>(() => _remoteDataSource.updatePin(oldPin: oldPin, newPin: newPin), source: "updatePin", showNetworkError: true);
+
+  @override
+  Future<String> recoverPassword({required String email, required String otp, required String newPassword}) async =>
+      await guardedApiCall<String>(() => _remoteDataSource.recoverPassword(email: email, otp: otp, newPassword: newPassword), source: "recoverPassword", showNetworkError: true);
 }
