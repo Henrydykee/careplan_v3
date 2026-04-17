@@ -57,6 +57,7 @@ class CardProvider with ChangeNotifier, ProviderState<List<CardModel>> {
   }
 
   Future<bool> setDefaultCard(String cardId) async {
+    _setState(hasError: false, errorMsg: '');
     final response = await useCases.markDefaultCard
         .call(MarkDefaultCardParams(cardId: cardId));
     return response.fold(
@@ -64,8 +65,8 @@ class CardProvider with ChangeNotifier, ProviderState<List<CardModel>> {
         _setState(hasError: true, errorMsg: l.message);
         return false;
       },
-      (_) {
-        fetchCards();
+      (_) async {
+        await fetchCards();
         return true;
       },
     );

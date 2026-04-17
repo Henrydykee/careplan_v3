@@ -37,16 +37,18 @@ class DeviceManager {
     if (ipAddress.isEmpty) {
       ipAddress = (await _iOSGetIPAddress()) ?? '';
     }
-    String deviceId =  await inject<SecuredStorage>().get(key: SecureStorageStrings.DEVICE_ID);
+    String? deviceId = await inject<SecuredStorage>().get(key: SecureStorageStrings.DEVICE_ID);
     if (StringUtils.isNullOrEmpty(deviceId)) {
-      deviceId = iosData.identifierForVendor;
-      await inject<SecuredStorage>().add(key: SecureStorageStrings.DEVICE_ID, value: deviceId);
+      deviceId = (iosData.identifierForVendor as String?) ?? '';
+      if (!StringUtils.isNullOrEmpty(deviceId)) {
+        await inject<SecuredStorage>().add(key: SecureStorageStrings.DEVICE_ID, value: deviceId);
+      }
     }
     return RegistrationRequestModel(
       osVersion: iosData.systemVersion,
       osType: AppString.IOS,
       ip: ipAddress,
-      deviceId: deviceId,
+      deviceId: deviceId ?? '',
       brand: iosData.model,
       model: iosData.localizedModel,
     );
@@ -54,17 +56,19 @@ class DeviceManager {
 
   Future<RegistrationRequestModel> getAndroidDeviceInfo(DeviceInfoPlugin deviceInfoPlugin, String ipAddress) async {
     dynamic androidData = await deviceInfoPlugin.androidInfo;
-    String deviceId = await inject<SecuredStorage>().get(key: SecureStorageStrings.DEVICE_ID);
+    String? deviceId = await inject<SecuredStorage>().get(key: SecureStorageStrings.DEVICE_ID);
     if (StringUtils.isNullOrEmpty(deviceId)) {
-      deviceId = androidData.androidId;
-      await inject<SecuredStorage>().add(key: SecureStorageStrings.DEVICE_ID, value: deviceId);
+      deviceId = (androidData.androidId as String?) ?? '';
+      if (!StringUtils.isNullOrEmpty(deviceId)) {
+        await inject<SecuredStorage>().add(key: SecureStorageStrings.DEVICE_ID, value: deviceId);
+      }
     }
 
     return RegistrationRequestModel(
       osVersion: androidData.version.release,
       osType: AppString.ANDROID,
       ip: ipAddress,
-      deviceId: deviceId,
+      deviceId: deviceId ?? '',
       brand: androidData.brand,
       model: androidData.model,
     );

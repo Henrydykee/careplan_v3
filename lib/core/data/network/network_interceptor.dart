@@ -95,6 +95,7 @@ class NetworkInterceptor extends InterceptorsWrapper {
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     debugPrint("✅ [SUCCESS] ${response.requestOptions.method} ${response.requestOptions.uri}");
     debugPrint("✅ Status: ${response.statusCode}");
+    debugPrint("✅ Data: ${response.data}");
 
     super.onResponse(response, handler);
   }
