@@ -276,117 +276,132 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           },
         ),
       ),
-      body: Consumer<NotificationProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading && provider.notifications.isEmpty) {
-            return _buildLoadingShimmer();
-          }
+      body: RefreshIndicator(
+        onRefresh: () =>
+            context.read<NotificationProvider>().fetchNotifications(),
+        color: CarePlanColor.brown,
+        child: Consumer<NotificationProvider>(
+          builder: (context, provider, child) {
+            if (provider.isLoading && provider.notifications.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [_buildLoadingShimmer()],
+              );
+            }
 
-          if (provider.hasError && provider.notifications.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.wifi_off_rounded,
-                        color: Colors.red,
-                        size: 32,
-                      ),
-                    ),
-                    const Gap(20),
-                    TextHolder(
-                      title: "Couldn't load notifications",
-                      color: CarePlanColor.grey,
-                      size: 16,
-                      fontWeight: FontWeight.w600,
-                      align: TextAlign.center,
-                    ),
-                    const Gap(8),
-                    TextHolder(
-                      title: provider.errorMessage,
-                      color: CarePlanColor.grey_3,
-                      size: 13,
-                      align: TextAlign.center,
-                    ),
-                    const Gap(24),
-                    GestureDetector(
-                      onTap: () => provider.fetchNotifications(),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: CarePlanColor.brown,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: TextHolder(
-                          title: "Try again",
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          size: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          if (provider.notifications.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            if (provider.hasError && provider.notifications.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: CarePlanColor.light_orange,
-                      borderRadius: BorderRadius.circular(24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 60),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.wifi_off_rounded,
+                            color: Colors.red,
+                            size: 32,
+                          ),
+                        ),
+                        const Gap(20),
+                        TextHolder(
+                          title: "Couldn't load notifications",
+                          color: CarePlanColor.grey,
+                          size: 16,
+                          fontWeight: FontWeight.w600,
+                          align: TextAlign.center,
+                        ),
+                        const Gap(8),
+                        TextHolder(
+                          title: provider.errorMessage,
+                          color: CarePlanColor.grey_3,
+                          size: 13,
+                          align: TextAlign.center,
+                        ),
+                        const Gap(24),
+                        GestureDetector(
+                          onTap: () => provider.fetchNotifications(),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: CarePlanColor.brown,
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: TextHolder(
+                              title: "Try again",
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              size: 14,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: const Icon(
-                      Icons.notifications_none_rounded,
-                      color: CarePlanColor.orange,
-                      size: 40,
-                    ),
-                  ),
-                  const Gap(20),
-                  TextHolder(
-                    title: "No notifications yet",
-                    color: CarePlanColor.grey,
-                    size: 18,
-                    fontWeight: FontWeight.w700,
-                    align: TextAlign.center,
-                  ),
-                  const Gap(8),
-                  TextHolder(
-                    title: "You're all caught up!",
-                    color: CarePlanColor.grey_3,
-                    size: 14,
-                    align: TextAlign.center,
                   ),
                 ],
-              ),
-            );
-          }
+              );
+            }
 
-          final groupedWidgets =
-              _buildGroupedList(provider.notifications);
+            if (provider.notifications.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 80),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: CarePlanColor.light_orange,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: const Icon(
+                            Icons.notifications_none_rounded,
+                            color: CarePlanColor.orange,
+                            size: 40,
+                          ),
+                        ),
+                        const Gap(20),
+                        TextHolder(
+                          title: "No notifications yet",
+                          color: CarePlanColor.grey,
+                          size: 18,
+                          fontWeight: FontWeight.w700,
+                          align: TextAlign.center,
+                        ),
+                        const Gap(8),
+                        TextHolder(
+                          title: "You're all caught up!",
+                          color: CarePlanColor.grey_3,
+                          size: 14,
+                          align: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }
 
-          return RefreshIndicator(
-            onRefresh: () => provider.fetchNotifications(),
-            color: CarePlanColor.brown,
-            child: ListView.builder(
+            final groupedWidgets = _buildGroupedList(provider.notifications);
+
+            return ListView.builder(
               controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.only(bottom: 24),
               itemCount:
                   groupedWidgets.length + (provider.isLoadingMore ? 1 : 0),
@@ -408,9 +423,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                 }
                 return groupedWidgets[index];
               },
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

@@ -67,92 +67,111 @@ class _NotesScreenState extends State<NotesScreen> {
     }
   }
 
+  Future<void> _onRefresh() async {
+    if (_patientId == null || _patientId!.isEmpty) {
+      await _loadPatientId();
+      return;
+    }
+    await context.read<HistoryProvider>().fetchNotesHistory(
+          patientId: _patientId!,
+          page: 1,
+          limit: 15,
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Consumer<HistoryProvider>(
-        builder: (context, historyProvider, child) {
-          if (historyProvider.isLoading && historyProvider.notesHistory == null) {
-            return const NotesListShimmer();
-          }
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        color: CarePlanColor.brown,
+        child: Consumer<HistoryProvider>(
+          builder: (context, historyProvider, child) {
+            if (historyProvider.isLoading &&
+                historyProvider.notesHistory == null) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [NotesListShimmer()],
+              );
+            }
 
-          if (historyProvider.hasError && historyProvider.errorMessage.isNotEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextHolder(
-                      title: "Error loading notes history",
-                      color: Colors.red,
-                      size: 16,
+            if (historyProvider.hasError &&
+                historyProvider.errorMessage.isNotEmpty &&
+                historyProvider.notesHistory == null) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 60),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextHolder(
+                          title: "Error loading notes history",
+                          color: Colors.red,
+                          size: 16,
+                        ),
+                        const Gap(10),
+                        TextHolder(
+                          title: historyProvider.errorMessage,
+                          color: CarePlanColor.grey,
+                          size: 14,
+                        ),
+                        const Gap(20),
+                        ElevatedButton(
+                          onPressed: _fetchNotesHistory,
+                          child: const Text("Retry"),
+                        ),
+                      ],
                     ),
-                    const Gap(10),
-                    TextHolder(
-                      title: historyProvider.errorMessage,
-                      color: CarePlanColor.grey,
-                      size: 14,
-                    ),
-                    const Gap(20),
-                    ElevatedButton(
-                      onPressed: _fetchNotesHistory,
-                      child: const Text("Retry"),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
+                  ),
+                ],
+              );
+            }
 
-          final notes = historyProvider.notesHistory?.notes ?? [];
+            final notes = historyProvider.notesHistory?.notes ?? [];
 
-          if (notes.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextHolder(
-                      title: "No Notes History",
-                      align: TextAlign.center,
-                      color: CarePlanColor.grey,
-                      size: 16,
-                      fontWeight: FontWeight.w800,
+            if (notes.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 80),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextHolder(
+                          title: "No Notes History",
+                          align: TextAlign.center,
+                          color: CarePlanColor.grey,
+                          size: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        const Gap(10),
+                        TextHolder(
+                          title: "You don't have any notes yet",
+                          align: TextAlign.center,
+                          color: CarePlanColor.grey_2,
+                          size: 14,
+                        ),
+                      ],
                     ),
-                    const Gap(10),
-                    TextHolder(
-                      title: "You don't have any notes yet",
-                      align: TextAlign.center,
-                      color: CarePlanColor.grey_2,
-                      size: 14,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
+                  ),
+                ],
+              );
+            }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              if (_patientId != null && _patientId!.isNotEmpty) {
-                await historyProvider.fetchNotesHistory(
-                  patientId: _patientId!,
-                  page: 1,
-                  limit: 15,
-                );
-              }
-            },
-            color: CarePlanColor.brown,
-            child: ListView.builder(
+            return ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               itemCount: notes.length,
               itemBuilder: (context, i) => NotesComponent(note: notes[i]),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -192,55 +211,103 @@ class NotesComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        _showNoteDetail(context, note);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-            borderRadius: BorderRadius.circular(12),
-            color: Colors.white,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextHolder(
-                  title: "${_getTitle(note.providerType)}${note.provider}",
-                  size: 16,
-                  color: const Color(0xFF68696C),
-                  fontWeight: FontWeight.w600,
-                ),
-                const Gap(4),
-                TextHolder(
-                  title: _getProviderType(note.providerType),
-                  size: 16,
-                  color: const Color(0xFF68696C),
-                  fontWeight: FontWeight.w600,
-                ),
-                const Gap(4),
-                if (note.sessionId != null)
-                  TextHolder(
-                    title: "Session ID: ${note.sessionId}",
-                    size: 14,
-                    color: const Color(0xFF4E4F51),
-                    fontWeight: FontWeight.w700,
-                  ),
-                const Gap(4),
-                TextHolder(
-                  title: FormatUtils.dateTimeFormatter(
-                    note.createdAt.toIso8601String(),
-                    format: "d MMM yyyy",
-                  ),
-                  size: 14,
-                  color: const Color(0xFF4E4F51),
-                  fontWeight: FontWeight.w400,
+    final providerName =
+        "${_getTitle(note.providerType)}${note.provider}".trim();
+    final providerType = _getProviderType(note.providerType);
+    final formattedDate = FormatUtils.dateTimeFormatter(
+      note.createdAt.toIso8601String(),
+      format: "d MMM yyyy",
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => _showNoteDetail(context, note),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: CarePlanColor.grey_5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: CarePlanColor.light_orange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.sticky_note_2_outlined,
+                      color: CarePlanColor.brown,
+                      size: 22,
+                    ),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextHolder(
+                                title: providerName.isNotEmpty
+                                    ? providerName
+                                    : "Provider note",
+                                color: CarePlanColor.brown,
+                                size: 15,
+                                fontWeight: FontWeight.w800,
+                                maxLines: 1,
+                                textOverflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const Gap(8),
+                            TextHolder(
+                              title: formattedDate,
+                              color: CarePlanColor.grey_3,
+                              size: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ],
+                        ),
+                        if (providerType.isNotEmpty) ...[
+                          const Gap(2),
+                          TextHolder(
+                            title: providerType,
+                            color: CarePlanColor.grey_3,
+                            size: 12,
+                            fontWeight: FontWeight.w500,
+                            maxLines: 1,
+                            textOverflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const Gap(6),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: CarePlanColor.grey_3,
+                    size: 22,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

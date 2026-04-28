@@ -1,5 +1,3 @@
-
-
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
@@ -9,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-
 import '../../core/managers/google_analytics_manager.dart';
 import '../../core/resources/assets.dart';
 import '../../core/resources/color.dart';

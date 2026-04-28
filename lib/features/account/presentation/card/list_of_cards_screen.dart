@@ -145,6 +145,10 @@ class _ListOfCardsScreenState extends State<ListOfCardsScreen> {
     );
   }
 
+  Future<void> _onRefresh() async {
+    await context.read<CardProvider>().fetchCards();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -152,68 +156,90 @@ class _ListOfCardsScreenState extends State<ListOfCardsScreen> {
         showBackIcon: true,
         title: "Cards",
       ),
-      body: Consumer<CardProvider>(
-        builder: (context, cardProvider, _) {
-          if (cardProvider.isLoading && cardProvider.cards.isEmpty) {
-            return const CardsListShimmer();
-          }
-          if (cardProvider.hasError && cardProvider.cards.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: TextHolder(
-                  title: cardProvider.errorMessage,
-                  color: Colors.black,
-                  align: TextAlign.center,
-                ),
-              ),
-            );
-          }
-          if (cardProvider.cards.isEmpty) {
-            return Center(
-              child: TextHolder(
-                title: "You don't have any Card",
-                color: Colors.black,
-              ),
-            );
-          }
-          return Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  itemCount: cardProvider.cards.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, i) {
-                    final card = cardProvider.cards[i];
-                    return _AddedCardWidget(
-                      card: card,
-                      onTapSetDefault: () =>
-                          _showSetDefaultModal(context, card),
-                      onTapDelete: () => _showDeleteCardModal(context, card),
+      body: Column(
+        children: [
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _onRefresh,
+              color: CarePlanColor.brown,
+              child: Consumer<CardProvider>(
+                builder: (context, cardProvider, _) {
+                  if (cardProvider.isLoading && cardProvider.cards.isEmpty) {
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [CardsListShimmer()],
                     );
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: CustomButtom(
-                  title: "Add Card",
-                  onTap: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AddCardScreen(),
-                      ),
+                  }
+                  if (cardProvider.hasError && cardProvider.cards.isEmpty) {
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 60),
+                          child: Center(
+                            child: TextHolder(
+                              title: cardProvider.errorMessage,
+                              color: Colors.black,
+                              align: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ],
                     );
-                    if (context.mounted) {
-                      context.read<CardProvider>().fetchCards();
-                    }
-                  },
-                ),
+                  }
+                  if (cardProvider.cards.isEmpty) {
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 80),
+                          child: Center(
+                            child: TextHolder(
+                              title: "You don't have any Card",
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: cardProvider.cards.length,
+                    itemBuilder: (context, i) {
+                      final card = cardProvider.cards[i];
+                      return _AddedCardWidget(
+                        card: card,
+                        onTapSetDefault: () =>
+                            _showSetDefaultModal(context, card),
+                        onTapDelete: () => _showDeleteCardModal(context, card),
+                      );
+                    },
+                  );
+                },
               ),
-            ],
-          );
-        },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: CustomButtom(
+              title: "Add Card",
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddCardScreen(),
+                  ),
+                );
+                if (context.mounted) {
+                  context.read<CardProvider>().fetchCards();
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

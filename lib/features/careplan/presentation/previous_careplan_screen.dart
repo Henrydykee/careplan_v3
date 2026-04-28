@@ -82,125 +82,140 @@ class _PreviousCareplanScreenState extends State<PreviousCareplanScreen> {
     }
   }
 
+  Future<void> _onRefresh() async {
+    if (_patientId == null || _patientId!.isEmpty) {
+      await _loadPatientId();
+      return;
+    }
+    await context.read<HistoryProvider>().fetchSessionHistory(
+          patientId: _patientId!,
+          page: 1,
+          limit: 15,
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_patientId == null || _patientId!.isEmpty) {
-      return _buildEmptyState();
-    }
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      color: CarePlanColor.brown,
+      child: Consumer<HistoryProvider>(
+        builder: (context, historyProvider, child) {
+          if (_patientId == null || _patientId!.isEmpty) {
+            return _buildEmptyState();
+          }
 
-    return Consumer<HistoryProvider>(
-      builder: (context, historyProvider, child) {
-        if (historyProvider.isLoading &&
-            historyProvider.sessionHistory == null) {
-          return const CareplanHistoryListShimmer();
-        }
+          if (historyProvider.isLoading &&
+              historyProvider.sessionHistory == null) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [CareplanHistoryListShimmer()],
+            );
+          }
 
-        if (historyProvider.hasError &&
-            historyProvider.sessionHistory == null) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline_rounded,
-                      size: 48, color: Colors.red.withValues(alpha: 0.7)),
-                  const Gap(16),
-                  TextHolder(
-                    title: "Error loading care plan history",
-                    color: CarePlanColor.grey,
-                    size: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  const Gap(8),
-                  TextHolder(
-                    title: historyProvider.errorMessage,
-                    color: CarePlanColor.grey_3,
-                    size: 14,
-                    align: TextAlign.center,
-                  ),
-                  const Gap(24),
-                  GestureDetector(
-                    onTap: _fetchSessionHistory,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: CarePlanColor.brown,
-                        borderRadius: BorderRadius.circular(8),
+          if (historyProvider.hasError &&
+              historyProvider.sessionHistory == null) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 60),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline_rounded,
+                          size: 48, color: Colors.red.withValues(alpha: 0.7)),
+                      const Gap(16),
+                      TextHolder(
+                        title: "Error loading care plan history",
+                        color: CarePlanColor.grey,
+                        size: 16,
+                        fontWeight: FontWeight.w700,
                       ),
-                      child: TextHolder(
-                        title: "Retry",
-                        color: Colors.white,
+                      const Gap(8),
+                      TextHolder(
+                        title: historyProvider.errorMessage,
+                        color: CarePlanColor.grey_3,
                         size: 14,
-                        fontWeight: FontWeight.w600,
+                        align: TextAlign.center,
                       ),
-                    ),
+                      const Gap(24),
+                      GestureDetector(
+                        onTap: _fetchSessionHistory,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: CarePlanColor.brown,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: TextHolder(
+                            title: "Retry",
+                            color: Colors.white,
+                            size: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          );
-        }
+                ),
+              ],
+            );
+          }
 
-        final history =
-            historyProvider.sessionHistory?.carePlanHistory ?? [];
+          final history =
+              historyProvider.sessionHistory?.carePlanHistory ?? [];
 
-        if (history.isEmpty) {
-          return _buildEmptyState();
-        }
+          if (history.isEmpty) {
+            return _buildEmptyState();
+          }
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            if (_patientId != null && _patientId!.isNotEmpty) {
-              await historyProvider.fetchSessionHistory(
-                patientId: _patientId!,
-                page: 1,
-                limit: 15,
-              );
-            }
-          },
-          color: CarePlanColor.brown,
-          child: ListView.builder(
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             itemCount: history.length,
             itemBuilder: (context, i) {
               final item = history[i];
               return _PreviousCareplanCard(item: item);
             },
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.assignment_outlined,
-                size: 56, color: CarePlanColor.grey_3),
-            const Gap(16),
-            TextHolder(
-              title: "No Care Plan History",
-              color: CarePlanColor.grey,
-              size: 16,
-              fontWeight: FontWeight.w800,
-              align: TextAlign.center,
-            ),
-            const Gap(8),
-            TextHolder(
-              title: "Your care plan history will appear here",
-              color: CarePlanColor.grey_3,
-              size: 14,
-              align: TextAlign.center,
-            ),
-          ],
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 80),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.assignment_outlined,
+                  size: 56, color: CarePlanColor.grey_3),
+              const Gap(16),
+              TextHolder(
+                title: "No Care Plan History",
+                color: CarePlanColor.grey,
+                size: 16,
+                fontWeight: FontWeight.w800,
+                align: TextAlign.center,
+              ),
+              const Gap(8),
+              TextHolder(
+                title: "Your care plan history will appear here",
+                color: CarePlanColor.grey_3,
+                size: 14,
+                align: TextAlign.center,
+              ),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

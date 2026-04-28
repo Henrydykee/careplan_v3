@@ -114,63 +114,129 @@ class _ASRSResultHistoryScreenState extends State<ASRSResultHistoryScreen> {
 
         if (items.isEmpty) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: TextHolder(
-                title: 'No ASRS results found.',
-                size: 14,
-                fontWeight: FontWeight.w500,
-                color: CarePlanColor.black_3,
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: CarePlanColor.light_orange,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      Icons.checklist_rounded,
+                      color: CarePlanColor.brown,
+                      size: 28,
+                    ),
+                  ),
+                  const Gap(14),
+                  TextHolder(
+                    title: 'No ASRS results yet',
+                    color: CarePlanColor.brown,
+                    size: 16,
+                    fontWeight: FontWeight.w800,
+                    align: TextAlign.center,
+                  ),
+                  const Gap(6),
+                  TextHolder(
+                    title:
+                        'Take your first ASRS screening to start tracking attention symptoms.',
+                    color: CarePlanColor.grey_3,
+                    size: 13,
+                    fontWeight: FontWeight.w500,
+                    align: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           );
         }
 
-        return ListView.builder(
+        return ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: items.length,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          separatorBuilder: (_, __) => const Gap(10),
           itemBuilder: (context, index) {
             final item = items[index];
-            final formattedDate = DateFormat('EEEE, MMM d, y').format(
-              DateTime.tryParse(item.createdAt) ?? DateTime.now(),
-            );
+            final parsedDate =
+                DateTime.tryParse(item.createdAt) ?? DateTime.now();
+            final formattedDate = DateFormat('MMM d, y').format(parsedDate);
 
-            return GestureDetector(
-              onTap: () {
-                router.push(
-                  AsrsResultInsightScreen(
-                    assessment: item,
-                  ),
-                );
-              },
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      blurRadius: 1,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextHolder(
-                        title: formattedDate,
-                        fontWeight: FontWeight.w800,
-                        size: 13,
+            return Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  router.push(
+                    AsrsResultInsightScreen(assessment: item),
+                  );
+                },
+                child: Ink(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: CarePlanColor.grey_5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                      Icon(Icons.arrow_forward_ios, color: CarePlanColor.grey),
                     ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: CarePlanColor.light_orange,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.checklist_rounded,
+                            color: CarePlanColor.brown,
+                            size: 22,
+                          ),
+                        ),
+                        const Gap(12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextHolder(
+                                title: 'ASRS assessment',
+                                color: CarePlanColor.grey_3,
+                                size: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              const Gap(2),
+                              TextHolder(
+                                title: formattedDate,
+                                color: CarePlanColor.grey,
+                                size: 15,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Gap(6),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: CarePlanColor.grey_3,
+                          size: 22,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

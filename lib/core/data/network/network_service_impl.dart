@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 
-
 import '../../platform/env_config.dart';
 import 'network_config.dart';
 import 'network_exceptions.dart';
@@ -13,7 +12,7 @@ import 'network_service_response.dart';
 class NetworkServiceImpl implements NetworkService {
   static var networkSetupOptions = BaseOptions(
     //include request timeout of 60secs to through exception
-    connectTimeout:  const Duration(seconds: 30),
+    connectTimeout: const Duration(seconds: 30),
     receiveTimeout: const Duration(seconds: 30),
     baseUrl: EnvConfig.instance!.values!.baseUrl,
   );
@@ -88,7 +87,9 @@ class NetworkServiceImpl implements NetworkService {
   }
 
   @override
-  Future<NetworkServiceResponse> post(String url, {Map<String, dynamic>? body, Map<String, dynamic>? queryParameters}) async {
+  Future<NetworkServiceResponse> post(String url,
+      {Map<String, dynamic>? body,
+      Map<String, dynamic>? queryParameters}) async {
     Response response;
     try {
       response = await _dio.post(
@@ -108,7 +109,8 @@ class NetworkServiceImpl implements NetworkService {
   }
 
   @override
-  Future<NetworkServiceResponse> delete(String url, {
+  Future<NetworkServiceResponse> delete(
+    String url, {
     Map<String, dynamic>? body,
     Map<String, dynamic>? queryParameters,
   }) async {
@@ -130,7 +132,8 @@ class NetworkServiceImpl implements NetworkService {
   }
 
   @override
-  Future<NetworkServiceResponse> patch(String url, {
+  Future<NetworkServiceResponse> patch(
+    String url, {
     Map<String, dynamic>? body,
     Map<String, dynamic>? queryParameters,
   }) async {
@@ -153,7 +156,8 @@ class NetworkServiceImpl implements NetworkService {
   }
 
   @override
-  Future<NetworkServiceResponse> put(String url, {
+  Future<NetworkServiceResponse> put(
+    String url, {
     Map<String, dynamic>? body,
     Map<String, dynamic>? queryParameters,
   }) async {

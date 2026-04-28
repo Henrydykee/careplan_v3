@@ -5,7 +5,6 @@ import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
-import 'package:careplan/core/presentation/widgets/view_pager.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/auth/data/model/user_model.dart';
 import 'package:careplan/features/auth/domain/usecases/update_profile.dart';
@@ -143,10 +142,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 color: CarePlanColor.brown,
               ),
             ),
+            const Gap(20),
             Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
-              child: _carePlanViewPager(),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildTabBar(),
             ),
+            const Gap(16),
             Expanded(
               child: PageView(
                 physics: const NeverScrollableScrollPhysics(),
@@ -170,41 +171,59 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Row _carePlanViewPager() {
-    return Row(
-      children: [
-        Expanded(
-          child: ViewPagerHeader(
-            title: "Personal",
-            color: pageChanged == 0 ? CarePlanColor.light_orange : Colors.white,
-            borderColor: pageChanged == 0
-                ? CarePlanColor.orange
-                : Colors.grey.withValues(alpha: 0.3),
-            textColor: pageChanged == 0 ? CarePlanColor.brown : Colors.grey,
-            onTap: () => pageController.animateToPage(
-              0,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeIn,
+  static const _tabs = ["Personal", "Address"];
+
+  void _onTabTap(int index) {
+    pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  Widget _buildTabBar() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: CarePlanColor.grey_5,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: List.generate(_tabs.length, (index) {
+          final isSelected = pageChanged == index;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => _onTabTap(index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? CarePlanColor.brown : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: CarePlanColor.brown.withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Center(
+                  child: TextHolder(
+                    title: _tabs[index],
+                    size: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? Colors.white : CarePlanColor.grey_3,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-        const Gap(10),
-        Expanded(
-          child: ViewPagerHeader(
-            title: "Address",
-            textColor: pageChanged == 1 ? CarePlanColor.brown : Colors.grey,
-            color: pageChanged == 1 ? CarePlanColor.light_orange : Colors.white,
-            borderColor: pageChanged == 1
-                ? CarePlanColor.orange
-                : Colors.grey.withValues(alpha: 0.3),
-            onTap: () => pageController.animateToPage(
-              1,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeIn,
-            ),
-          ),
-        ),
-      ],
+          );
+        }),
+      ),
     );
   }
 }

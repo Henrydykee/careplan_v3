@@ -33,73 +33,210 @@ class K10ScoreHolder extends StatelessWidget {
 
   final double width;
 
-  // Mock data
-  final String _mockScore = "75";
-  final String _mockK10Date = "Last completed: Jan 15, 2024";
-
-  String getK10Date() {
-    // Return mock date if k10Date is not provided
-    return k10Date ?? _mockK10Date;
+  DateTime? get _lastCompletedDate {
+    final raw = k10Date?.trim();
+    if (raw == null || raw.isEmpty) return null;
+    return DateTime.tryParse(raw);
   }
 
-  String getMockScore() {
-    // Return mock score if score is not provided
-    return score ?? _mockScore;
+  bool get _hasCompletion {
+    final s = (score ?? '').trim();
+    if (s.isNotEmpty && s != "0") return true;
+    return _lastCompletedDate != null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final mockScore = getMockScore();
-    final displayScore = mockScore == "0" || mockScore.isEmpty;
+    final lastCompleted = _lastCompletedDate;
+    final completed = _hasCompletion;
+    final cream = Colors.white.withValues(alpha: 0.78);
 
     return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        decoration: BoxDecoration(
-            color: CarePlanColor.brown, borderRadius: BorderRadius.circular(5)),
         width: width,
+        decoration: BoxDecoration(
+          color: CarePlanColor.brown,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: CarePlanColor.brown.withValues(alpha: 0.18),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.fromLTRB(18, 18, 14, 18),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Flexible(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    displayScore
-                        ? TextHolder(
-                            title: "Complete your assessments.",
-                            color: Colors.white,
-                            size: 16,
-                            fontWeight: FontWeight.bold,
-                          )
-                        : TextHolder(
-                            title: "Review your assessments.",
-                            color: Colors.white,
-                            size: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    Gap(8),
                     TextHolder(
-                      title: getK10Date(),
+                      title: completed
+                          ? "Review your wellbeing"
+                          : "Take your first assessment",
                       color: Colors.white,
-                      size: 12,
+                      size: 18,
+                      fontWeight: FontWeight.w800,
                     ),
-                    Gap(8),
-                    CustomButtom(
-                      title: "Take test",
-                      onTap: () {
-                        onTakeTestTap?.call();
-                      },
-                      btnColor: CarePlanColor.orange,
-                      textColor: Colors.white,
-                    )
+                    const Gap(6),
+                    if (lastCompleted != null)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.check_circle_rounded,
+                            size: 14,
+                            color: CarePlanColor.light_orange,
+                          ),
+                          const Gap(6),
+                          Flexible(
+                            child: TextHolder(
+                              title:
+                                  "Last completed ${DateFormat('MMM d, y').format(lastCompleted.toLocal())}",
+                              color: cream,
+                              size: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      TextHolder(
+                        title:
+                            "Track your mental wellbeing in just a few minutes.",
+                        color: cream,
+                        size: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    const Gap(14),
+                    _CtaPill(
+                      label: completed ? "Retake test" : "Take test",
+                      onTap: onTakeTestTap,
+                    ),
                   ],
                 ),
               ),
-              SvgPicture.asset(Assets.test_icon),
+              const Gap(10),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: SvgPicture.asset(
+                    Assets.test_icon,
+                    width: 38,
+                    height: 38,
+                  ),
+                ),
+              ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CtaPill extends StatefulWidget {
+  final String label;
+  final VoidCallback? onTap;
+
+  const _CtaPill({required this.label, this.onTap});
+
+  @override
+  State<_CtaPill> createState() => _CtaPillState();
+}
+
+class _CtaPillState extends State<_CtaPill>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          // Smooth in-and-out heartbeat curve: 0 → 1 → 0 each cycle.
+          final t = _controller.value;
+          final pulse = (1 - (2 * t - 1).abs());
+          final scale = 1 + 0.025 * pulse;
+          final spread = 6 * pulse;
+          final blur = 12 + 6 * pulse;
+          final glowAlpha = 0.18 + 0.22 * pulse;
+
+          return Transform.scale(
+            scale: scale,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        CarePlanColor.orange.withValues(alpha: glowAlpha),
+                    blurRadius: blur,
+                    spreadRadius: spread,
+                  ),
+                ],
+              ),
+              child: child,
+            ),
+          );
+        },
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(999),
+            onTap: widget.onTap,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: CarePlanColor.orange,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextHolder(
+                    title: widget.label,
+                    color: Colors.white,
+                    size: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  const Gap(6),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 16,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -599,29 +736,48 @@ class CareplanTeamWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextHolder(
-            title: "Care Team",
-            size: 16,
-            fontWeight: FontWeight.w800,
-            color: CarePlanColor.brown,
+          Row(
+            children: [
+              TextHolder(
+                title: "Care Team",
+                size: 16,
+                fontWeight: FontWeight.w800,
+                color: CarePlanColor.brown,
+              ),
+              const Gap(8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: CarePlanColor.light_orange,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: TextHolder(
+                  title: "${teamList.length}",
+                  size: 11,
+                  fontWeight: FontWeight.w800,
+                  color: CarePlanColor.brown,
+                ),
+              ),
+            ],
           ),
-          Gap(10),
-          ListView.builder(
+          const Gap(10),
+          ListView.separated(
             itemCount: displayCount,
-            padding: EdgeInsets.all(0),
+            padding: EdgeInsets.zero,
             shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
+            separatorBuilder: (_, __) => const Gap(10),
             itemBuilder: (c, i) {
               String doctorName;
               String imageUrl;
+              String? subtitle;
 
               if (hasRealData && careTeamMembers != null) {
-                // Use CarePlanTeamMember data
                 final member = careTeamMembers![i];
                 doctorName = member.name ?? "";
                 imageUrl = member.imageUrl ?? "";
               } else if (hasRealData && careplanTeam != null) {
-                // Use careplanTeam data structure
                 final doctor = careplanTeam!.data!.doctors![i];
                 final firstName = doctor.firstName ?? "";
                 final lastName = doctor.lastName ?? "";
@@ -629,8 +785,8 @@ class CareplanTeamWidget extends StatelessWidget {
                 doctorName =
                     "${getTitle(doctorType)} $firstName $lastName".trim();
                 imageUrl = doctor.imageUrl ?? "";
+                subtitle = getProviderType(doctorType);
               } else {
-                // Use mock data
                 final doctor = teamList[i] as MockDoctor;
                 final firstName = doctor.firstName;
                 final lastName = doctor.lastName;
@@ -638,118 +794,182 @@ class CareplanTeamWidget extends StatelessWidget {
                 doctorName =
                     "${getTitle(doctorType)} $firstName $lastName".trim();
                 imageUrl = doctor.imageUrl;
+                subtitle = getProviderType(doctorType);
               }
 
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: InkWell(
-                  //  onTap: () => careTeamDoctorDetails(context, careplanTeam?.data?.doctors?[i]),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      // ignore: deprecated_member_use
-                      // border: Border.all(color: CarePlanColor.grey.withOpacity(0.2)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 3,
-                          blurRadius: 3,
-                          offset: Offset(0, 0), // changes position of shadow
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 31,
-                                backgroundColor: Colors.white,
-                                child: CircleAvatar(
-                                    radius: 30,
-                                    backgroundColor: Colors.white,
-                                    child: ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(30.0),
-                                        child: CachedNetworkImage(
-                                          errorWidget: (context, url, error) =>
-                                              Image.asset(
-                                            "assets/images/new_image_place_holder.png",
-                                            fit: BoxFit.contain,
-                                          ),
-                                          imageUrl: imageUrl,
-                                          fit: BoxFit.fill,
-                                        ))
-                                    // SvgPicture.asset(
-                                    //   Assets.account_icon,
-                                    //   color: CarePlanColor.brown,
-                                    //   fit: BoxFit.fill,
-                                    // ),
-                                    ),
-                              ),
-                              Gap(20),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  TextHolder(
-                                    title: doctorName,
-                                    color: CarePlanColor.grey,
-                                    fontWeight: FontWeight.w900,
-                                    size: 16,
-                                  ),
-                                  if (hasRealData && careplanTeam != null)
-                                    TextHolder(
-                                      title: getProviderType(careplanTeam!
-                                                  .data!.doctors![i].type
-                                                  ?.toString() ??
-                                              "") ??
-                                          "",
-                                      color: CarePlanColor.grey,
-                                      fontWeight: FontWeight.w500,
-                                      size: 11,
-                                    ),
-                                  Gap(6),
-                                ],
-                              )
-                            ],
-                          ),
-                          // Icon(Icons.chevron_right)
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              return _CareTeamMemberCard(
+                name: doctorName,
+                subtitle: (subtitle ?? '').isNotEmpty ? subtitle : null,
+                imageUrl: imageUrl,
               );
             },
           ),
-          if (showSeeMore)
+          if (showSeeMore) ...[
+            const Gap(12),
             Center(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CareTeamListScreen(
-                        careTeamMembers: careTeamMembers ?? [],
-                        careplanTeam: careplanTeam,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CareTeamListScreen(
+                          careTeamMembers: careTeamMembers ?? [],
+                          careplanTeam: careplanTeam,
+                        ),
                       ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextHolder(
+                          title: "See all ${teamList.length}",
+                          size: 13,
+                          fontWeight: FontWeight.w700,
+                          color: CarePlanColor.brown,
+                        ),
+                        const Gap(4),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 16,
+                          color: CarePlanColor.brown,
+                        ),
+                      ],
                     ),
-                  );
-                },
-                child: TextHolder(
-                  title: "See More",
-                  size: 16,
-                  fontWeight: FontWeight.w800,
-                  color: CarePlanColor.brown,
+                  ),
                 ),
               ),
             ),
-          Gap(30),
+          ],
+          const Gap(20),
         ],
+      ),
+    );
+  }
+}
+
+class _CareTeamMemberCard extends StatelessWidget {
+  final String name;
+  final String? subtitle;
+  final String imageUrl;
+
+  const _CareTeamMemberCard({
+    required this.name,
+    required this.imageUrl,
+    this.subtitle,
+  });
+
+  String get _initials {
+    final cleaned = name
+        .replaceFirst(RegExp(r'^(Dr\.?|Mr\.?|Mrs\.?|Ms\.?|ADHD Coach)\s+',
+            caseSensitive: false), '')
+        .trim();
+    if (cleaned.isEmpty) return "?";
+    final parts = cleaned.split(RegExp(r'\s+'));
+    final first = parts.first.isNotEmpty ? parts.first[0] : '';
+    final last = parts.length > 1 && parts.last.isNotEmpty ? parts.last[0] : '';
+    final initials = "$first$last".toUpperCase();
+    return initials.isEmpty ? "?" : initials;
+  }
+
+  Widget _buildAvatar() {
+    final placeholder = Container(
+      width: 48,
+      height: 48,
+      color: CarePlanColor.light_orange,
+      alignment: Alignment.center,
+      child: TextHolder(
+        title: _initials,
+        color: CarePlanColor.brown,
+        size: 16,
+        fontWeight: FontWeight.w800,
+      ),
+    );
+
+    if (imageUrl.isEmpty) return placeholder;
+
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      width: 48,
+      height: 48,
+      fit: BoxFit.cover,
+      placeholder: (_, __) => placeholder,
+      errorWidget: (_, __, ___) => placeholder,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {},
+        child: Ink(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: CarePlanColor.grey_5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: _buildAvatar(),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextHolder(
+                        title: name.isNotEmpty ? name : "Care provider",
+                        color: CarePlanColor.grey,
+                        fontWeight: FontWeight.w800,
+                        size: 15,
+                        maxLines: 1,
+                        textOverflow: TextOverflow.ellipsis,
+                      ),
+                      if (subtitle != null) ...[
+                        const Gap(2),
+                        TextHolder(
+                          title: subtitle!,
+                          color: CarePlanColor.grey_3,
+                          fontWeight: FontWeight.w500,
+                          size: 12,
+                          maxLines: 1,
+                          textOverflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const Gap(8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: CarePlanColor.grey_3,
+                  size: 22,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -822,21 +1042,51 @@ class EmptyCareplan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5), color: Color(0xFFF2F2F2)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 10),
-        child: Column(
-          children: [
-            SvgPicture.asset(Assets.folder_icon),
-            TextHolder(
-              title: "You do not have a care plan",
-              color: CarePlanColor.brown,
-              fontWeight: FontWeight.w800,
-            ),
-          ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: CarePlanColor.grey_5),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+          child: Column(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: CarePlanColor.light_orange,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  Icons.folder_open_rounded,
+                  color: CarePlanColor.brown,
+                  size: 28,
+                ),
+              ),
+              const Gap(14),
+              TextHolder(
+                title: "No care plan yet",
+                color: CarePlanColor.brown,
+                size: 16,
+                fontWeight: FontWeight.w800,
+                align: TextAlign.center,
+              ),
+              const Gap(6),
+              TextHolder(
+                title:
+                    "Your provider will create your personalised care plan after your first session.",
+                color: CarePlanColor.grey_3,
+                size: 13,
+                fontWeight: FontWeight.w500,
+                align: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -889,19 +1139,54 @@ class CareTeamListScreen extends StatelessWidget {
     return Scaffold(
       appBar: CustomAppBar(
         showBackIcon: true,
+        title: "Care Team",
       ),
       backgroundColor: Colors.white,
       body: teamList.isEmpty
           ? Center(
-              child: TextHolder(
-                title: "No care team members found",
-                size: 16,
-                color: CarePlanColor.grey,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: CarePlanColor.light_orange,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        Icons.people_alt_outlined,
+                        color: CarePlanColor.brown,
+                        size: 28,
+                      ),
+                    ),
+                    const Gap(14),
+                    TextHolder(
+                      title: "No care team members yet",
+                      color: CarePlanColor.brown,
+                      size: 16,
+                      fontWeight: FontWeight.w800,
+                      align: TextAlign.center,
+                    ),
+                    const Gap(6),
+                    TextHolder(
+                      title:
+                          "Your care team will appear here once a provider is assigned to you.",
+                      color: CarePlanColor.grey_3,
+                      size: 13,
+                      fontWeight: FontWeight.w500,
+                      align: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             )
-          : ListView.builder(
+          : ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               itemCount: teamList.length,
+              separatorBuilder: (_, __) => const Gap(10),
               itemBuilder: (context, index) {
                 String doctorName;
                 String imageUrl;
@@ -924,73 +1209,184 @@ class CareTeamListScreen extends StatelessWidget {
                   return const SizedBox();
                 }
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 3,
-                          blurRadius: 3,
-                          offset: Offset(0, 0),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 31,
-                            backgroundColor: Colors.white,
-                            child: CircleAvatar(
-                              radius: 30,
-                              backgroundColor: Colors.white,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(30.0),
-                                child: CachedNetworkImage(
-                                  errorWidget: (context, url, error) =>
-                                      Image.asset(
-                                    "assets/images/new_image_place_holder.png",
-                                    fit: BoxFit.contain,
-                                  ),
-                                  imageUrl: imageUrl,
-                                  fit: BoxFit.fill,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Gap(20),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                TextHolder(
-                                  title: doctorName,
-                                  color: CarePlanColor.grey,
-                                  fontWeight: FontWeight.w900,
-                                  size: 16,
-                                ),
-                                if (providerType != null)
-                                  TextHolder(
-                                    title: providerType,
-                                    color: CarePlanColor.grey,
-                                    fontWeight: FontWeight.w500,
-                                    size: 11,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                return _CareTeamMemberCard(
+                  name: doctorName,
+                  subtitle: (providerType ?? '').isNotEmpty
+                      ? providerType
+                      : null,
+                  imageUrl: imageUrl,
                 );
               },
             ),
+    );
+  }
+}
+
+class WellbeingCheckIn extends StatefulWidget {
+  final String question;
+  final void Function(String mood) onMoodSelected;
+
+  const WellbeingCheckIn({
+    super.key,
+    required this.question,
+    required this.onMoodSelected,
+  });
+
+  @override
+  State<WellbeingCheckIn> createState() => _WellbeingCheckInState();
+}
+
+class _WellbeingCheckInState extends State<WellbeingCheckIn> {
+  static const _moods = <_MoodOption>[
+    _MoodOption(emoji: "😞", label: "Awful"),
+    _MoodOption(emoji: "😕", label: "Low"),
+    _MoodOption(emoji: "😐", label: "Okay"),
+    _MoodOption(emoji: "🙂", label: "Good"),
+    _MoodOption(emoji: "😄", label: "Great"),
+  ];
+
+  int? _selectedIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CarePlanColor.grey_5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: CarePlanColor.light_orange,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.favorite_rounded,
+                    color: CarePlanColor.brown,
+                    size: 18,
+                  ),
+                ),
+                const Gap(10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextHolder(
+                        title: "Wellness check-in",
+                        color: CarePlanColor.grey_3,
+                        size: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      const Gap(2),
+                      TextHolder(
+                        title: widget.question,
+                        color: CarePlanColor.grey,
+                        size: 14,
+                        fontWeight: FontWeight.w800,
+                        maxLines: 2,
+                        textOverflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Gap(14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(_moods.length, (i) {
+                final mood = _moods[i];
+                final isSelected = _selectedIndex == i;
+                return _MoodButton(
+                  emoji: mood.emoji,
+                  label: mood.label,
+                  isSelected: isSelected,
+                  onTap: () {
+                    setState(() => _selectedIndex = i);
+                    widget.onMoodSelected(mood.label.toLowerCase());
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MoodOption {
+  final String emoji;
+  final String label;
+
+  const _MoodOption({required this.emoji, required this.label});
+}
+
+class _MoodButton extends StatelessWidget {
+  final String emoji;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _MoodButton({
+    required this.emoji,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? CarePlanColor.light_orange : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? CarePlanColor.orange : CarePlanColor.grey_5,
+              width: isSelected ? 1.5 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 22)),
+              const Gap(4),
+              TextHolder(
+                title: label,
+                color: isSelected ? CarePlanColor.brown : CarePlanColor.grey_3,
+                size: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

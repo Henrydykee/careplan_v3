@@ -8,6 +8,7 @@ import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/account/presentation/card/list_of_cards_screen.dart';
 import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/domain/usecases/get_user_details.dart';
 import 'package:careplan/features/auth/presentation/login_flow/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -59,8 +60,18 @@ class _AccountScreenState extends State<AccountScreen> {
         } catch (_) {}
       }
     } catch (_) {
-      
+
     }
+  }
+
+  Future<void> _onRefresh() async {
+    final result = await inject<GetUserDetails>().call();
+    result.fold(
+      (_) {},
+      (user) {
+        if (mounted) setState(() => _user = user);
+      },
+    );
   }
 
   void _showLogoutModal(BuildContext context) {
@@ -144,7 +155,11 @@ class _AccountScreenState extends State<AccountScreen> {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: const Color(0xFFF9F6F2),
-      body: SingleChildScrollView(
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        color: CarePlanColor.brown,
+        child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
             // Header with colored background
@@ -272,6 +287,7 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
             const Gap(30),
           ],
+        ),
         ),
       ),
     );

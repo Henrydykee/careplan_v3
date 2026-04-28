@@ -51,6 +51,15 @@ class _GoalsResultScreenState extends State<GoalsResultScreen> {
     return null;
   }
 
+  Future<void> _refresh() async {
+    setState(() {
+      _goalsFuture = _fetchGoals();
+      _overrideLongTermGoal = null;
+      _didInitOverride = false;
+    });
+    await _goalsFuture;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,98 +94,64 @@ class _GoalsResultScreenState extends State<GoalsResultScreen> {
           ),
           const Gap(26),
           Expanded(
-            child: FutureBuilder<_GoalsApiData?>(
-              future: _goalsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const GoalsResultShimmer();
-                }
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              color: CarePlanColor.brown,
+              child: FutureBuilder<_GoalsApiData?>(
+                future: _goalsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [GoalsResultShimmer()],
+                    );
+                  }
 
-                final goals = snapshot.data;
-                final shortTermText =
-                    goals?.shortTermGoal?.message ?? _shortTermGoalPlaceholder;
-                final longTermText =
-                    (goals?.longTermGoal ?? "").trim().isNotEmpty
-                        ? goals!.longTermGoal!
-                        : _longTermGoalPlaceholder;
-                final displayLongTermText =
-                    _overrideLongTermGoal ?? longTermText;
+                  final goals = snapshot.data;
+                  final shortTermText = goals?.shortTermGoal?.message ??
+                      _shortTermGoalPlaceholder;
+                  final longTermText =
+                      (goals?.longTermGoal ?? "").trim().isNotEmpty
+                          ? goals!.longTermGoal!
+                          : _longTermGoalPlaceholder;
+                  final displayLongTermText =
+                      _overrideLongTermGoal ?? longTermText;
 
-                if (!_didInitOverride) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (!mounted) return;
-                    if (_didInitOverride) return;
-                    setState(() {
-                      _overrideLongTermGoal = longTermText;
-                      _didInitOverride = true;
+                  if (!_didInitOverride) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted) return;
+                      if (_didInitOverride) return;
+                      setState(() {
+                        _overrideLongTermGoal = longTermText;
+                        _didInitOverride = true;
+                      });
                     });
-                  });
-                }
+                  }
 
-                return SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Card(
-                          child: ExpansionTile(
-                            iconColor: CarePlanColor.brown,
-                            collapsedIconColor: CarePlanColor.brown,
-                            title: TextHolder(
-                              title: "Short Term Goals",
-                              fontWeight: FontWeight.w800,
-                              size: 15,
-                            ),
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 10,
-                                ),
-                                child: TextHolder(
-                                  title: shortTermText,
-                                  fontWeight: FontWeight.w500,
-                                  size: 14,
-                                ),
-                              ),
-                            ],
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _GoalCard(
+                            icon: Icons.flash_on_rounded,
+                            label: "Short term",
+                            body: shortTermText,
                           ),
-                        ),
-                        const Gap(12),
-                        Card(
-                          child: ExpansionTile(
-                            iconColor: CarePlanColor.brown,
-                            collapsedIconColor: CarePlanColor.brown,
-                            title: TextHolder(
-                              title: "Long Term Goals",
-                              fontWeight: FontWeight.w800,
-                              size: 15,
-                            ),
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
-                                  horizontal: 20,
-                                ),
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: TextHolder(
-                                    title: displayLongTermText,
-                                    fontWeight: FontWeight.w500,
-                                    align: TextAlign.left,
-                                    size: 14,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          const Gap(12),
+                          _GoalCard(
+                            icon: Icons.flag_rounded,
+                            label: "Long term",
+                            body: displayLongTermText,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -222,6 +197,75 @@ class _ShortTermGoalData {
       message: json['message'] as String?,
       reductionLevel: json['reductionLevel']?.toString(),
       period: json['period']?.toString(),
+    );
+  }
+}
+
+class _GoalCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String body;
+
+  const _GoalCard({
+    required this.icon,
+    required this.label,
+    required this.body,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CarePlanColor.grey_5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: CarePlanColor.light_orange,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: CarePlanColor.brown, size: 22),
+            ),
+            const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextHolder(
+                    title: label,
+                    color: CarePlanColor.grey_3,
+                    size: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  const Gap(4),
+                  TextHolder(
+                    title: body,
+                    color: CarePlanColor.grey,
+                    size: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

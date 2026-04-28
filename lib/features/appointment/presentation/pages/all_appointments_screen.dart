@@ -164,6 +164,15 @@ class _AllAppointmentsScreenState extends State<AllAppointmentsScreen> {
     );
   }
 
+  Future<void> _onRefresh() async {
+    if (widget.patientId == null || widget.patientId!.isEmpty) return;
+    await context.read<AppointmentProvider>().fetchUpcomingAppointments(
+          patientId: widget.patientId!,
+          page: 1,
+          limit: 100,
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -172,84 +181,95 @@ class _AllAppointmentsScreenState extends State<AllAppointmentsScreen> {
         title: "Upcoming Appointments",
         showBackIcon: true,
       ),
-      body: Consumer<AppointmentProvider>(
-        builder: (context, appointmentProvider, child) {
-          if (appointmentProvider.isLoading && appointmentProvider.appointments == null) {
-            return const AppointmentListShimmer(
-              itemCount: 6,
-              padding: EdgeInsets.all(20),
-            );
-          }
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        color: CarePlanColor.brown,
+        child: Consumer<AppointmentProvider>(
+          builder: (context, appointmentProvider, child) {
+            if (appointmentProvider.isLoading &&
+                appointmentProvider.appointments == null) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  AppointmentListShimmer(
+                    itemCount: 6,
+                    padding: EdgeInsets.all(20),
+                  ),
+                ],
+              );
+            }
 
-          if (appointmentProvider.hasError && appointmentProvider.errorMessage.isNotEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextHolder(
-                      title: "Error loading appointments",
-                      color: Colors.red,
-                      size: 16,
+            if (appointmentProvider.hasError &&
+                appointmentProvider.errorMessage.isNotEmpty &&
+                appointmentProvider.appointments == null) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 60),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextHolder(
+                          title: "Error loading appointments",
+                          color: Colors.red,
+                          size: 16,
+                        ),
+                        const Gap(10),
+                        TextHolder(
+                          title: appointmentProvider.errorMessage,
+                          color: CarePlanColor.grey,
+                          size: 14,
+                        ),
+                      ],
                     ),
-                    const Gap(10),
-                    TextHolder(
-                      title: appointmentProvider.errorMessage,
-                      color: CarePlanColor.grey,
-                      size: 14,
+                  ),
+                ],
+              );
+            }
+
+            final appointments =
+                appointmentProvider.appointments?.appointments ?? [];
+            final sortedAppointments =
+                _sortAppointmentsByDate([...appointments]);
+
+            if (sortedAppointments.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 80),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SvgPicture.asset(Assets.calender),
+                        const Gap(20),
+                        TextHolder(
+                          title: "No Upcoming Appointments",
+                          align: TextAlign.center,
+                          color: CarePlanColor.grey,
+                          size: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            );
-          }
+                  ),
+                ],
+              );
+            }
 
-          final appointments = appointmentProvider.appointments?.appointments ?? [];
-          final sortedAppointments = _sortAppointmentsByDate([...appointments]);
-
-          if (sortedAppointments.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(Assets.calender),
-                    const Gap(20),
-                    TextHolder(
-                      title: "No Upcoming Appointments",
-                      align: TextAlign.center,
-                      color: CarePlanColor.grey,
-                      size: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              if (widget.patientId != null && widget.patientId!.isNotEmpty) {
-                await appointmentProvider.fetchUpcomingAppointments(
-                  patientId: widget.patientId!,
-                  page: 1,
-                  limit: 100,
-                );
-              }
-            },
-            color: CarePlanColor.brown,
-            child: ListView.builder(
+            return ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(20),
               itemCount: sortedAppointments.length,
               itemBuilder: (context, index) {
                 return _buildAppointmentItem(sortedAppointments[index]);
               },
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

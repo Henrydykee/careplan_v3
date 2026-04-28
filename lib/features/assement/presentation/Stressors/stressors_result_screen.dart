@@ -52,6 +52,15 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
     return null;
   }
 
+  Future<void> _refresh() async {
+    setState(() {
+      _stressorsFuture = _fetchStressors();
+      _overrideStressors = null;
+      _overrideAbilityToCope = null;
+    });
+    await _stressorsFuture;
+  }
+
   Future<void> _onTapUpdate({
     required List<String> stressors,
     required String abilityToCope,
@@ -102,57 +111,43 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
           ),
           const Gap(26),
           Expanded(
-            child: FutureBuilder<_StressorsApiData?>(
-              future: _stressorsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const StressorsResultShimmer();
-                }
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              color: CarePlanColor.brown,
+              child: FutureBuilder<_StressorsApiData?>(
+                future: _stressorsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [StressorsResultShimmer()],
+                    );
+                  }
 
-                final stressorsData = snapshot.data;
-                final abilityToCope = (_overrideAbilityToCope ??
-                    (stressorsData?.abilityToCope ?? _mockAbilityToCope)
-                        .toString());
-                final stressorList = _overrideStressors ??
-                    stressorsData?.selectedStressors ??
-                    _mockStressors;
+                  final stressorsData = snapshot.data;
+                  final abilityToCope = (_overrideAbilityToCope ??
+                      (stressorsData?.abilityToCope ?? _mockAbilityToCope)
+                          .toString());
+                  final stressorList = _overrideStressors ??
+                      stressorsData?.selectedStressors ??
+                      _mockStressors;
 
-                return SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.white,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                TextHolder(
-                                  title: "Ability to cope",
-                                  fontWeight: FontWeight.w500,
-                                  size: 12,
-                                ),
-                                TextHolder(
-                                  title: abilityToCope,
-                                  fontWeight: FontWeight.w700,
-                                  size: 18,
-                                  color: CarePlanColor.brown,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        StressorsCard(stressors: stressorList),
-                      ],
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _AbilityToCopeCard(value: abilityToCope),
+                          const Gap(16),
+                          _StressorsListCard(stressors: stressorList),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -161,62 +156,211 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
   }
 }
 
-class StressorsCard extends StatelessWidget {
-  final List<String> stressors;
+class _AbilityToCopeCard extends StatelessWidget {
+  final String value;
 
-  const StressorsCard({super.key, this.stressors = const []});
+  const _AbilityToCopeCard({required this.value});
+
+  Color _accentFor(int? score) {
+    if (score == null) return CarePlanColor.brown;
+    if (score >= 7) return Colors.green;
+    if (score >= 4) return CarePlanColor.orange;
+    return Colors.red;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    final score = int.tryParse(value.trim());
+    final accent = _accentFor(score);
+    final progress = score == null ? 0.0 : (score.clamp(0, 10)) / 10;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CarePlanColor.grey_5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Stressors',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            if (stressors.isEmpty)
-              const Text(
-                "No stressors reported.",
-                style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
-              )
-            else
-              ...List.generate(stressors.length, (index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Row(
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: CarePlanColor.light_orange,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.self_improvement_rounded,
+                    color: CarePlanColor.brown,
+                    size: 22,
+                  ),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircleAvatar(
-                        radius: 14,
-                        backgroundColor:
-                            CarePlanColor.black_3.withValues(alpha: 0.2),
-                        child: Text(
-                          '${index + 1}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: CarePlanColor.brown,
-                          ),
-                        ),
+                      TextHolder(
+                        title: "Ability to cope",
+                        color: CarePlanColor.grey_3,
+                        size: 11,
+                        fontWeight: FontWeight.w700,
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        stressors[index],
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      const Gap(2),
+                      TextHolder(
+                        title: "How you're managing right now",
+                        color: CarePlanColor.grey_3,
+                        size: 12,
+                        fontWeight: FontWeight.w500,
                       ),
                     ],
                   ),
-                );
-              }),
+                ),
+                const Gap(8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    TextHolder(
+                      title: value,
+                      color: accent,
+                      size: 26,
+                      fontWeight: FontWeight.w900,
+                    ),
+                    TextHolder(
+                      title: " / 10",
+                      color: accent.withValues(alpha: 0.7),
+                      size: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const Gap(14),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                backgroundColor: accent.withValues(alpha: 0.12),
+                valueColor: AlwaysStoppedAnimation<Color>(accent),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StressorsListCard extends StatelessWidget {
+  final List<String> stressors;
+
+  const _StressorsListCard({required this.stressors});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CarePlanColor.grey_5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: CarePlanColor.brown,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const Gap(8),
+                TextHolder(
+                  title: "Stressors",
+                  color: CarePlanColor.brown,
+                  size: 15,
+                  fontWeight: FontWeight.w800,
+                ),
+                if (stressors.isNotEmpty) ...[
+                  const Gap(8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: CarePlanColor.light_orange,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: TextHolder(
+                      title: "${stressors.length}",
+                      color: CarePlanColor.brown,
+                      size: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const Gap(14),
+            if (stressors.isEmpty)
+              TextHolder(
+                title: "No stressors reported.",
+                color: CarePlanColor.grey_3,
+                size: 13,
+                fontWeight: FontWeight.w500,
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: stressors
+                    .map(
+                      (s) => Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: CarePlanColor.light_orange,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: TextHolder(
+                          title: s,
+                          color: CarePlanColor.brown,
+                          size: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
           ],
         ),
       ),

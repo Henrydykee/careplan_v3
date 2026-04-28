@@ -40,6 +40,8 @@ class BillingHistoryListShimmer extends StatelessWidget {
       child: ListView.builder(
         itemCount: itemCount,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
         itemBuilder: (_, __) => const ShimmerBox(
           height: 120,
           margin: EdgeInsets.only(bottom: 12),
@@ -61,6 +63,8 @@ class NotesListShimmer extends StatelessWidget {
       child: ListView.builder(
         itemCount: itemCount,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
         itemBuilder: (_, __) => const ShimmerBox(
           height: 120,
           margin: EdgeInsets.only(bottom: 12),
@@ -82,6 +86,8 @@ class CareplanHistoryListShimmer extends StatelessWidget {
       child: ListView.builder(
         itemCount: itemCount,
         padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
         itemBuilder: (_, __) => const ShimmerBox(
           height: 112,
           margin: EdgeInsets.only(bottom: 12),
@@ -102,6 +108,8 @@ class CardsListShimmer extends StatelessWidget {
     return BaseShimmer(
       child: ListView.builder(
         itemCount: itemCount,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
         itemBuilder: (_, __) => const ShimmerBox(
           height: 84,
           margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
