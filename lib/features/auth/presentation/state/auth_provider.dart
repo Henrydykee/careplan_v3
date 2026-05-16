@@ -1,5 +1,5 @@
-import 'package:careplan/features/auth/data/model/create_user_model.dart';
-import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/data/models/create_user_model.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/cupertino.dart';
 

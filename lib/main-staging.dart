@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -12,7 +11,6 @@ import 'core/data/enums/type_enums.dart';
 import 'core/di/di_config.dart';
 import 'core/platform/env_config.dart';
 import 'package:careplan/core/platform/string_constants.dart' as Constants;
-
 import 'core/managers/google_analytics_manager.dart';
 import 'core/presentation/state/provider_initializer.dart';
 import 'core/presentation/widgets/router.dart';

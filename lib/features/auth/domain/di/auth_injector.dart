@@ -3,7 +3,7 @@ import '../../../../core/di/di_config.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../presentation/state/auth_provider.dart';
-import '../repositories /auth_repository.dart';
+import '../repositories/auth_repository.dart';
 import '../usecases/auth_usecases.dart';
 import '../usecases/create_user.dart';
 import '../usecases/get_kyc_status.dart';

@@ -1,5 +1,6 @@
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
@@ -51,11 +52,7 @@ class K10DisclaimerScreen extends StatelessWidget {
                 title: 'Continue',
                 btnColor: CarePlanColor.brown,
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const K10TestScreen(),
-                    ),
-                  );
+                  router.push(const K10TestScreen());
                 },
               ),
               const Gap(30),

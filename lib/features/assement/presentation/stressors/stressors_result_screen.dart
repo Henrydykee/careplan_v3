@@ -3,11 +3,12 @@ import 'dart:convert';
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
-import 'package:careplan/features/assement/presentation/Stressors/select_stressors_screen.dart';
+import 'package:careplan/features/assement/presentation/stressors/select_stressors_screen.dart';
 import 'package:careplan/features/assement/presentation/widgets/ability_to_cope_card.dart';
-import 'package:careplan/features/assement/presentation/widgets/stressors_api_data.dart';
+import 'package:careplan/features/assement/data/models/stressors_api_data.dart';
 import 'package:careplan/features/assement/presentation/widgets/stressors_list_card.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -20,9 +21,6 @@ class StressorsResultScreen extends StatefulWidget {
 }
 
 class _StressorsResultScreenState extends State<StressorsResultScreen> {
-  static const _mockAbilityToCope = "6";
-  static const _mockStressors = ["Work", "Finances", "Relationship"];
-
   late Future<StressorsApiData?> _stressorsFuture;
   String? _overrideAbilityToCope;
   List<String>? _overrideStressors;
@@ -47,7 +45,7 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
         }
       }
     } catch (_) {
-      // Fall back to mock values in UI.
+      // Fall back to empty values in UI.
     }
     return null;
   }
@@ -65,12 +63,10 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
     required List<String> stressors,
     required String abilityToCope,
   }) async {
-    final result = await Navigator.of(context).push<StressorsSelectionResult>(
-      MaterialPageRoute(
-        builder: (_) => SelectStressAreasScreen(
-          initialStressors: stressors,
-          initialAbilityToCope: abilityToCope,
-        ),
+    final result = await router.push<StressorsSelectionResult>(
+      SelectStressAreasScreen(
+        initialStressors: stressors,
+        initialAbilityToCope: abilityToCope,
       ),
     );
 
@@ -82,12 +78,11 @@ class _StressorsResultScreenState extends State<StressorsResultScreen> {
   }
 
   String _resolveAbility(StressorsApiData? data) {
-    return _overrideAbilityToCope ??
-        (data?.abilityToCope ?? _mockAbilityToCope).toString();
+    return _overrideAbilityToCope ?? (data?.abilityToCope ?? "").toString();
   }
 
   List<String> _resolveStressors(StressorsApiData? data) {
-    return _overrideStressors ?? data?.selectedStressors ?? _mockStressors;
+    return _overrideStressors ?? data?.selectedStressors ?? const <String>[];
   }
 
   @override

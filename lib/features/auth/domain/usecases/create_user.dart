@@ -4,9 +4,9 @@ import '../../../../core/data/database/db_exceptions.dart';
 import '../../../../core/presentation/domain/ui_exceptions.dart';
 import '../../../../core/presentation/domain/usercase_typedefs.dart';
 import '../../../../core/utils/error_helpers.dart';
-import '../../data/model/create_user_model.dart';
-import '../../data/model/user_model.dart';
-import '../repositories /auth_repository.dart';
+import '../../data/models/create_user_model.dart';
+import '../../data/models/user_model.dart';
+import '../repositories/auth_repository.dart';
 
 class CreateUser implements UseCase<UserModel, CreateUserModel> {
   final AuthenticationRepository _repo;

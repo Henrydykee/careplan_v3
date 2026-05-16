@@ -98,7 +98,7 @@ class SecondaryAppBar extends StatelessWidget implements PreferredSize {
         child: GestureDetector(
           onTap: backbuttonTap ?? () {
             FocusScope.of(context).requestFocus(FocusNode());
-            Navigator.of(context).pop();
+            router.pop();
           } ,
           child: Visibility(
             visible: allowPop == false ? false : true,

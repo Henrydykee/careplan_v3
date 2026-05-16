@@ -4,6 +4,7 @@ import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
@@ -46,7 +47,7 @@ class _GoalsResultScreenState extends State<GoalsResultScreen> {
         }
       }
     } catch (_) {
-      // Swallow errors and fall back to mock values in UI.
+      // Swallow errors and fall back to placeholder values in UI.
     }
     return null;
   }
@@ -73,12 +74,8 @@ class _GoalsResultScreenState extends State<GoalsResultScreen> {
               onTap: () async {
                 final initialGoal =
                     (_overrideLongTermGoal ?? _longTermGoalPlaceholder).trim();
-                final updatedGoal = await Navigator.of(context).push<String>(
-                  MaterialPageRoute(
-                    builder: (_) => EditLongTermGoalScreen(
-                      initialGoal: initialGoal,
-                    ),
-                  ),
+                final updatedGoal = await router.push<String>(
+                  EditLongTermGoalScreen(initialGoal: initialGoal),
                 );
             
                 if (!mounted) return;

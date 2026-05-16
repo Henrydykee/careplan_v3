@@ -1,4 +1,5 @@
 import 'package:careplan/core/presentation/widgets/button.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +48,7 @@ void showLogoutConfirmationSheet({
                   title: "Cancel",
                   btnColor: CarePlanColor.grey_5,
                   textColor: CarePlanColor.grey,
-                  onTap: () => Navigator.of(sheetContext).pop(),
+                  onTap: () => router.pop(),
                 ),
                 const Gap(12),
                 CustomButtom(
@@ -55,7 +56,7 @@ void showLogoutConfirmationSheet({
                   btnColor: Colors.red.shade700,
                   textColor: Colors.white,
                   onTap: () async {
-                    Navigator.of(sheetContext).pop();
+                    router.pop();
                     await onConfirm();
                   },
                 ),

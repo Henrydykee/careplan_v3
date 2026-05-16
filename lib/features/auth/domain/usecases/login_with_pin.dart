@@ -4,8 +4,8 @@ import '../../../../core/data/database/db_exceptions.dart';
 import '../../../../core/presentation/domain/ui_exceptions.dart';
 import '../../../../core/presentation/domain/usercase_typedefs.dart';
 import '../../../../core/utils/error_helpers.dart';
-import '../../data/model/user_model.dart';
-import '../repositories /auth_repository.dart';
+import '../../data/models/user_model.dart';
+import '../repositories/auth_repository.dart';
 
 class LoginWithPin implements UseCase<UserModel, LoginWithPinParams> {
   final AuthenticationRepository _repo;

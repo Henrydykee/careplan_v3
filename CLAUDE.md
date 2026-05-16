@@ -15,7 +15,7 @@ features/<feature>/
 ├── data/
 │   ├── datasources/        # Remote data source (abstract + impl)
 │   │   └── endpoint.dart   # API endpoint strings
-│   ├── model/              # Data models with fromJson/toJson
+│   ├── models/             # Data models with fromJson/toJson
 │   └── repositories/       # Repository implementations
 ├── domain/
 │   ├── di/                 # Feature DI injector (GetIt registrations)
@@ -23,6 +23,7 @@ features/<feature>/
 │   └── usecases/           # Use cases + param classes + facade
 └── presentation/
     ├── state/              # ChangeNotifier providers
+    ├── widgets/             # Reusable widgets specific to this feature
     └── <flow_name>/        # Screen files grouped by flow
 ```
 
@@ -39,7 +40,7 @@ class MyFeatureEndpoints {
 
 ### 2. Create models
 
-In `data/model/`, use manual `fromJson`/`toJson` (no code generation):
+In `data/models/`, use manual `fromJson`/`toJson` (no code generation):
 ```dart
 class MyModel {
   final String? id;

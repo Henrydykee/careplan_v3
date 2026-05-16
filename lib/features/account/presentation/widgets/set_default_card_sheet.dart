@@ -1,4 +1,5 @@
 import 'package:careplan/core/presentation/widgets/button.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/card/data/models/card_model.dart';
@@ -35,8 +36,8 @@ void showSetDefaultCardSheet({
             if (!context.mounted) return;
 
             if (success) {
-              if (Navigator.of(sheetCtx).canPop()) {
-                Navigator.of(sheetCtx).pop();
+              if (router.canPop()) {
+                router.pop();
               }
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -156,7 +157,7 @@ void showSetDefaultCardSheet({
                               textColor: CarePlanColor.grey,
                               onTap: isSubmitting
                                   ? null
-                                  : () => Navigator.of(sheetCtx).pop(),
+                                  : () => router.pop(),
                             ),
                           ),
                           const Gap(12),

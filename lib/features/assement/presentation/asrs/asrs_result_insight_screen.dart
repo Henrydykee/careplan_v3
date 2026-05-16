@@ -4,7 +4,7 @@ import 'package:careplan/core/resources/color.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'asrs_result_models.dart';
+import '../../data/models/asrs_result_models.dart';
 
 class AsrsResultInsightScreen extends StatelessWidget {
   final AsrsAssessmentItem assessment;

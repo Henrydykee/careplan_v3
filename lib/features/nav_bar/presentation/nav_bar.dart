@@ -1,20 +1,20 @@
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
-import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:careplan/features/history/presentation/state/history_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import '../../core/managers/google_analytics_manager.dart';
-import '../../core/resources/assets.dart';
-import '../../core/resources/color.dart';
-import '../../core/resources/string.dart';
-import '../account/presentation/account_screen.dart';
-import '../assement/presentation/assement_screen.dart';
-import '../careplan/presentation/careplan_screen.dart';
-import '../home/presentation/home_screen.dart';
+import '../../../core/managers/google_analytics_manager.dart';
+import '../../../core/resources/assets.dart';
+import '../../../core/resources/color.dart';
+import '../../../core/resources/string.dart';
+import '../../account/presentation/account_screen.dart';
+import '../../assement/presentation/pages/assement_screen.dart';
+import '../../careplan/presentation/careplan/careplan_screen.dart';
+import '../../home/presentation/pages/home_screen.dart';
 
 class CarePlanNavBar extends StatefulWidget {
   final int? index;

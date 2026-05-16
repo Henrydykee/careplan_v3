@@ -5,6 +5,7 @@ import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
@@ -101,7 +102,7 @@ class _SelectStressAreasScreenState extends State<SelectStressAreasScreen> {
     try {
       await dataSource.sendAssessment(body: payload);
       if (!mounted) return;
-      Navigator.of(context).pop(
+      router.pop(
         StressorsSelectionResult(
           stressors: _selectedStressors.toList(),
           abilityToCope: _selectedCopeRating,

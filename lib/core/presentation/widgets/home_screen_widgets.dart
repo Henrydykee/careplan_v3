@@ -10,7 +10,7 @@ import 'package:careplan/features/appointment/data/models/appointment_model.dart
 import 'package:careplan/features/appointment/data/models/upcoming_appointments_response_model.dart';
 import 'package:careplan/features/appointment/presentation/pages/all_appointments_screen.dart';
 import 'package:careplan/features/appointment/presentation/state/appointment_provider.dart';
-import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
@@ -451,77 +451,125 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
     DateTime? localEnd;
 
     try {
-      final parsedStartTime = DateTime.parse(rawStartTime);
-      final parsedEndTime = DateTime.parse(rawEndTime);
-      localStart = parsedStartTime.toLocal();
-      localEnd = parsedEndTime.toLocal();
+      localStart = DateTime.parse(rawStartTime).toLocal();
+      localEnd = DateTime.parse(rawEndTime).toLocal();
     } catch (e) {
       debugPrint("Error parsing date/time: $e");
     }
 
-    final String month =
-        localStart != null ? DateFormat("MMM").format(localStart) : "";
-    final String day =
-        localStart != null ? DateFormat("dd").format(localStart) : "";
-    final String timeRange = (localStart != null && localEnd != null)
-        ? "${DateFormat.jm().format(localStart)} - ${DateFormat.jm().format(localEnd)}"
+    final weekday = localStart != null
+        ? DateFormat("EEE").format(localStart).toUpperCase()
+        : "";
+    final day =
+        localStart != null ? DateFormat("dd").format(localStart) : "--";
+    final month = localStart != null
+        ? DateFormat("MMM").format(localStart).toUpperCase()
+        : "";
+    final timeRange = (localStart != null && localEnd != null)
+        ? "${DateFormat.jm().format(localStart)} – ${DateFormat.jm().format(localEnd)}"
         : "Time not available";
 
     final providerName = appointment.provider?.name ?? "";
     final providerType = appointment.provider?.type ?? "";
+    final providerSubtitle = getProviderType(providerType) ?? "";
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: CarePlanColor.light_orange,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: CarePlanColor.grey_5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          padding: const EdgeInsets.all(14),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Column(
-                children: [
-                  TextHolder(
-                    title: month,
-                    color: CarePlanColor.grey,
-                    fontWeight: FontWeight.w500,
-                    size: 14,
-                  ),
-                  TextHolder(
-                    title: day,
-                    color: CarePlanColor.grey,
-                    fontWeight: FontWeight.w800,
-                    size: 24,
-                  ),
-                ],
+              Container(
+                width: 62,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: CarePlanColor.light_orange,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextHolder(
+                      title: weekday,
+                      color: CarePlanColor.brown,
+                      size: 10,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    const Gap(2),
+                    TextHolder(
+                      title: day,
+                      color: CarePlanColor.brown,
+                      size: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
+                    TextHolder(
+                      title: month,
+                      color: CarePlanColor.brown,
+                      size: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ],
+                ),
               ),
-              const Gap(20),
-              Container(width: 1, height: 50, color: const Color(0xFFEFE2CE)),
-              const Gap(20),
+              const Gap(14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     TextHolder(
                       title: "${getTitle(providerType)}$providerName",
                       color: CarePlanColor.grey,
                       fontWeight: FontWeight.w800,
-                      size: 16,
+                      size: 15,
+                      maxLines: 1,
+                      textOverflow: TextOverflow.ellipsis,
                     ),
-                    TextHolder(
-                      title: getProviderType(providerType) ?? "",
-                      color: CarePlanColor.grey_2,
-                      fontWeight: FontWeight.w800,
-                      size: 14,
-                    ),
-                    const Gap(8),
-                    TextHolder(
-                      title: timeRange,
-                      color: CarePlanColor.brown,
-                      fontWeight: FontWeight.w800,
-                      size: 14,
+                    if (providerSubtitle.isNotEmpty) ...[
+                      const Gap(2),
+                      TextHolder(
+                        title: providerSubtitle,
+                        color: CarePlanColor.grey_3,
+                        fontWeight: FontWeight.w600,
+                        size: 12,
+                        maxLines: 1,
+                        textOverflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const Gap(10),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.schedule_rounded,
+                          size: 14,
+                          color: CarePlanColor.brown,
+                        ),
+                        const Gap(6),
+                        Flexible(
+                          child: TextHolder(
+                            title: timeRange,
+                            color: CarePlanColor.brown,
+                            fontWeight: FontWeight.w800,
+                            size: 13,
+                            maxLines: 1,
+                            textOverflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -661,10 +709,9 @@ class _UpcomingAppointmentWidgetState extends State<UpcomingAppointmentWidget> {
 }
 
 class CareplanTeamWidget extends StatelessWidget {
-  final CareplanTeam? careplanTeam;
   final List<CarePlanTeamMember>? careTeamMembers;
 
-  CareplanTeamWidget({this.careplanTeam, this.careTeamMembers});
+  CareplanTeamWidget({this.careTeamMembers});
 
   String? getTitle(String title) {
     if (title.toLowerCase().contains("therapist")) {
@@ -683,49 +730,12 @@ class CareplanTeamWidget extends StatelessWidget {
     return type;
   }
 
-  // Mock care plan team data
-  List<MockDoctor> _getMockDoctors() {
-    return [
-      MockDoctor(
-        firstName: "Jane",
-        lastName: "Smith",
-        type: "Psychiatrist",
-        imageUrl: "https://via.placeholder.com/150",
-      ),
-      MockDoctor(
-        firstName: "Michael",
-        lastName: "Johnson",
-        type: "Therapist",
-        imageUrl: "https://via.placeholder.com/150",
-      ),
-      MockDoctor(
-        firstName: "Sarah",
-        lastName: "Williams",
-        type: "Mental Health Nurse",
-        imageUrl: "https://via.placeholder.com/150",
-      ),
-    ];
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Determine which data source to use
-    final List<dynamic> teamList;
-    final bool hasRealData;
+    final teamList = careTeamMembers ?? const <CarePlanTeamMember>[];
 
-    if (careTeamMembers != null && careTeamMembers!.isNotEmpty) {
-      // Use careTeamMembers from user object
-      teamList = careTeamMembers!;
-      hasRealData = true;
-    } else if (careplanTeam?.data?.doctors != null &&
-        careplanTeam!.data!.doctors!.isNotEmpty) {
-      // Use careplanTeam data structure
-      teamList = careplanTeam!.data!.doctors!;
-      hasRealData = true;
-    } else {
-      // Use mock data
-      teamList = _getMockDoctors();
-      hasRealData = false;
+    if (teamList.isEmpty) {
+      return const SizedBox.shrink();
     }
 
     final displayCount = teamList.length > 3 ? 3 : teamList.length;
@@ -769,42 +779,14 @@ class CareplanTeamWidget extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             separatorBuilder: (_, __) => const Gap(10),
             itemBuilder: (c, i) {
-              String doctorName;
-              String imageUrl;
-              String? subtitle;
-              String? email;
-              String? rawProviderType;
-
-              if (hasRealData && careTeamMembers != null) {
-                final member = careTeamMembers![i];
-                rawProviderType = member.type;
-                doctorName = member.name ?? "";
-                imageUrl = member.imageUrl ?? "";
-                email = member.email;
-                subtitle = rawProviderType != null
-                    ? getProviderType(rawProviderType)
-                    : null;
-              } else if (hasRealData && careplanTeam != null) {
-                final doctor = careplanTeam!.data!.doctors![i];
-                final firstName = doctor.firstName ?? "";
-                final lastName = doctor.lastName ?? "";
-                rawProviderType = doctor.type?.toString() ?? "";
-                doctorName =
-                    "${getTitle(rawProviderType)} $firstName $lastName".trim();
-                imageUrl = doctor.imageUrl ?? "";
-                subtitle = getProviderType(rawProviderType);
-                email = doctor.email as String?;
-              } else {
-                final doctor = teamList[i] as MockDoctor;
-                final firstName = doctor.firstName;
-                final lastName = doctor.lastName;
-                rawProviderType = doctor.type;
-                doctorName =
-                    "${getTitle(rawProviderType)} $firstName $lastName".trim();
-                imageUrl = doctor.imageUrl;
-                subtitle = getProviderType(rawProviderType);
-              }
-
+              final member = teamList[i];
+              final rawProviderType = member.type;
+              final doctorName = member.name ?? "";
+              final imageUrl = member.imageUrl ?? "";
+              final email = member.email;
+              final subtitle = rawProviderType != null
+                  ? getProviderType(rawProviderType)
+                  : null;
               final providerType = subtitle;
               return _CareTeamMemberCard(
                 name: doctorName,
@@ -827,15 +809,7 @@ class CareplanTeamWidget extends StatelessWidget {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(20),
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CareTeamListScreen(
-                          careTeamMembers: careTeamMembers ?? [],
-                          careplanTeam: careplanTeam,
-                        ),
-                      ),
-                    );
+                    router.push(CareTeamListScreen(careTeamMembers: teamList));
                   },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -992,56 +966,6 @@ class _CareTeamMemberCard extends StatelessWidget {
   }
 }
 
-// Mock data classes for placeholder data
-class MockDoctor {
-  final String firstName;
-  final String lastName;
-  final String type;
-  final String imageUrl;
-
-  MockDoctor({
-    required this.firstName,
-    required this.lastName,
-    required this.type,
-    required this.imageUrl,
-  });
-}
-
-// Mock data class for appointments
-class UpcomingAppointmentData {
-  final String? providerName;
-  final String? providerType;
-  final String? startTime;
-  final String? endTime;
-
-  UpcomingAppointmentData({
-    this.providerName,
-    this.providerType,
-    this.startTime,
-    this.endTime,
-  });
-}
-
-// Mock data class for UpcomingAppointment
-class UpcomingAppointment {
-  final List<UpcomingAppointmentData>? upcomingAppointmentData;
-
-  UpcomingAppointment({this.upcomingAppointmentData});
-}
-
-// Mock data class for CareplanTeam
-class CareplanTeam {
-  final CareplanTeamData? data;
-
-  CareplanTeam({this.data});
-}
-
-class CareplanTeamData {
-  final List<dynamic>? doctors;
-
-  CareplanTeamData({this.doctors});
-}
-
 String? getDoctorType(String? value) {
   if (value == "gp") {
     return "General Practitioner";
@@ -1113,24 +1037,11 @@ class EmptyCareplan extends StatelessWidget {
 // Care Team List Screen
 class CareTeamListScreen extends StatelessWidget {
   final List<CarePlanTeamMember> careTeamMembers;
-  final CareplanTeam? careplanTeam;
 
   const CareTeamListScreen({
     Key? key,
     required this.careTeamMembers,
-    this.careplanTeam,
   }) : super(key: key);
-
-  String? getTitle(String? name) {
-    if (name == null) return "";
-    if (name.toLowerCase().contains("therapist")) {
-      return "";
-    }
-    if (name.toUpperCase().contains("ADHD COACH")) {
-      return "ADHD Coach ";
-    }
-    return "Dr. ";
-  }
 
   String? getProviderType(String type) {
     if (type.toUpperCase() == "MENTAL HEALTH NURSE") {
@@ -1141,17 +1052,7 @@ class CareTeamListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine which data source to use
-    final List<dynamic> teamList;
-
-    if (careTeamMembers.isNotEmpty) {
-      teamList = careTeamMembers;
-    } else if (careplanTeam?.data?.doctors != null &&
-        careplanTeam!.data!.doctors!.isNotEmpty) {
-      teamList = careplanTeam!.data!.doctors!;
-    } else {
-      teamList = [];
-    }
+    final teamList = careTeamMembers;
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -1205,32 +1106,13 @@ class CareTeamListScreen extends StatelessWidget {
               itemCount: teamList.length,
               separatorBuilder: (_, __) => const Gap(10),
               itemBuilder: (context, index) {
-                String doctorName;
-                String imageUrl;
-                String? providerType;
-                String? email;
-
-                if (careTeamMembers.isNotEmpty) {
-                  final member = careTeamMembers[index];
-                  doctorName = member.name ?? "";
-                  imageUrl = member.imageUrl ?? "";
-                  email = member.email;
-                  providerType = member.type != null
-                      ? getProviderType(member.type!)
-                      : null;
-                } else if (careplanTeam != null) {
-                  final doctor = careplanTeam!.data!.doctors![index];
-                  final firstName = doctor.firstName ?? "";
-                  final lastName = doctor.lastName ?? "";
-                  final doctorType = doctor.type?.toString() ?? "";
-                  doctorName =
-                      "${getTitle(doctorType)} $firstName $lastName".trim();
-                  imageUrl = doctor.imageUrl ?? "";
-                  providerType = getProviderType(doctorType);
-                  email = doctor.email as String?;
-                } else {
-                  return const SizedBox();
-                }
+                final member = careTeamMembers[index];
+                final doctorName = member.name ?? "";
+                final imageUrl = member.imageUrl ?? "";
+                final email = member.email;
+                final providerType = member.type != null
+                    ? getProviderType(member.type!)
+                    : null;
 
                 final resolvedSubtitle =
                     (providerType ?? '').isNotEmpty ? providerType : null;

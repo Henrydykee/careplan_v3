@@ -6,7 +6,7 @@ import '../../../../core/data/database/db_exceptions.dart';
 import '../../../../core/presentation/domain/ui_exceptions.dart';
 import '../../../../core/presentation/domain/usercase_typedefs.dart';
 import '../../../../core/utils/error_helpers.dart';
-import '../repositories /auth_repository.dart';
+import '../repositories/auth_repository.dart';
 
 class VerifyDocument implements UseCase<String, VerifyDocumentParams> {
   final AuthenticationRepository _repo;

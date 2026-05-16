@@ -1,6 +1,7 @@
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/account/presentation/widgets/added_card_widget.dart';
@@ -36,7 +37,7 @@ class _ListOfCardsScreenState extends State<ListOfCardsScreen> {
     final provider = context.read<CardProvider>();
     final success = await provider.deleteCard(card.id);
     if (success && mounted) {
-      Navigator.of(context).pop();
+      router.pop();
     }
   }
 
@@ -137,12 +138,7 @@ class _ListOfCardsScreenState extends State<ListOfCardsScreen> {
             child: CustomButtom(
               title: "Add Card",
               onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddCardScreen(),
-                  ),
-                );
+                await router.push(const AddCardScreen());
                 if (mounted) {
                   context.read<CardProvider>().fetchCards();
                 }

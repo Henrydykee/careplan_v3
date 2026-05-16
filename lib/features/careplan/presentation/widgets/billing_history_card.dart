@@ -1,6 +1,7 @@
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
-import 'package:careplan/features/careplan/presentation/billinng_detail_screen.dart';
+import 'package:careplan/features/careplan/presentation/billing/billinng_detail_screen.dart';
 import 'package:careplan/features/careplan/presentation/widgets/billing_status_color.dart';
 import 'package:careplan/features/history/data/models/billing_history_item_model.dart';
 import 'package:flutter/material.dart';
@@ -28,14 +29,7 @@ class BillingHistoryCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => BillingDetailScreen(
-                  billingHistoryItem: data,
-                ),
-              ),
-            );
+            router.push(BillingDetailScreen(billingHistoryItem: data));
           },
           child: Ink(
             decoration: BoxDecoration(

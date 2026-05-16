@@ -8,7 +8,7 @@ import 'package:careplan/core/presentation/widgets/text_field.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/string.dart';
 import 'package:careplan/core/utils/color.dart';
-import 'package:careplan/features/auth/data/model/create_user_model.dart';
+import 'package:careplan/features/auth/data/models/create_user_model.dart';
 import 'package:careplan/features/auth/presentation/sign-up-flow/confrimation_screen.dart';
 import 'package:careplan/features/auth/presentation/state/auth_provider.dart';
 import 'package:flutter/material.dart';

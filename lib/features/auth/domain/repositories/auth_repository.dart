@@ -2,9 +2,9 @@
 
 
 
-import '../../data/model/create_user_model.dart';
-import '../../data/model/kyc_status_model.dart';
-import '../../data/model/user_model.dart';
+import '../../data/models/create_user_model.dart';
+import '../../data/models/kyc_status_model.dart';
+import '../../data/models/user_model.dart';
 
 abstract class AuthenticationRepository {
   Future<UserModel> loginUser({required String email, required String password});

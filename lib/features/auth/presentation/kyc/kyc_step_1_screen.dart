@@ -1,6 +1,6 @@
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
-import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';

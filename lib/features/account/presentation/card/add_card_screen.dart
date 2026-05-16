@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_field.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
@@ -55,7 +56,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Card added successfully")),
     );
-    Navigator.of(context).pop();
+    router.pop();
   }
 
   @override

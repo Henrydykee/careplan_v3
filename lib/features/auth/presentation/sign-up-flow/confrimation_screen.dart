@@ -101,7 +101,7 @@ class _PhoneNumberConfrimationScreenState extends State<PhoneNumberConfrimationS
               btnColor: CarePlanColor.orange,
               textColor: Colors.white,
               onTap: () {
-                Navigator.of(context).pop();
+                router.pop();
                 router.pushAndRemoveUntil(LoginScreen(), (route) => false);
               },
             ),

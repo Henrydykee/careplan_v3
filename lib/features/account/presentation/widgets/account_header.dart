@@ -1,6 +1,6 @@
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
-import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 

@@ -3,17 +3,18 @@ import 'dart:convert';
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
 import 'package:careplan/features/assement/presentation/k10/k10_dsiclaimer_screen.dart';
-import 'package:careplan/features/assement/presentation/k10/k10_models.dart';
+import 'package:careplan/features/assement/data/models/k10_models.dart';
 import 'package:careplan/features/assement/presentation/widgets/k10_result_card.dart';
 import 'package:careplan/features/assement/presentation/widgets/k10_result_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
 class K10ResultScreen extends StatefulWidget {
-  /// When provided (and has assessments), real API data is used. Otherwise mock data is used.
+  /// When provided (and has assessments), real API data is used. Otherwise data is fetched from the API.
   final List<K10AssessmentItem>? assessments;
 
   const K10ResultScreen({super.key, this.assessments});
@@ -85,11 +86,7 @@ class _K10ResultScreenState extends State<K10ResultScreen> {
                         title: 'Take Test',
                         btnColor: CarePlanColor.brown,
                         onTap: () async {
-                          await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => K10DisclaimerScreen(),
-                            ),
-                          );
+                          await router.push(K10DisclaimerScreen());
                           if (!mounted) return;
                           await _refresh();
                         },

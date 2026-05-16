@@ -8,7 +8,7 @@ import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/utils/color.dart';
 import 'package:careplan/features/auth/domain/usecases/update_pin.dart';
-import 'package:careplan/features/nav_bar/nav_bar.dart';
+import 'package:careplan/features/nav_bar/presentation/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 

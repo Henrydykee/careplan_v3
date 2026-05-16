@@ -9,9 +9,9 @@ import '../../../../core/di/di_config.dart';
 import '../../../../core/managers/local_storage_service.dart';
 import '../../../../core/platform/storage/secured_storage.dart';
 import '../../../../core/platform/string_constants.dart';
-import '../model/create_user_model.dart';
-import '../model/kyc_status_model.dart';
-import '../model/user_model.dart';
+import '../models/create_user_model.dart';
+import '../models/kyc_status_model.dart';
+import '../models/user_model.dart';
 import 'endpoint.dart';
 
 abstract class AuthenticationRemoteDataSource extends RemoteDataSource {

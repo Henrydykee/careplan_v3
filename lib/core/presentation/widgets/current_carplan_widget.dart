@@ -1,9 +1,10 @@
 
 
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/core/utils/formatters.dart';
-import 'package:careplan/features/careplan/presentation/care_plan_summary_screen.dart';
+import 'package:careplan/features/careplan/presentation/careplan/care_plan_summary_screen.dart';
 import 'package:careplan/features/history/data/models/care_plan_history_item_model.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -54,11 +55,8 @@ class MentalHealthCarePlanWidget extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => CareplanSummaryScreen(carePlan: carePlan),
-            ),
-          ),
+          onTap: () =>
+              router.push(CareplanSummaryScreen(carePlan: carePlan)),
           child: Ink(
             decoration: BoxDecoration(
               color: Colors.white,

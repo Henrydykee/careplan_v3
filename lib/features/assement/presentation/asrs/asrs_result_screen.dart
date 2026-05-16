@@ -14,7 +14,7 @@ import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 
 import 'asrs_result_insight_screen.dart';
-import 'asrs_result_models.dart';
+import '../../data/models/asrs_result_models.dart';
 
 class ASRSResultHistoryScreen extends StatefulWidget {
   ASRSResultHistoryScreen({super.key});

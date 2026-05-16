@@ -5,6 +5,7 @@ import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
@@ -118,7 +119,7 @@ class _EditLongTermGoalScreenState extends State<EditLongTermGoalScreen> {
       final dataSource = AssessmentRemoteDataSourceImpl(inject());
       await dataSource.sendAssessment(body: payload);
       if (!mounted) return;
-      Navigator.of(context).pop(longTermGoal);
+      router.pop(longTermGoal);
     } catch (e) {
       if (!mounted) return;
       showErrorDialog(context, 'LongTermGoal Submission Error', e.toString());

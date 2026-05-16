@@ -5,8 +5,10 @@ import 'loader_wrapper.dart';
 
 class WebViewScreen extends StatefulWidget {
   final String url;
+  final String title;
 
-  const WebViewScreen({Key? key, required this.url}) : super(key: key);
+  const WebViewScreen({Key? key, required this.url, this.title = 'Web View'})
+      : super(key: key);
 
   @override
   State<WebViewScreen> createState() => _WebViewScreenState();
@@ -44,7 +46,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       isLoading: _isLoading,
       view: Scaffold(
         appBar: CustomAppBar(
-          title: 'Web View',
+          title: widget.title,
           showBackIcon: true,
         ),
         body: WebViewWidget(controller: _controller),

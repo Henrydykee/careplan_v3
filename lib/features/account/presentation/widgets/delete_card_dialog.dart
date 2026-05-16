@@ -1,4 +1,5 @@
 import 'package:careplan/core/presentation/widgets/button.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/card/data/models/card_model.dart';
@@ -84,7 +85,7 @@ void showDeleteCardDialog({
                     title: "Cancel",
                     btnColor: CarePlanColor.grey_5,
                     textColor: CarePlanColor.grey,
-                    onTap: () => Navigator.of(dialogContext).pop(),
+                    onTap: () => router.pop(),
                   ),
                 ),
                 const Gap(12),
@@ -94,7 +95,7 @@ void showDeleteCardDialog({
                     btnColor: Colors.red.shade700,
                     textColor: Colors.white,
                     onTap: () async {
-                      Navigator.of(dialogContext).pop();
+                      router.pop();
                       await onConfirmDelete();
                     },
                   ),

@@ -2,7 +2,7 @@ import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
 import 'package:careplan/core/resources/color.dart';
-import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:careplan/features/careplan/presentation/widgets/history_states.dart';
 import 'package:careplan/features/careplan/presentation/widgets/notes_list_item.dart';
 import 'package:careplan/features/history/presentation/state/history_provider.dart';

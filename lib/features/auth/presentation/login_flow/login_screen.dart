@@ -11,12 +11,12 @@ import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/presentation/widgets/web_view_screen.dart';
 import 'package:careplan/core/resources/string.dart';
 import 'package:careplan/core/utils/color.dart';
-import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:careplan/features/auth/domain/usecases/login_user.dart';
 import 'package:careplan/features/auth/presentation/set-pin/set_pin_screen.dart';
 import 'package:careplan/features/auth/presentation/state/auth_provider.dart';
-import 'package:careplan/features/getting_started/get_started_screen.dart';
-import 'package:careplan/features/nav_bar/nav_bar.dart';
+import 'package:careplan/features/getting_started/presentation/get_started_screen.dart';
+import 'package:careplan/features/nav_bar/presentation/nav_bar.dart';
 import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:flutter/material.dart';
 

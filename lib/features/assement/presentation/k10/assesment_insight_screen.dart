@@ -2,7 +2,7 @@ import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/core/utils/formatters.dart';
-import 'package:careplan/features/assement/presentation/k10/k10_models.dart';
+import 'package:careplan/features/assement/data/models/k10_models.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 

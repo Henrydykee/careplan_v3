@@ -1,6 +1,6 @@
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
-import 'package:careplan/features/assement/presentation/Stressors/stressors_result_screen.dart';
+import 'package:careplan/features/assement/presentation/stressors/stressors_result_screen.dart';
 import 'package:careplan/features/assement/presentation/asrs/asrs_result_screen.dart';
 import 'package:careplan/features/assement/presentation/goals/goals_result_acreen.dart';
 import 'package:careplan/features/assement/presentation/k10/k10_result_screen.dart';

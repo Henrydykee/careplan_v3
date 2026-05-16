@@ -2,7 +2,7 @@ import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
-import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:careplan/features/notifications/presentation/pages/notification_center_screen.dart';
 import 'package:careplan/features/notifications/presentation/state/notification_provider.dart';
 import 'package:flutter/material.dart';

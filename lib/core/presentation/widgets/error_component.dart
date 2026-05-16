@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -39,7 +40,7 @@ void showErrorDialog(BuildContext context, String title, String message) {
         actions: [
           CupertinoDialogAction(
             child: Text("OK"),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => router.pop(),
           ),
         ],
       ),
@@ -53,7 +54,7 @@ void showErrorDialog(BuildContext context, String title, String message) {
         actions: [
           TextButton(
             child: Text("OK"),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => router.pop(),
           ),
         ],
       ),

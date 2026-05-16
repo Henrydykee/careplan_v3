@@ -7,6 +7,7 @@ import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/presentation/widgets/key_pad.dart';
 import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
 import 'package:careplan/core/presentation/widgets/pin_code_field.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/utils/color.dart';
 import 'package:careplan/features/auth/domain/usecases/login_with_pin.dart';
@@ -113,7 +114,7 @@ class _EnableBiometricScreenState extends State<EnableBiometricScreen> {
         "Error",
         "We couldn't find your email. Please log in again.",
       );
-      Navigator.of(context).pop(false);
+      router.pop(false);
       return;
     }
 
@@ -135,7 +136,7 @@ class _EnableBiometricScreenState extends State<EnableBiometricScreen> {
         BioMetricManager().enableBiometric(true);
 
         if (mounted) {
-          Navigator.of(context).pop(true);
+          router.pop(true);
         }
       },
     );

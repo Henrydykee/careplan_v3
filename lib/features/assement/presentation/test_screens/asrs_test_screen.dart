@@ -3,13 +3,14 @@ import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
 import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
 import 'package:careplan/features/assement/presentation/widgets/assessment_nav_buttons.dart';
 import 'package:careplan/features/assement/presentation/widgets/assessment_option_tile.dart';
 import 'package:careplan/features/assement/presentation/widgets/assessment_question_header.dart';
-import 'package:careplan/features/assement/presentation/widgets/assessment_test_models.dart';
+import 'package:careplan/features/assement/data/models/assessment_test_models.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -72,7 +73,7 @@ class _AsrsTestScreenState extends State<AsrsTestScreen> {
     try {
       await dataSource.sendAssessment(body: payload);
       if (!mounted) return;
-      Navigator.of(context).pop();
+      router.pop();
     } catch (e) {
       if (!mounted) return;
       showErrorDialog(context, 'ASRS Submission Error', e.toString());

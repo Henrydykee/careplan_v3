@@ -1,4 +1,5 @@
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
+import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/web_view_screen.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/careplan/presentation/widgets/billing_detail_components.dart';
@@ -42,12 +43,7 @@ class BillingDetailScreen extends StatelessWidget {
 
     void openInvoice() {
       if (!hasInvoice) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => WebViewScreen(url: data.invoiceURL),
-        ),
-      );
+      router.push(WebViewScreen(url: data.invoiceURL));
     }
 
     return Scaffold(

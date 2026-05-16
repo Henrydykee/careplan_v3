@@ -3,21 +3,11 @@ import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/state_selector_screen.dart';
 import 'package:careplan/core/presentation/widgets/text_field.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
-import 'package:careplan/features/nav_bar/nav_bar.dart';
+import 'package:careplan/features/nav_bar/presentation/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-/// Mock address data for edit address screen.
-class MockAddress {
-  static const String street = "123 Main Street";
-  static const String postalCode = "2000";
-  static const String city = "Sydney";
-  static const String state = "NSW";
-  static const String country = "Australia";
-}
-
 class EditAddressScreen extends StatefulWidget {
-  /// Optional; when null, mock data is used.
   final Map<String, dynamic>? addressData;
   final Future<void> Function(Map<String, dynamic> addressData)? onSaveAddress;
 
@@ -42,11 +32,11 @@ class _EditAddressScreenState extends State<EditAddressScreen> {
   void initState() {
     super.initState();
     final data = widget.addressData;
-    streetController = TextEditingController(text: data?['street'] ?? MockAddress.street);
-    postalCodeController = TextEditingController(text: data?['postalCode'] ?? MockAddress.postalCode);
-    cityController = TextEditingController(text: data?['city'] ?? MockAddress.city);
-    countryController = TextEditingController(text: data?['country'] ?? MockAddress.country);
-    stateController = TextEditingController(text: data?['state'] ?? MockAddress.state);
+    streetController = TextEditingController(text: data?['street'] ?? "");
+    postalCodeController = TextEditingController(text: data?['postalCode'] ?? "");
+    cityController = TextEditingController(text: data?['city'] ?? "");
+    countryController = TextEditingController(text: data?['country'] ?? "");
+    stateController = TextEditingController(text: data?['state'] ?? "");
   }
 
   @override

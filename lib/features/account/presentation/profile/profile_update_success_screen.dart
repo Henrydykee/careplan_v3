@@ -1,7 +1,7 @@
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/resources/color.dart';
-import 'package:careplan/features/nav_bar/nav_bar.dart';
+import 'package:careplan/features/nav_bar/presentation/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 

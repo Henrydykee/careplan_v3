@@ -3,8 +3,8 @@ import 'package:careplan/core/resources/color.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-import 'billing_history_screen.dart';
-import 'notes_screen.dart';
+import '../billing/billing_history_screen.dart';
+import '../notes/notes_screen.dart';
 import 'previous_careplan_screen.dart';
 
 class CarePlanScreen extends StatefulWidget {

@@ -11,8 +11,8 @@ import 'package:careplan/features/assement/data/datasources/assessment_remote_da
 import 'package:careplan/features/assement/presentation/widgets/assessment_nav_buttons.dart';
 import 'package:careplan/features/assement/presentation/widgets/assessment_option_tile.dart';
 import 'package:careplan/features/assement/presentation/widgets/assessment_question_header.dart';
-import 'package:careplan/features/assement/presentation/widgets/assessment_test_models.dart';
-import 'package:careplan/features/nav_bar/nav_bar.dart';
+import 'package:careplan/features/assement/data/models/assessment_test_models.dart';
+import 'package:careplan/features/nav_bar/presentation/nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 

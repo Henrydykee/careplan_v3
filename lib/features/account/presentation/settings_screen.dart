@@ -42,11 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _navigateToEnableBiometric() async {
-    final result = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (context) => const EnableBiometricScreen(),
-      ),
-    );
+    final result = await router.push<bool>(const EnableBiometricScreen());
     if (result == true && mounted) {
       await _loadBiometricPreference();
     }

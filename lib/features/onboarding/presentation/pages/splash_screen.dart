@@ -3,7 +3,7 @@ import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:careplan/core/platform/storage/secured_storage.dart';
 import 'package:careplan/core/platform/string_constants.dart';
-import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:careplan/features/auth/presentation/login_flow/welcome_back_screen.dart';
 import 'package:careplan/features/auth/presentation/set-pin/set_pin_screen.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +13,7 @@ import '../../../../core/managers/app_update_manager.dart';
 import '../../../../core/managers/google_analytics_manager.dart';
 import '../../../../core/presentation/widgets/router.dart';
 import '../../../../core/utils/color.dart';
-import '../../../../features/getting_started/get_started_screen.dart';
+import '../../../../features/getting_started/presentation/get_started_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   SplashScreen({Key? key}) : super(key: key);

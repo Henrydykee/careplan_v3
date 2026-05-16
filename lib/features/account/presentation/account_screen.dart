@@ -4,12 +4,13 @@ import 'package:careplan/core/platform/storage/secured_storage.dart';
 import 'package:careplan/core/platform/string_constants.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
+import 'package:careplan/core/presentation/widgets/web_view_screen.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/account/presentation/card/list_of_cards_screen.dart';
 import 'package:careplan/features/account/presentation/widgets/account_action_item.dart';
 import 'package:careplan/features/account/presentation/widgets/account_header.dart';
 import 'package:careplan/features/account/presentation/widgets/logout_confirmation_sheet.dart';
-import 'package:careplan/features/auth/data/model/user_model.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:careplan/features/auth/domain/usecases/get_user_details.dart';
 import 'package:careplan/features/auth/presentation/login_flow/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -79,14 +80,21 @@ class _AccountScreenState extends State<AccountScreen> {
     await inject<LocalStorageService>().remove('user');
   }
 
+  void _handleContactUsTap() {
+    router.push(const WebViewScreen(
+      url: 'https://form.jotform.com/242050921968156',
+      title: 'Contact Us',
+    ));
+  }
+
   void _handleLogoutTap() {
     showLogoutConfirmationSheet(
       context: context,
       onConfirm: () async {
         await _performLogout();
         if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => LoginScreen()),
+          router.pushAndRemoveUntil(
+            LoginScreen(),
             (Route<dynamic> route) => false,
           );
         }
@@ -158,11 +166,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         icon: Icons.lock_outline_rounded,
                         title: "Privacy",
                         subTitle: "Change your pin and password",
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const SettingsScreen()),
-                        ),
+                        onTap: () => router.push(const SettingsScreen()),
                       ),
                       Divider(
                         height: 1,
@@ -174,6 +178,17 @@ class _AccountScreenState extends State<AccountScreen> {
                         title: "Payment",
                         subTitle: "Add credit/debit card",
                         onTap: () => router.push(ListOfCardsScreen()),
+                      ),
+                      Divider(
+                        height: 1,
+                        indent: 56,
+                        color: Colors.grey.shade100,
+                      ),
+                      AccountActionItems(
+                        icon: Icons.support_agent_rounded,
+                        title: "Contact Us",
+                        subTitle: "Get in touch with our support team",
+                        onTap: _handleContactUsTap,
                       ),
                     ],
                   ),
