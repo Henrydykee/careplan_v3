@@ -10,7 +10,7 @@ import 'package:careplan/features/auth/presentation/login_flow/enable_biometric_
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-import 'account_screen.dart';
+import 'widgets/account_action_item.dart';
 import 'update_pin/enter_old_pin_screen.dart';
 
 class SettingsScreen extends StatefulWidget {

@@ -182,17 +182,39 @@ class CarePlanTeamMember {
     this.id,
     this.name,
     this.imageUrl,
+    this.type,
+    this.email,
   });
 
   final String? id;
   final String? name;
   final String? imageUrl;
+  final String? type;
+  final String? email;
 
   factory CarePlanTeamMember.fromJson(Map<String, dynamic> json) {
+    String? readString(List<String> keys) {
+      for (final k in keys) {
+        final v = json[k];
+        if (v != null && v.toString().isNotEmpty) return v.toString();
+      }
+      return null;
+    }
+
+    final firstName = readString(['firstName']);
+    final lastName = readString(['lastName']);
+    final composedName = [firstName, lastName]
+        .where((e) => e != null && e.isNotEmpty)
+        .join(' ')
+        .trim();
+
     return CarePlanTeamMember(
       id: json['id'] as String?,
-      name: json['name'] as String?,
-      imageUrl: json['imageUrl'] as String?,
+      name: readString(['name']) ??
+          (composedName.isNotEmpty ? composedName : null),
+      imageUrl: readString(['imageUrl', 'avatar', 'profilePicture']),
+      type: readString(['type', 'providerType', 'role']),
+      email: readString(['email']),
     );
   }
 
@@ -201,6 +223,8 @@ class CarePlanTeamMember {
       'id': id,
       'name': name,
       'imageUrl': imageUrl,
+      'type': type,
+      'email': email,
     };
   }
 }

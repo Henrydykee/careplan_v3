@@ -1,19 +1,19 @@
-import 'dart:convert';
-
 import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/app_loading_indicator.dart';
-import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
+import 'package:careplan/features/assement/presentation/widgets/assessment_nav_buttons.dart';
+import 'package:careplan/features/assement/presentation/widgets/assessment_option_tile.dart';
+import 'package:careplan/features/assement/presentation/widgets/assessment_question_header.dart';
+import 'package:careplan/features/assement/presentation/widgets/assessment_test_models.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
-import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:gap/gap.dart';
 
 class K10TestScreen extends StatefulWidget {
@@ -24,7 +24,7 @@ class K10TestScreen extends StatefulWidget {
 }
 
 class _K10TestScreenState extends State<K10TestScreen> {
-  late Future<List<_K10Question>> _questionsFuture;
+  late Future<List<AssessmentQuestion>> _questionsFuture;
   int _currentIndex = 0;
   final Map<int, int> _selectedOptionIndexByQuestionId = {};
   bool _isLoading = false;
@@ -32,56 +32,37 @@ class _K10TestScreenState extends State<K10TestScreen> {
   @override
   void initState() {
     super.initState();
-    _questionsFuture = _loadQuestions();
-  }
-
-  Future<List<_K10Question>> _loadQuestions() async {
-    final raw = await rootBundle.loadString('assets/k10_questions.json');
-    final decoded = jsonDecode(raw);
-    if (decoded is Map<String, dynamic>) {
-      final list = decoded['questions'];
-      if (list is List) {
-        return list
-            .whereType<Map<String, dynamic>>()
-            .map(_K10Question.fromJson)
-            .toList();
-      }
-    }
-    return <_K10Question>[];
+    _questionsFuture = loadAssessmentQuestions('assets/k10_questions.json');
   }
 
   void _goToNext(int total) {
     if (_currentIndex < total - 1) {
-      setState(() {
-        _currentIndex += 1;
-      });
+      setState(() => _currentIndex += 1);
     }
   }
 
   void _goToPrevious() {
     if (_currentIndex > 0) {
-      setState(() {
-        _currentIndex -= 1;
-      });
+      setState(() => _currentIndex -= 1);
     }
   }
 
-  Future<void> _submitK10(List<_K10Question> questions) async {
+  Future<void> _submit(List<AssessmentQuestion> questions) async {
     final dataSource = AssessmentRemoteDataSourceImpl(inject());
 
     final Map<String, dynamic> payload = {
       'assessmentType': 'K10',
       'k10questions': {
-        'first': _scoreForQuestionAt(questions, 0),
-        'second': _scoreForQuestionAt(questions, 1),
-        'third': _scoreForQuestionAt(questions, 2),
-        'fourth': _scoreForQuestionAt(questions, 3),
-        'fifth': _scoreForQuestionAt(questions, 4),
-        'sixth': _scoreForQuestionAt(questions, 5),
-        'seventh': _scoreForQuestionAt(questions, 6),
-        'eighth': _scoreForQuestionAt(questions, 7),
-        'ninth': _scoreForQuestionAt(questions, 8),
-        'tenth': _scoreForQuestionAt(questions, 9),
+        'first': _scoreAt(questions, 0),
+        'second': _scoreAt(questions, 1),
+        'third': _scoreAt(questions, 2),
+        'fourth': _scoreAt(questions, 3),
+        'fifth': _scoreAt(questions, 4),
+        'sixth': _scoreAt(questions, 5),
+        'seventh': _scoreAt(questions, 6),
+        'eighth': _scoreAt(questions, 7),
+        'ninth': _scoreAt(questions, 8),
+        'tenth': _scoreAt(questions, 9),
       },
     };
 
@@ -89,21 +70,39 @@ class _K10TestScreenState extends State<K10TestScreen> {
     try {
       await dataSource.sendAssessment(body: payload);
       if (!mounted) return;
-      googleAnalytics.logEvent(eventName: 'assessment_submitted', parameters: {'type': 'K10'});
-      router.push(const CarePlanNavBar(index: 1,));
+      googleAnalytics.logEvent(
+          eventName: 'assessment_submitted', parameters: {'type': 'K10'});
+      router.push(const CarePlanNavBar(index: 1));
     } catch (e) {
       if (!mounted) return;
       showErrorDialog(context, 'K10 Submission Error', e.toString());
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  int _scoreForQuestionAt(List<_K10Question> questions, int index) {
-    final selectedIndex = _selectedOptionIndexByQuestionId[questions[index].id];
+  int _scoreAt(List<AssessmentQuestion> questions, int index) {
+    final selectedIndex =
+        _selectedOptionIndexByQuestionId[questions[index].id];
     return (selectedIndex ?? 0) + 1;
+  }
+
+  void _handleNextTap(List<AssessmentQuestion> questions, int? selectedIndex) {
+    if (selectedIndex == null) {
+      GlobalSnackBar.show(context, 'Please select an option to continue.');
+      return;
+    }
+    final total = questions.length;
+    if (_currentIndex == total - 1) {
+      if (_selectedOptionIndexByQuestionId.length != total) {
+        GlobalSnackBar.show(
+            context, 'Please answer all questions before submitting.');
+        return;
+      }
+      _submit(questions);
+    } else {
+      _goToNext(total);
+    }
   }
 
   @override
@@ -116,14 +115,14 @@ class _K10TestScreenState extends State<K10TestScreen> {
           color: CarePlanColor.brown,
           backButtonColor: Colors.white,
         ),
-        body: FutureBuilder<List<_K10Question>>(
+        body: FutureBuilder<List<AssessmentQuestion>>(
           future: _questionsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: AppLoadingIndicator());
             }
 
-            final questions = snapshot.data ?? const <_K10Question>[];
+            final questions = snapshot.data ?? const <AssessmentQuestion>[];
             if (questions.isEmpty) {
               return Center(
                 child: TextHolder(
@@ -137,37 +136,21 @@ class _K10TestScreenState extends State<K10TestScreen> {
 
             final question = questions[_currentIndex];
             final total = questions.length;
-            final selectedIndex = _selectedOptionIndexByQuestionId[question.id];
+            final selectedIndex =
+                _selectedOptionIndexByQuestionId[question.id];
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  width: double.infinity,
-                  color: CarePlanColor.brown,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextHolder(
-                        title: 'K10 Test',
-                        size: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                      const Gap(4),
-                      TextHolder(
-                        title: 'Question ${_currentIndex + 1} of $total',
-                        size: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ],
-                  ),
+                AssessmentQuestionHeader(
+                  title: 'K10 Test',
+                  currentIndex: _currentIndex,
+                  total: total,
                 ),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -179,63 +162,17 @@ class _K10TestScreenState extends State<K10TestScreen> {
                         ),
                         const Gap(24),
                         ...List.generate(question.options.length, (index) {
-                          final option = question.options[index];
-                          final isSelected = selectedIndex == index;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
-                            child: GestureDetector(
+                            child: AssessmentOptionTile(
+                              label: question.options[index],
+                              isSelected: selectedIndex == index,
                               onTap: () {
                                 setState(() {
-                                  _selectedOptionIndexByQuestionId[question.id] = index;
+                                  _selectedOptionIndexByQuestionId[
+                                      question.id] = index;
                                 });
                               },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  color: isSelected ? CarePlanColor.light_orange : Colors.white,
-                                  border: Border.all(
-                                    color: isSelected ? CarePlanColor.orange : const Color(0xFFE0E0E0),
-                                    width: 1.5,
-                                  ),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 18,
-                                      height: 18,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: isSelected ? CarePlanColor.orange : CarePlanColor.grey,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: isSelected
-                                          ? Center(
-                                              child: Container(
-                                                width: 10,
-                                                height: 10,
-                                                decoration: const BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: CarePlanColor.orange,
-                                                ),
-                                              ),
-                                            )
-                                          : null,
-                                    ),
-                                    const Gap(12),
-                                    Expanded(
-                                      child: TextHolder(
-                                        title: option,
-                                        size: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: CarePlanColor.black_3,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ),
                           );
                         }),
@@ -243,45 +180,11 @@ class _K10TestScreenState extends State<K10TestScreen> {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                  child: Row(
-                    children: [
-                      if (_currentIndex > 0)
-                        Expanded(
-                          child: CustomButtom(
-                            title: 'Previous',
-                            btnColor: CarePlanColor.brown,
-                            onTap: _goToPrevious,
-                          ),
-                        ),
-                      if (_currentIndex > 0) const Gap(12),
-                      Expanded(
-                        child: CustomButtom(
-                          title: _currentIndex == total - 1 ? 'Finish' : 'Next',
-                          btnColor: CarePlanColor.brown,
-                          onTap: () async {
-                            if (selectedIndex == null) {
-                              GlobalSnackBar.show(context, 'Please select an option to continue.');
-                              return;
-                            }
-                            if (_currentIndex == total - 1) {
-                              if (_selectedOptionIndexByQuestionId.length != total) {
-                                GlobalSnackBar.show(
-                                  context,
-                                  'Please answer all questions before submitting.',
-                                );
-                                return;
-                              }
-                              await _submitK10(questions);
-                            } else {
-                              _goToNext(total);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                AssessmentNavButtons(
+                  showPrevious: _currentIndex > 0,
+                  isLast: _currentIndex == total - 1,
+                  onPrevious: _goToPrevious,
+                  onNext: () => _handleNextTap(questions, selectedIndex),
                 ),
               ],
             );
@@ -291,27 +194,3 @@ class _K10TestScreenState extends State<K10TestScreen> {
     );
   }
 }
-
-class _K10Question {
-  final int id;
-  final String text;
-  final List<String> options;
-
-  const _K10Question({
-    required this.id,
-    required this.text,
-    required this.options,
-  });
-
-  factory _K10Question.fromJson(Map<String, dynamic> json) {
-    final rawOptions = json['options'];
-    return _K10Question(
-      id: (json['id'] is int) ? json['id'] as int : int.tryParse(json['id']?.toString() ?? '') ?? 0,
-      text: json['text']?.toString() ?? '',
-      options: rawOptions is List
-          ? rawOptions.map((e) => e?.toString() ?? '').where((e) => e.isNotEmpty).toList()
-          : <String>[],
-    );
-  }
-}
-

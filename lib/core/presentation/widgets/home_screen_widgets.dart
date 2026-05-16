@@ -772,35 +772,50 @@ class CareplanTeamWidget extends StatelessWidget {
               String doctorName;
               String imageUrl;
               String? subtitle;
+              String? email;
+              String? rawProviderType;
 
               if (hasRealData && careTeamMembers != null) {
                 final member = careTeamMembers![i];
+                rawProviderType = member.type;
                 doctorName = member.name ?? "";
                 imageUrl = member.imageUrl ?? "";
+                email = member.email;
+                subtitle = rawProviderType != null
+                    ? getProviderType(rawProviderType)
+                    : null;
               } else if (hasRealData && careplanTeam != null) {
                 final doctor = careplanTeam!.data!.doctors![i];
                 final firstName = doctor.firstName ?? "";
                 final lastName = doctor.lastName ?? "";
-                final doctorType = doctor.type?.toString() ?? "";
+                rawProviderType = doctor.type?.toString() ?? "";
                 doctorName =
-                    "${getTitle(doctorType)} $firstName $lastName".trim();
+                    "${getTitle(rawProviderType)} $firstName $lastName".trim();
                 imageUrl = doctor.imageUrl ?? "";
-                subtitle = getProviderType(doctorType);
+                subtitle = getProviderType(rawProviderType);
+                email = doctor.email as String?;
               } else {
                 final doctor = teamList[i] as MockDoctor;
                 final firstName = doctor.firstName;
                 final lastName = doctor.lastName;
-                final doctorType = doctor.type;
+                rawProviderType = doctor.type;
                 doctorName =
-                    "${getTitle(doctorType)} $firstName $lastName".trim();
+                    "${getTitle(rawProviderType)} $firstName $lastName".trim();
                 imageUrl = doctor.imageUrl;
-                subtitle = getProviderType(doctorType);
+                subtitle = getProviderType(rawProviderType);
               }
 
+              final providerType = subtitle;
               return _CareTeamMemberCard(
                 name: doctorName,
                 subtitle: (subtitle ?? '').isNotEmpty ? subtitle : null,
                 imageUrl: imageUrl,
+                onTap: () => router.push(CareTeamMemberDetailScreen(
+                  name: doctorName,
+                  providerType: providerType,
+                  email: email,
+                  imageUrl: imageUrl,
+                )),
               );
             },
           ),
@@ -858,11 +873,13 @@ class _CareTeamMemberCard extends StatelessWidget {
   final String name;
   final String? subtitle;
   final String imageUrl;
+  final VoidCallback? onTap;
 
   const _CareTeamMemberCard({
     required this.name,
     required this.imageUrl,
     this.subtitle,
+    this.onTap,
   });
 
   String get _initials {
@@ -910,7 +927,7 @@ class _CareTeamMemberCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () {},
+        onTap: onTap,
         child: Ink(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -1191,11 +1208,16 @@ class CareTeamListScreen extends StatelessWidget {
                 String doctorName;
                 String imageUrl;
                 String? providerType;
+                String? email;
 
                 if (careTeamMembers.isNotEmpty) {
                   final member = careTeamMembers[index];
                   doctorName = member.name ?? "";
                   imageUrl = member.imageUrl ?? "";
+                  email = member.email;
+                  providerType = member.type != null
+                      ? getProviderType(member.type!)
+                      : null;
                 } else if (careplanTeam != null) {
                   final doctor = careplanTeam!.data!.doctors![index];
                   final firstName = doctor.firstName ?? "";
@@ -1205,16 +1227,23 @@ class CareTeamListScreen extends StatelessWidget {
                       "${getTitle(doctorType)} $firstName $lastName".trim();
                   imageUrl = doctor.imageUrl ?? "";
                   providerType = getProviderType(doctorType);
+                  email = doctor.email as String?;
                 } else {
                   return const SizedBox();
                 }
 
+                final resolvedSubtitle =
+                    (providerType ?? '').isNotEmpty ? providerType : null;
                 return _CareTeamMemberCard(
                   name: doctorName,
-                  subtitle: (providerType ?? '').isNotEmpty
-                      ? providerType
-                      : null,
+                  subtitle: resolvedSubtitle,
                   imageUrl: imageUrl,
+                  onTap: () => router.push(CareTeamMemberDetailScreen(
+                    name: doctorName,
+                    providerType: resolvedSubtitle,
+                    email: email,
+                    imageUrl: imageUrl,
+                  )),
                 );
               },
             ),
@@ -1386,6 +1415,228 @@ class _MoodButton extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class CareTeamMemberDetailScreen extends StatelessWidget {
+  final String name;
+  final String? providerType;
+  final String? email;
+  final String imageUrl;
+
+  const CareTeamMemberDetailScreen({
+    super.key,
+    required this.name,
+    required this.imageUrl,
+    this.providerType,
+    this.email,
+  });
+
+  String get _initials {
+    final cleaned = name
+        .replaceFirst(
+            RegExp(r'^(Dr\.?|Mr\.?|Mrs\.?|Ms\.?|ADHD Coach)\s+',
+                caseSensitive: false),
+            '')
+        .trim();
+    if (cleaned.isEmpty) return "?";
+    final parts = cleaned.split(RegExp(r'\s+'));
+    final first = parts.first.isNotEmpty ? parts.first[0] : '';
+    final last =
+        parts.length > 1 && parts.last.isNotEmpty ? parts.last[0] : '';
+    final initials = "$first$last".toUpperCase();
+    return initials.isEmpty ? "?" : initials;
+  }
+
+  Widget _buildAvatar() {
+    final placeholder = Container(
+      width: 96,
+      height: 96,
+      color: CarePlanColor.light_orange,
+      alignment: Alignment.center,
+      child: TextHolder(
+        title: _initials,
+        color: CarePlanColor.brown,
+        size: 32,
+        fontWeight: FontWeight.w800,
+      ),
+    );
+
+    if (imageUrl.isEmpty) return placeholder;
+
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      width: 96,
+      height: 96,
+      fit: BoxFit.cover,
+      placeholder: (_, __) => placeholder,
+      errorWidget: (_, __, ___) => placeholder,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final displayName = name.isNotEmpty ? name : "Care provider";
+    final displayType = (providerType ?? '').isNotEmpty ? providerType! : "—";
+    final displayEmail = (email ?? '').isNotEmpty ? email! : "—";
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        showBackIcon: true,
+        title: "Provider Details",
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: _buildAvatar(),
+                  ),
+                  const Gap(14),
+                  TextHolder(
+                    title: displayName,
+                    color: CarePlanColor.brown,
+                    size: 20,
+                    fontWeight: FontWeight.w900,
+                    align: TextAlign.center,
+                  ),
+                  if ((providerType ?? '').isNotEmpty) ...[
+                    const Gap(6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: CarePlanColor.light_orange,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: TextHolder(
+                        title: providerType!,
+                        color: CarePlanColor.brown,
+                        size: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const Gap(24),
+            _DetailsCard(
+              rows: [
+                _CareDetailRow(
+                  icon: Icons.badge_outlined,
+                  label: "Provider Type",
+                  value: displayType,
+                ),
+                _CareDetailRow(
+                  icon: Icons.person_outline_rounded,
+                  label: "Provider Name",
+                  value: displayName,
+                ),
+                _CareDetailRow(
+                  icon: Icons.mail_outline_rounded,
+                  label: "Provider Email",
+                  value: displayEmail,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailsCard extends StatelessWidget {
+  final List<_CareDetailRow> rows;
+
+  const _DetailsCard({required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    final children = <Widget>[];
+    for (var i = 0; i < rows.length; i++) {
+      children.add(rows[i]);
+      if (i != rows.length - 1) {
+        children.add(Container(height: 1, color: CarePlanColor.grey_5));
+      }
+    }
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CarePlanColor.grey_5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(children: children),
+    );
+  }
+}
+
+class _CareDetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _CareDetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: CarePlanColor.light_orange,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: CarePlanColor.brown, size: 18),
+          ),
+          const Gap(12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextHolder(
+                  title: label,
+                  color: CarePlanColor.grey_3,
+                  size: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                const Gap(4),
+                TextHolder(
+                  title: value,
+                  color: CarePlanColor.grey,
+                  size: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

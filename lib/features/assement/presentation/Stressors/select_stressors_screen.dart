@@ -3,13 +3,15 @@ import 'dart:convert';
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
-import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
+import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/core/resources/string.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
+import 'package:careplan/features/assement/presentation/widgets/cope_rating_picker.dart';
+import 'package:careplan/features/assement/presentation/widgets/stress_area_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
@@ -25,7 +27,8 @@ class SelectStressAreasScreen extends StatefulWidget {
   });
 
   @override
-  State<SelectStressAreasScreen> createState() => _SelectStressAreasScreenState();
+  State<SelectStressAreasScreen> createState() =>
+      _SelectStressAreasScreenState();
 }
 
 class _SelectStressAreasScreenState extends State<SelectStressAreasScreen> {
@@ -39,6 +42,17 @@ class _SelectStressAreasScreenState extends State<SelectStressAreasScreen> {
     'Housing',
     'School',
   ];
+
+  static const Map<String, String> _serverKeyByStressor = {
+    'Work': 'work',
+    'Relationship': 'relationship',
+    'Finances': 'finances',
+    'Physical health or pain': 'physicalhealth',
+    'Alcohol or drugs': 'alcohol',
+    'Trauma': 'trauma',
+    'Housing': 'housing',
+    'School': 'school',
+  };
 
   late final Set<String> _selectedStressors;
   late String _selectedCopeRating;
@@ -64,7 +78,8 @@ class _SelectStressAreasScreenState extends State<SelectStressAreasScreen> {
   Map<String, dynamic> _buildPayload() {
     final stressorsMap = <String, bool>{};
     for (final stressor in _stressorOptions) {
-      final key = _stressorToServerKey(stressor);
+      final key = _serverKeyByStressor[stressor] ??
+          stressor.toLowerCase().replaceAll(' ', '');
       stressorsMap[key] = _selectedStressors.contains(stressor);
     }
     return {
@@ -73,35 +88,9 @@ class _SelectStressAreasScreenState extends State<SelectStressAreasScreen> {
     };
   }
 
-  String _stressorToServerKey(String stressor) {
-    switch (stressor) {
-      case 'Work':
-        return 'work';
-      case 'Relationship':
-        return 'relationship';
-      case 'Finances':
-        return 'finances';
-      case 'Physical health or pain':
-        return 'physicalhealth';
-      case 'Alcohol or drugs':
-        return 'alcohol';
-      case 'Trauma':
-        return 'trauma';
-      case 'Housing':
-        return 'housing';
-      case 'School':
-        return 'school';
-      default:
-        return stressor.toLowerCase().replaceAll(' ', '');
-    }
-  }
-
   Future<void> _submitStressors() async {
     if (_selectedStressors.isEmpty) {
-      GlobalSnackBar.show(
-        context,
-        'Please select at least one stressor.',
-      );
+      GlobalSnackBar.show(context, 'Please select at least one stressor.');
       return;
     }
 
@@ -122,9 +111,7 @@ class _SelectStressAreasScreenState extends State<SelectStressAreasScreen> {
       if (!mounted) return;
       showErrorDialog(context, 'Stressors Submission Error', e.toString());
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -177,7 +164,9 @@ class _SelectStressAreasScreenState extends State<SelectStressAreasScreen> {
                         ),
                       ),
                       const Gap(14),
-                      Center(child: SvgPicture.asset(Assets.stress_image, height: 120)),
+                      Center(
+                          child: SvgPicture.asset(Assets.stress_image,
+                              height: 120)),
                       const Gap(14),
                       TextHolder(
                         title: "Areas of stress",
@@ -188,65 +177,21 @@ class _SelectStressAreasScreenState extends State<SelectStressAreasScreen> {
                       const Gap(10),
                       ...List.generate(_stressorOptions.length, (index) {
                         final title = _stressorOptions[index];
-                        final isSelected = _selectedStressors.contains(title);
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: _StressArea(
+                          child: StressAreaTile(
                             title: title,
-                            value: isSelected,
-                            onChanged: (value) => _toggleStressor(title, value),
+                            value: _selectedStressors.contains(title),
+                            onChanged: (value) =>
+                                _toggleStressor(title, value),
                           ),
                         );
                       }),
                       const Gap(14),
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE6E6E6)),
-                        ),
-                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            TextHolder(
-                              title: "Ability to cope (1-10)",
-                              color: CarePlanColor.grey,
-                              fontWeight: FontWeight.w700,
-                              size: 14,
-                            ),
-                            const Gap(8),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: CarePlanColor.orange),
-                                borderRadius: BorderRadius.circular(8),
-                                color: CarePlanColor.light_orange.withValues(alpha: 0.25),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
-                              child: DropdownButton<String>(
-                                value: _selectedCopeRating,
-                                isExpanded: true,
-                                underline: const SizedBox(),
-                                style: const TextStyle(
-                                  color: CarePlanColor.brown,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                iconEnabledColor: CarePlanColor.brown,
-                                items: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
-                                    .map<DropdownMenuItem<String>>(
-                                      (v) => DropdownMenuItem(value: v, child: Text(v)),
-                                    )
-                                    .toList(),
-                                onChanged: (value) {
-                                  if (value == null) return;
-                                  setState(() => _selectedCopeRating = value);
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
+                      CopeRatingPicker(
+                        value: _selectedCopeRating,
+                        onChanged: (value) =>
+                            setState(() => _selectedCopeRating = value),
                       ),
                       const Gap(24),
                     ],
@@ -258,68 +203,14 @@ class _SelectStressAreasScreenState extends State<SelectStressAreasScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   border: Border(
-                    top: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+                    top: BorderSide(
+                        color: Colors.black.withValues(alpha: 0.06)),
                   ),
                 ),
                 padding: const EdgeInsets.only(top: 14, bottom: 20),
                 child: CustomButtom(
                   title: Strings.cotinue,
                   onTap: _submitStressors,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StressArea extends StatelessWidget {
-  final String title;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _StressArea({
-    required this.title,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onChanged(!value),
-        borderRadius: BorderRadius.circular(10),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: value ? CarePlanColor.light_orange : Colors.white,
-            border: Border.all(
-              color: value ? CarePlanColor.orange : const Color(0xFFE3E3E3),
-              width: 1.2,
-            ),
-          ),
-          child: Row(
-            children: [
-              Checkbox(
-                value: value,
-                onChanged: (newValue) => onChanged(newValue ?? false),
-                activeColor: CarePlanColor.green,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              Expanded(
-                child: TextHolder(
-                  title: title,
-                  color: CarePlanColor.grey,
-                  size: 15,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],

@@ -1,6 +1,8 @@
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
-import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/presentation/widgets/web_view_screen.dart';
+import 'package:careplan/core/resources/color.dart';
+import 'package:careplan/features/careplan/presentation/widgets/billing_detail_components.dart';
+import 'package:careplan/features/careplan/presentation/widgets/billing_status_color.dart';
 import 'package:careplan/features/history/data/models/billing_history_item_model.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -11,142 +13,98 @@ class BillingDetailScreen extends StatelessWidget {
 
   const BillingDetailScreen({super.key, required this.billingHistoryItem});
 
+  String? _cardUsed() {
+    final brand = billingHistoryItem.cardType?.trim();
+    final last4 = billingHistoryItem.lastFourDigits?.trim();
+    if ((brand == null || brand.isEmpty) &&
+        (last4 == null || last4.isEmpty)) {
+      return null;
+    }
+    if (brand != null && brand.isNotEmpty && last4 != null && last4.isNotEmpty) {
+      return "$brand •••• $last4";
+    }
+    if (last4 != null && last4.isNotEmpty) {
+      return "•••• $last4";
+    }
+    return brand;
+  }
+
   @override
   Widget build(BuildContext context) {
     final data = billingHistoryItem;
     final formattedDate = DateFormat('d MMM yyyy').format(data.date);
+    final status = data.status.trim();
+    final statusLabel =
+        status.isNotEmpty ? toBeginningOfSentenceCase(status) : '—';
+    final statusAccent = billingStatusColor(status);
+    final cardUsed = _cardUsed();
+    final hasInvoice = data.invoiceURL.isNotEmpty;
+
+    void openInvoice() {
+      if (!hasInvoice) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => WebViewScreen(url: data.invoiceURL),
+        ),
+      );
+    }
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: CustomAppBar(
         showBackIcon: true,
-        title: data.patient?.name ?? "Billing Details",
+        title: "Billing Details",
       ),
-      body: Column(
-        children: [
-          const Gap(20),
-          if (data.invoiceURL.isNotEmpty)
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => WebViewScreen(url: data.invoiceURL),
-                  ),
-                );
-              },
-              child: _buildSummaryCard(
-                title: "Invoice",
-                amount: "\$${data.amount}",
-                subtitle: formattedDate,
-                showChevron: true,
-              ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            BillingSummaryCard(
+              amount: data.amount,
+              date: formattedDate,
+              statusLabel: statusLabel,
+              statusAccent: statusAccent,
+              patientName: data.patient?.name,
             ),
-          const Gap(20),
-          _buildInfoCard(
-            title: "Status",
-            value: data.status,
-          ),
-          if (data.sessionId != null) ...[
             const Gap(20),
-            _buildInfoCard(
-              title: "Session ID",
-              value: data.sessionId!,
+            BillingDetailsCard(
+              rows: [
+                BillingDetailRow(label: "Date", value: formattedDate),
+                BillingDetailRow(
+                  label: "Card Used",
+                  value: cardUsed ?? "—",
+                ),
+                BillingDetailRow(
+                  label: "Status",
+                  value: statusLabel,
+                  valueColor: statusAccent,
+                ),
+                BillingDetailRow(
+                  label: "Session ID",
+                  value: (data.sessionId != null && data.sessionId!.isNotEmpty)
+                      ? data.sessionId!
+                      : "—",
+                ),
+                BillingDetailRow(
+                  label: "Invoice",
+                  value: hasInvoice ? "View" : "—",
+                  valueColor:
+                      hasInvoice ? CarePlanColor.orange : CarePlanColor.grey_3,
+                  valueWeight: FontWeight.w700,
+                  onTap: hasInvoice ? openInvoice : null,
+                  showChevron: hasInvoice,
+                ),
+                BillingDetailRow(
+                  label: "Amount",
+                  value: "\$${data.amount}",
+                  valueColor: CarePlanColor.brown,
+                  valueWeight: FontWeight.w800,
+                ),
+              ],
             ),
           ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard({
-    required String title,
-    required String amount,
-    String? subtitle,
-    bool showChevron = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextHolder(
-                      title: title,
-                      color: const Color(0xFF68696C),
-                      fontWeight: FontWeight.w600,
-                      size: 14,
-                    ),
-                    const Gap(4),
-                    TextHolder(
-                      title: amount,
-                      color: const Color(0xFF68696C),
-                      fontWeight: FontWeight.w700,
-                      size: 18,
-                    ),
-                    if (subtitle != null) ...[
-                      const Gap(4),
-                      TextHolder(
-                        title: subtitle,
-                        color: const Color(0xFF848588),
-                        fontWeight: FontWeight.w400,
-                        size: 12,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (showChevron) const Icon(Icons.chevron_right),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard({
-    required String title,
-    required String value,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextHolder(
-                title: title,
-                color: const Color(0xFF848588),
-                fontWeight: FontWeight.w500,
-                size: 14,
-              ),
-              TextHolder(
-                title: value,
-                color: const Color(0xFF4E4F51),
-                fontWeight: FontWeight.w600,
-                size: 14,
-              ),
-            ],
-          ),
         ),
       ),
     );

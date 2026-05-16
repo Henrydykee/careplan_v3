@@ -6,6 +6,8 @@ class BillingHistoryItemModel {
   final String? sessionId;
   final String invoiceURL;
   final PatientInfo? patient;
+  final String? cardType;
+  final String? lastFourDigits;
 
   BillingHistoryItemModel({
     required this.id,
@@ -15,12 +17,27 @@ class BillingHistoryItemModel {
     this.sessionId,
     required this.invoiceURL,
     this.patient,
+    this.cardType,
+    this.lastFourDigits,
   });
 
   factory BillingHistoryItemModel.fromJson(Map<String, dynamic> json) {
     final rawDate = json['date']?.toString();
     final parsedDate =
         rawDate != null ? DateTime.tryParse(rawDate) : null;
+
+    final card = json['card'] is Map<String, dynamic>
+        ? json['card'] as Map<String, dynamic>
+        : null;
+
+    String? readString(Map<String, dynamic>? src, List<String> keys) {
+      if (src == null) return null;
+      for (final k in keys) {
+        final v = src[k];
+        if (v != null && v.toString().isNotEmpty) return v.toString();
+      }
+      return null;
+    }
 
     return BillingHistoryItemModel(
       id: json['id']?.toString() ?? '',
@@ -32,6 +49,11 @@ class BillingHistoryItemModel {
       patient: json['patient'] is Map<String, dynamic>
           ? PatientInfo.fromJson(json['patient'] as Map<String, dynamic>)
           : null,
+      cardType: readString(card, ['cardType', 'brand', 'type']) ??
+          readString(json, ['cardType', 'cardBrand']),
+      lastFourDigits:
+          readString(card, ['lastFourDigits', 'last4', 'lastFour']) ??
+              readString(json, ['lastFourDigits', 'last4']),
     );
   }
 
@@ -44,6 +66,8 @@ class BillingHistoryItemModel {
       'sessionId': sessionId,
       'invoiceURL': invoiceURL,
       'patient': patient?.toJson(),
+      'cardType': cardType,
+      'lastFourDigits': lastFourDigits,
     };
   }
 }

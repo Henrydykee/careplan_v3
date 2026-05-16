@@ -1,7 +1,5 @@
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
-import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:flutter/material.dart';
-
 import '../../platform/color.dart';
 
 class CustomButtom extends StatelessWidget {

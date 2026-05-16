@@ -2,28 +2,25 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/firebase_cloud_messaging_manager.dart';
+import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
-import 'package:careplan/core/presentation/widgets/current_carplan_widget.dart';
 import 'package:careplan/core/presentation/widgets/home_screen_widgets.dart';
-import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
-import 'package:careplan/core/resources/assets.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/appointment/presentation/state/appointment_provider.dart';
 import 'package:careplan/features/assement/data/datasources/assessment_remote_datasource.dart';
 import 'package:careplan/features/auth/data/model/user_model.dart';
 import 'package:careplan/features/auth/domain/usecases/get_user_details.dart';
 import 'package:careplan/features/auth/presentation/kyc/kyc_step_1_screen.dart';
-import 'package:careplan/features/history/data/models/care_plan_history_item_model.dart';
 import 'package:careplan/features/history/presentation/state/history_provider.dart';
+import 'package:careplan/features/home/presentation/widgets/home_careplan_section.dart';
+import 'package:careplan/features/home/presentation/widgets/home_greeting_header.dart';
+import 'package:careplan/features/home/presentation/widgets/home_wellbeing_section.dart';
 import 'package:careplan/features/nav_bar/nav_bar.dart';
-import 'package:careplan/features/notifications/presentation/pages/notification_center_screen.dart';
 import 'package:careplan/features/notifications/presentation/state/notification_provider.dart';
-import 'package:careplan/core/managers/firebase_cloud_messaging_manager.dart';
-import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
 
@@ -102,7 +99,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUserData() async {
     try {
-      // Load from local storage only
       final localStorage = inject<LocalStorageService>();
       final userJson = localStorage.getJson('user');
 
@@ -112,16 +108,15 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _user = loadedUser;
           });
-            if (loadedUser.id != null) {
-              googleAnalytics.setUserId(loadedUser.id!);
-            }
-            googleAnalytics.logScreenView(screenName: 'Home');
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              context
-                  .read<HistoryProvider>()
-                  .fetchCurrentCarePlan(patientId: loadedUser.id!);
-            });
-          
+          if (loadedUser.id != null) {
+            googleAnalytics.setUserId(loadedUser.id!);
+          }
+          googleAnalytics.logScreenView(screenName: 'Home');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context
+                .read<HistoryProvider>()
+                .fetchCurrentCarePlan(patientId: loadedUser.id!);
+          });
         } catch (e) {
           // Handle error silently
         }
@@ -171,29 +166,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await Future.wait(futures);
   }
 
-
-  String _getFirstName() {
-    final first = _user?.firstName?.trim();
-    if (first != null && first.isNotEmpty) return first;
-    return "there";
-  }
-
-  String _getInitials() {
-    final first =
-        (_user?.firstName?.isNotEmpty ?? false) ? _user!.firstName![0] : '';
-    final last =
-        (_user?.lastName?.isNotEmpty ?? false) ? _user!.lastName![0] : '';
-    final initials = "$first$last".toUpperCase();
-    return initials.isEmpty ? "?" : initials;
-  }
-
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  }
-
   void _evaluateWellbeingVisibility() {
     final stored = inject<LocalStorageService>().getString(
       _wellbeingDismissedKey,
@@ -230,7 +202,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -244,135 +215,11 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Gap(70),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: CarePlanColor.light_orange,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      alignment: Alignment.center,
-                      child: TextHolder(
-                        title: _getInitials(),
-                        color: CarePlanColor.brown,
-                        size: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const Gap(12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextHolder(
-                            title: _getGreeting(),
-                            color: CarePlanColor.grey_3,
-                            size: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          const Gap(2),
-                          TextHolder(
-                            title: "${_getFirstName()} 👋",
-                            size: 20,
-                            fontWeight: FontWeight.w800,
-                            color: CarePlanColor.brown,
-                            maxLines: 1,
-                            textOverflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Gap(8),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () {
-                          router.push(const NotificationCenterScreen());
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Consumer<NotificationProvider>(
-                            builder: (context, notifProvider, child) {
-                              return Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  SvgPicture.asset(
-                                    Assets.notification_icon,
-                                    color: CarePlanColor.grey,
-                                  ),
-                                  if (notifProvider.unreadCount > 0)
-                                    Positioned(
-                                      right: -6,
-                                      top: -6,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(4),
-                                        constraints: const BoxConstraints(
-                                          minWidth: 18,
-                                          minHeight: 18,
-                                        ),
-                                        decoration: const BoxDecoration(
-                                          color: CarePlanColor.orange,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            notifProvider.unreadCount > 99
-                                                ? '99+'
-                                                : '${notifProvider.unreadCount}',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w700,
-                                              fontFamily: 'avenir',
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 280),
-                curve: Curves.easeInOut,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  child: _showWellbeingCheckIn
-                      ? Column(
-                          key: const ValueKey('wellbeing-visible'),
-                          children: [
-                            const Gap(20),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              child: WellbeingCheckIn(
-                                question: _wellbeingQuestion,
-                                onMoodSelected: _onMoodSelected,
-                              ),
-                            ),
-                            const Gap(24),
-                          ],
-                        )
-                      : const SizedBox(
-                          key: ValueKey('wellbeing-hidden'),
-                          width: double.infinity,
-                          height: 20,
-                        ),
-                ),
+              HomeGreetingHeader(user: _user),
+              HomeWellbeingSection(
+                visible: _showWellbeingCheckIn,
+                question: _wellbeingQuestion,
+                onMoodSelected: _onMoodSelected,
               ),
               K10ScoreHolder(
                 width: width,
@@ -382,14 +229,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 onTakeTestTap: () => router.push(CarePlanNavBar(index: 1)),
               ),
               const Gap(30),
-              // KYC Status
               if (_user?.kycStatus?.toLowerCase().trim() != 'approved')
                 VerifyAccount(
                   kycStatus: _user?.kycStatus,
                   onStartVerification: () =>
                       router.push(const KycVerificatonScreen1()),
                 ),
-              // Care Plan Team - using user data
               if (_user?.careplanTeam != null &&
                   _user!.careplanTeam!.isNotEmpty)
                 CareplanTeamWidget(
@@ -405,7 +250,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const Gap(10),
-              // Upcoming Appointment - using real data
               UpcomingAppointmentWidget(patientId: _user?.id),
               const Gap(40),
               Row(
@@ -420,29 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const Gap(10),
-              // Care Plan - show current care plan if available, otherwise empty state
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 0),
-                child: Selector<HistoryProvider, ({CarePlanHistoryItemModel? carePlan, bool isLoading})>(
-                  selector: (_, provider) => (
-                    carePlan: provider.currentCarePlan,
-                    isLoading: provider.isLoading,
-                  ),
-                  builder: (context, state, child) {
-                    if (state.isLoading && state.carePlan == null) {
-                      return const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          child: HomeCarePlanShimmer());
-                    }
-
-                    if (state.carePlan != null) {
-                      return MentalHealthCarePlanWidget(carePlan: state.carePlan!);
-                    }
-
-                    return const EmptyCareplan();
-                  },
-                ),
-              ),
+              const HomeCareplanSection(),
               const Gap(30),
             ],
           ),
@@ -450,6 +272,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 }
-
