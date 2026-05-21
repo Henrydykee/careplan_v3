@@ -1,5 +1,5 @@
 class CardEndpoints {
-  static String addCard = "card/addcardV2";
+  static String addCard = "cards";
   static String getCards = "cards";
   static String deleteCard = "cards/deletecard";
   static String markDefaultCard = "cards/mark-default";

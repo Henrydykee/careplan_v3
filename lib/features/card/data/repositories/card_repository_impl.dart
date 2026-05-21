@@ -34,4 +34,25 @@ class CardRepositoryImpl implements CardRepository {
       showNetworkError: true,
     );
   }
+
+  @override
+  Future<String> addCard({
+    required String cardNumber,
+    required String expiryMonth,
+    required String expiryYear,
+    required String cvc,
+    required String cardholderName,
+  }) async {
+    return guardedApiCall<String>(
+      () => _remoteDataSource.addCard(
+        cardNumber: cardNumber,
+        expiryMonth: expiryMonth,
+        expiryYear: expiryYear,
+        cvc: cvc,
+        cardholderName: cardholderName,
+      ),
+      source: 'addCard',
+      showNetworkError: true,
+    );
+  }
 }

@@ -7,10 +7,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 
 String cardTypeAsset(String cardType) {
-  if (cardType == "VISA") return Assets.visa_card;
-  if (cardType == "MASTERCARD") return Assets.master_card;
-  if (cardType == "AMEX") return Assets.visa_card;
-  return "assets/images/card_placholder.svg";
+  switch (cardType.toUpperCase()) {
+    case 'VISA':
+      return Assets.visa_card;
+    case 'MASTERCARD':
+      return Assets.master_card;
+    default:
+      return 'assets/images/card_placholder.svg';
+  }
 }
 
 class AddedCardWidget extends StatelessWidget {
@@ -27,55 +31,73 @@ class AddedCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDefault = card.isDefault;
+    final subtitle = [
+      if (card.cardName.trim().isNotEmpty) card.cardName.trim(),
+      if (card.expirationDate.trim().isNotEmpty)
+        'Expires ${card.expirationDate}',
+    ].join('  •  ');
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       child: GestureDetector(
-        onTap: card.isDefault ? null : onTapSetDefault,
+        behavior: HitTestBehavior.opaque,
+        onTap: isDefault ? null : onTapSetDefault,
         child: Container(
-          width: MediaQuery.of(context).size.width,
+          width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: const Color(0xFFF2F2F2),
+            borderRadius: BorderRadius.circular(10),
+            color: isDefault ? CarePlanColor.light_orange : Colors.white,
+            border: Border.all(
+              color: isDefault ? CarePlanColor.orange : CarePlanColor.grey_5,
+            ),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    SvgPicture.asset(
-                      cardTypeAsset(card.cardType),
-                      height: 25,
-                      width: 25,
-                    ),
-                    Column(
-                      children: [
+                Container(
+                  height: 44,
+                  width: 44,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: CarePlanColor.grey_5),
+                  ),
+                  child: SvgPicture.asset(cardTypeAsset(card.cardType)),
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextHolder(
+                        title: "•••• ${card.lastFourDigits}",
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                        size: 16,
+                      ),
+                      if (subtitle.isNotEmpty) ...[
+                        const Gap(4),
                         TextHolder(
-                          title: "**** ${card.lastFourDigits}",
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black,
-                          size: 16,
-                        ),
-                        const Gap(6),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 20),
-                          child: TextHolder(
-                            title: "Expires ${card.expirationDate}",
-                            fontWeight: FontWeight.w500,
-                            size: 14,
-                            color: const Color(0xFF666666),
-                          ),
+                          title: subtitle,
+                          fontWeight: FontWeight.w500,
+                          size: 13,
+                          color: CarePlanColor.grey_3,
+                          maxLines: 1,
+                          textOverflow: TextOverflow.ellipsis,
                         ),
                       ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                if (card.isDefault)
+                const Gap(8),
+                if (isDefault)
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(5),
-                      color: CarePlanColor.light_orange,
+                      color: CarePlanColor.orange,
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -84,7 +106,7 @@ class AddedCardWidget extends StatelessWidget {
                       ),
                       child: TextHolder(
                         title: 'DEFAULT',
-                        color: CarePlanColor.brown,
+                        color: Colors.white,
                         size: 10,
                         fontWeight: FontWeight.w900,
                       ),
@@ -92,8 +114,15 @@ class AddedCardWidget extends StatelessWidget {
                   )
                 else
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: onTapDelete,
-                    child: const Icon(Icons.delete, color: Colors.red),
+                    child: const Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.delete_outline,
+                        color: Color(0xFFE84343),
+                      ),
+                    ),
                   ),
               ],
             ),

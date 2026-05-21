@@ -2,6 +2,7 @@ import '../../../../core/di/di_config.dart';
 import '../../data/datasources/card_remote_datasource.dart';
 import '../../data/repositories/card_repository_impl.dart';
 import '../repositories/card_repository.dart';
+import '../usecases/add_card.dart';
 import '../usecases/card_usecases.dart';
 import '../usecases/delete_card.dart';
 import '../usecases/get_cards.dart';
@@ -19,8 +20,10 @@ Future<void> cardInjector() async {
     () => MarkDefaultCard(inject()),
   );
   inject.registerLazySingleton<DeleteCard>(() => DeleteCard(inject()));
+  inject.registerLazySingleton<AddCard>(() => AddCard(inject()));
   inject.registerLazySingleton<CardUseCases>(
     () => CardUseCases(
+      inject(),
       inject(),
       inject(),
       inject(),

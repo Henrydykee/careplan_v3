@@ -9,10 +9,10 @@ import 'endpoint.dart';
 abstract class CardRemoteDataSource extends RemoteDataSource {
   Future<String> addCard({
     required String cardNumber,
-    required String cvv,
-    required String expirationDate,
-    required String cardName,
-    required String cardType,
+    required String expiryMonth,
+    required String expiryYear,
+    required String cvc,
+    required String cardholderName,
   });
   Future<List<CardModel>> getCards();
   Future<String> deleteCard({required String cardId});
@@ -31,23 +31,26 @@ class CardRemoteDataSourceImpl implements CardRemoteDataSource {
   @override
   Future<String> addCard({
     required String cardNumber,
-    required String cvv,
-    required String expirationDate,
-    required String cardName,
-    required String cardType,
+    required String expiryMonth,
+    required String expiryYear,
+    required String cvc,
+    required String cardholderName,
   }) async {
     NetworkServiceResponse response = await _networkService.post(
       CardEndpoints.addCard,
       body: {
         "cardNumber": cardNumber,
-        "cvv": cvv,
-        "expirationDate": expirationDate,
-        "cardName": cardName,
-        "cardType": cardType,
+        "expiryMonth": expiryMonth,
+        "expiryYear": expiryYear,
+        "cvc": cvc,
+        "cardholderName": cardholderName,
       },
     );
     final data = handleNetworkResponse(response);
-    return data["message"] ?? jsonEncode(data);
+    if (data is Map && data["message"] != null) {
+      return data["message"] as String;
+    }
+    return jsonEncode(data);
   }
 
   @override

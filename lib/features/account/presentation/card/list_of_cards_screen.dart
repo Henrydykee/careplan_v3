@@ -29,7 +29,9 @@ class _ListOfCardsScreenState extends State<ListOfCardsScreen> {
     super.didChangeDependencies();
     if (!_initialFetchDone) {
       _initialFetchDone = true;
-      context.read<CardProvider>().fetchCards();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.read<CardProvider>().fetchCards();
+      });
     }
   }
 
