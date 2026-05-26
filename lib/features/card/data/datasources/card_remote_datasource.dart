@@ -9,9 +9,8 @@ import 'endpoint.dart';
 abstract class CardRemoteDataSource extends RemoteDataSource {
   Future<String> addCard({
     required String cardNumber,
-    required String expiryMonth,
-    required String expiryYear,
-    required String cvc,
+    required String expirationDate,
+    required String cvv,
     required String cardholderName,
   });
   Future<List<CardModel>> getCards();
@@ -31,18 +30,16 @@ class CardRemoteDataSourceImpl implements CardRemoteDataSource {
   @override
   Future<String> addCard({
     required String cardNumber,
-    required String expiryMonth,
-    required String expiryYear,
-    required String cvc,
+    required String expirationDate,
+    required String cvv,
     required String cardholderName,
   }) async {
     NetworkServiceResponse response = await _networkService.post(
       CardEndpoints.addCard,
       body: {
         "cardNumber": cardNumber,
-        "expiryMonth": expiryMonth,
-        "expiryYear": expiryYear,
-        "cvc": cvc,
+        "cvv": cvv,
+        "expirationDate": expirationDate,
         "cardholderName": cardholderName,
       },
     );

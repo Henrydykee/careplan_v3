@@ -17,9 +17,8 @@ class AddCard implements UseCase<String, AddCardParams> {
     try {
       final response = await _repository.addCard(
         cardNumber: params!.cardNumber,
-        expiryMonth: params.expiryMonth,
-        expiryYear: params.expiryYear,
-        cvc: params.cvc,
+        expirationDate: params.expirationDate,
+        cvv: params.cvv,
         cardholderName: params.cardholderName,
       );
       return Right(response);
@@ -36,16 +35,14 @@ class AddCard implements UseCase<String, AddCardParams> {
 
 class AddCardParams {
   final String cardNumber;
-  final String expiryMonth;
-  final String expiryYear;
-  final String cvc;
+  final String expirationDate;
+  final String cvv;
   final String cardholderName;
 
   AddCardParams({
     required this.cardNumber,
-    required this.expiryMonth,
-    required this.expiryYear,
-    required this.cvc,
+    required this.expirationDate,
+    required this.cvv,
     required this.cardholderName,
   });
 }

@@ -6,9 +6,8 @@ abstract class CardRepository {
   Future<String> deleteCard({required String cardId});
   Future<String> addCard({
     required String cardNumber,
-    required String expiryMonth,
-    required String expiryYear,
-    required String cvc,
+    required String expirationDate,
+    required String cvv,
     required String cardholderName,
   });
 }

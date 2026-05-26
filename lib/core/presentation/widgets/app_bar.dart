@@ -2,6 +2,7 @@ import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../platform/color.dart';
 
@@ -13,8 +14,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSize {
   final Color? color;
   final Color? backButtonColor;
   final bool showBackIcon;
+  final SystemUiOverlayStyle? systemOverlayStyle;
 
-  CustomAppBar({this.title, this.image, this.onTap, this.color, this.widget, this.showBackIcon = true, this.backButtonColor});
+  CustomAppBar({this.title, this.image, this.onTap, this.color, this.widget, this.showBackIcon = true, this.backButtonColor, this.systemOverlayStyle});
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +24,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSize {
       padding: const EdgeInsets.symmetric(horizontal: 0),
       child: AppBar(
         backgroundColor: color ?? CarePlanColor.app_bar_color,
+        systemOverlayStyle: systemOverlayStyle,
         centerTitle:   true,
         elevation: 0.0,
         leading: showBackIcon ? IconButton(
@@ -68,6 +71,7 @@ class SecondaryAppBar extends StatelessWidget implements PreferredSize {
     this.actionWidget,
     this.style,
     this.enableSearchIcon = false,
+    this.systemOverlayStyle,
     Key? key,
   }) : super(key: key);
 
@@ -85,11 +89,13 @@ class SecondaryAppBar extends StatelessWidget implements PreferredSize {
   final Widget? leading;
   final Widget? actionWidget;
   final TextStyle? style;
+  final SystemUiOverlayStyle? systemOverlayStyle;
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: color ?? newprojectColor.white,
+      systemOverlayStyle: systemOverlayStyle,
       elevation: 0.0,
       centerTitle: true,
       // bottom: bottom as PreferredSizeWidget,

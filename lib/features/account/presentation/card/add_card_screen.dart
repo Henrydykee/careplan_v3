@@ -2,10 +2,10 @@
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
-import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_field.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/color.dart';
+import 'package:careplan/features/account/presentation/widgets/card_added_success_sheet.dart';
 import 'package:careplan/features/card/presentation/state/card_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,7 +28,8 @@ class _AddCardScreenState extends State<AddCardScreen> {
   late String _selectedYear;
 
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _cardNumberController = TextEditingController();
   final _securityCodeController = TextEditingController();
 
@@ -49,7 +50,8 @@ class _AddCardScreenState extends State<AddCardScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _cardNumberController.dispose();
     _securityCodeController.dispose();
     super.dispose();
@@ -105,14 +107,17 @@ class _AddCardScreenState extends State<AddCardScreen> {
     return sum % 10 == 0;
   }
 
-  String? _validateName(String? value) =>
-      (value == null || value.trim().isEmpty) ? "Name is required" : null;
+  String? _validateFirstName(String? value) =>
+      (value == null || value.trim().isEmpty) ? "First name is required" : null;
+
+  String? _validateLastName(String? value) =>
+      (value == null || value.trim().isEmpty) ? "Last name is required" : null;
 
   String? _validateCardNumber(String? value) {
     final digits = (value ?? '').replaceAll(' ', '');
     if (digits.isEmpty) return "Card number is required";
-    if (digits.length < 13 || digits.length > 19 || !_passesLuhn(digits)) {
-      return "Enter a valid card number";
+    if (digits.length != 16 || !_passesLuhn(digits)) {
+      return "Enter a valid 16-digit card number";
     }
     return null;
   }
@@ -145,21 +150,20 @@ class _AddCardScreenState extends State<AddCardScreen> {
 
     final provider = context.read<CardProvider>();
     setState(() => _isSaving = true);
+    final shortYear = _selectedYear.substring(_selectedYear.length - 2);
+    final cardholderName =
+        '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
     final success = await provider.addCard(
       cardNumber: _cardNumberController.text.replaceAll(' ', ''),
-      expiryMonth: _selectedMonth,
-      expiryYear: _selectedYear,
-      cvc: _securityCodeController.text.trim(),
-      cardholderName: _nameController.text.trim(),
+      expirationDate: '$_selectedMonth/$shortYear',
+      cvv: _securityCodeController.text.trim(),
+      cardholderName: cardholderName,
     );
     if (!mounted) return;
     setState(() => _isSaving = false);
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Card added successfully")),
-      );
-      router.pop();
+      await showCardAddedSuccessSheet(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -201,11 +205,27 @@ class _AddCardScreenState extends State<AddCardScreen> {
                           ),
                         ),
                         const Gap(10),
-                        CustomTextField(
-                          title: "Name on Card",
-                          keyboardType: TextInputType.name,
-                          controller: _nameController,
-                          validator: _validateName,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: CustomTextField(
+                                title: "First name",
+                                keyboardType: TextInputType.name,
+                                controller: _firstNameController,
+                                validator: _validateFirstName,
+                              ),
+                            ),
+                            const Gap(12),
+                            Expanded(
+                              child: CustomTextField(
+                                title: "Last name",
+                                keyboardType: TextInputType.name,
+                                controller: _lastNameController,
+                                validator: _validateLastName,
+                              ),
+                            ),
+                          ],
                         ),
                         const Gap(10),
                         CustomTextField(
@@ -216,7 +236,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
                           validator: _validateCardNumber,
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(19),
+                            LengthLimitingTextInputFormatter(16),
                             _CardNumberFormatter(),
                           ],
                           suffix: _brand == CardBrand.unknown

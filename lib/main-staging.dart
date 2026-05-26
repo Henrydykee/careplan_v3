@@ -36,6 +36,11 @@ void main() async {
     await FirebasePerformance.instance.setPerformanceCollectionEnabled(true);
 
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ));
     await initInjectors();
     runApp(careplan());
   }, (error, stack) {
@@ -62,7 +67,7 @@ class careplan extends StatelessWidget {
             theme: ThemeData(
                 fontFamily: 'avenir',
                 useMaterial3: false,
-                appBarTheme: const AppBarTheme(systemOverlayStyle: SystemUiOverlayStyle.light),
+                appBarTheme: const AppBarTheme(systemOverlayStyle: SystemUiOverlayStyle.dark),
                 textTheme: const TextTheme(
                   displayLarge: TextStyle(fontFamily: 'avenir'),
                   displayMedium: TextStyle(fontFamily: 'avenir'),

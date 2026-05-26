@@ -38,17 +38,15 @@ class CardRepositoryImpl implements CardRepository {
   @override
   Future<String> addCard({
     required String cardNumber,
-    required String expiryMonth,
-    required String expiryYear,
-    required String cvc,
+    required String expirationDate,
+    required String cvv,
     required String cardholderName,
   }) async {
     return guardedApiCall<String>(
       () => _remoteDataSource.addCard(
         cardNumber: cardNumber,
-        expiryMonth: expiryMonth,
-        expiryYear: expiryYear,
-        cvc: cvc,
+        expirationDate: expirationDate,
+        cvv: cvv,
         cardholderName: cardholderName,
       ),
       source: 'addCard',

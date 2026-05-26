@@ -75,18 +75,16 @@ class CardProvider with ChangeNotifier, ProviderState<List<CardModel>> {
 
   Future<bool> addCard({
     required String cardNumber,
-    required String expiryMonth,
-    required String expiryYear,
-    required String cvc,
+    required String expirationDate,
+    required String cvv,
     required String cardholderName,
   }) async {
     _setState(loading: true, hasError: false, errorMsg: '');
     final response = await useCases.addCard.call(
       AddCardParams(
         cardNumber: cardNumber,
-        expiryMonth: expiryMonth,
-        expiryYear: expiryYear,
-        cvc: cvc,
+        expirationDate: expirationDate,
+        cvv: cvv,
         cardholderName: cardholderName,
       ),
     );
