@@ -5,6 +5,7 @@ import '../../features/account/domain/di/account_injector.dart';
 import '../../features/auth/domain/di/auth_injector.dart';
 import '../../features/appointment/domain/di/appointment_injector.dart';
 import '../../features/card/domain/di/card_injector.dart';
+import '../../features/careplan/domain/di/careplan_injector.dart';
 import '../../features/history/domain/di/history_injector.dart';
 import '../../features/notifications/domain/di/notification_injector.dart';
 
@@ -18,6 +19,7 @@ Future<void> initInjectors()  async {
   await accountInjector();
   await appointmentInjector();
   await historyInjector();
+  await careplanInjector();
   await cardInjector();
   await notificationInjector();
 }

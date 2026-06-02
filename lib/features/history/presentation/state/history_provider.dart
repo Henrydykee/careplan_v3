@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/presentation/domain/ui_exceptions.dart';
 import '../../../../core/presentation/state/provider_state.dart';
+import '../../data/models/billing_history_item_model.dart';
 import '../../data/models/billing_history_response_model.dart';
 import '../../data/models/care_plan_history_item_model.dart';
 import '../../data/models/notes_history_response_model.dart';
@@ -21,6 +22,21 @@ class HistoryProvider with ChangeNotifier, ProviderState {
   NotesHistoryResponseModel? get notesHistory => _notesHistoryPayload;
   SessionHistoryResponseModel? get sessionHistory => _sessionHistoryPayload;
   CarePlanHistoryItemModel? get currentCarePlan => _currentCarePlan;
+
+  /// Accumulated billing items across all loaded pages.
+  List<BillingHistoryItemModel> get billingItems =>
+      List.unmodifiable(_billingItems);
+
+  /// Whether another page of billing history is available to load.
+  bool get billingHasNextPage => _billingHasNextPage;
+
+  /// Whether a "load more" (next page) request is currently in flight.
+  bool get isLoadingMoreBilling => _isLoadingMoreBilling;
+
+  final List<BillingHistoryItemModel> _billingItems = [];
+  int _billingPage = 1;
+  bool _billingHasNextPage = false;
+  bool _isLoadingMoreBilling = false;
 
   BillingHistoryResponseModel? _billingHistoryPayload;
   NotesHistoryResponseModel? _notesHistoryPayload;
@@ -60,6 +76,8 @@ class HistoryProvider with ChangeNotifier, ProviderState {
     notifyListeners();
   }
 
+  /// Loads the first page of billing history, replacing any previously
+  /// accumulated items. Use [loadMoreBilling] to append subsequent pages.
   Future<void> fetchBillingHistory({
     required String patientId,
     int page = 1,
@@ -86,6 +104,11 @@ class HistoryProvider with ChangeNotifier, ProviderState {
         billingHistoryPayload: null,
       );
     }, (r) {
+      _billingPage = page;
+      _billingHasNextPage = r.hasNextPage;
+      _billingItems
+        ..clear()
+        ..addAll(r.history);
       _setState(
         loading: false,
         isReady: true,
@@ -93,6 +116,40 @@ class HistoryProvider with ChangeNotifier, ProviderState {
         payload: r,
         billingHistoryPayload: r,
       );
+    });
+  }
+
+  /// Appends the next page of billing history to [billingItems]. No-op when a
+  /// load is already in flight or no further pages are available.
+  Future<void> loadMoreBilling({
+    required String patientId,
+    int limit = 15,
+  }) async {
+    if (_isLoadingMoreBilling || !_billingHasNextPage) return;
+
+    _isLoadingMoreBilling = true;
+    notifyListeners();
+
+    final nextPage = _billingPage + 1;
+    Either<UIError, BillingHistoryResponseModel>? response =
+        await useCases.getBillingHistory(
+      GetBillingHistoryParams(
+        patientId: patientId,
+        page: nextPage,
+        limit: limit,
+      ),
+    );
+
+    response.fold((l) {
+      _isLoadingMoreBilling = false;
+      notifyListeners();
+    }, (r) {
+      _billingPage = nextPage;
+      _billingHasNextPage = r.hasNextPage;
+      _billingItems.addAll(r.history);
+      _billingHistoryPayload = r;
+      _isLoadingMoreBilling = false;
+      notifyListeners();
     });
   }
 

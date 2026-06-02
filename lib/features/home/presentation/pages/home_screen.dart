@@ -14,6 +14,7 @@ import 'package:careplan/features/assement/data/datasources/assessment_remote_da
 import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:careplan/features/auth/domain/usecases/get_user_details.dart';
 import 'package:careplan/features/auth/presentation/kyc/kyc_step_1_screen.dart';
+import 'package:careplan/features/careplan/presentation/state/careplan_provider.dart';
 import 'package:careplan/features/history/presentation/state/history_provider.dart';
 import 'package:careplan/features/home/presentation/widgets/home_careplan_section.dart';
 import 'package:careplan/features/home/presentation/widgets/home_greeting_header.dart';
@@ -116,6 +117,9 @@ class _HomeScreenState extends State<HomeScreen> {
             context
                 .read<HistoryProvider>()
                 .fetchCurrentCarePlan(patientId: loadedUser.id!);
+            context
+                .read<CarePlanProvider>()
+                .fetchCareTeam(patientId: loadedUser.id!);
           });
         } catch (e) {
           // Handle error silently
@@ -153,6 +157,9 @@ class _HomeScreenState extends State<HomeScreen> {
         context
             .read<HistoryProvider>()
             .fetchCurrentCarePlan(patientId: patientId, forceRefresh: true),
+      );
+      futures.add(
+        context.read<CarePlanProvider>().fetchCareTeam(patientId: patientId),
       );
       futures.add(
         context.read<AppointmentProvider>().fetchUpcomingAppointments(
@@ -235,11 +242,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   onStartVerification: () =>
                       router.push(const KycVerificatonScreen1()),
                 ),
-              if (_user?.careplanTeam != null &&
-                  _user!.careplanTeam!.isNotEmpty)
-                CareplanTeamWidget(
-                  careTeamMembers: _user!.careplanTeam!,
-                ),
+              Consumer<CarePlanProvider>(
+                builder: (context, carePlanVm, _) {
+                  final fetched = carePlanVm.careTeam;
+                  final fallback = _user?.careplanTeam ?? const [];
+                  final teamList = fetched.isNotEmpty ? fetched : fallback;
+                  if (teamList.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return CareplanTeamWidget(careTeamMembers: teamList);
+                },
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextHolder(

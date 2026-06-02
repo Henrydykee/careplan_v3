@@ -20,11 +20,38 @@ class BillingHistoryScreen extends StatefulWidget {
 
 class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
   String? _patientId;
+  final ScrollController _scrollController = ScrollController();
+
+  static const int _pageLimit = 15;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _loadPatientId();
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 300) {
+      _loadMore();
+    }
+  }
+
+  void _loadMore() {
+    if (_patientId == null || _patientId!.isEmpty) return;
+    final provider = context.read<HistoryProvider>();
+    if (provider.isLoadingMoreBilling || !provider.billingHasNextPage) return;
+    provider.loadMoreBilling(patientId: _patientId!, limit: _pageLimit);
   }
 
   Future<void> _loadPatientId() async {
@@ -59,7 +86,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
         context.read<HistoryProvider>().fetchBillingHistory(
               patientId: _patientId!,
               page: 1,
-              limit: 15,
+              limit: _pageLimit,
             );
       });
     }
@@ -73,7 +100,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
     await context.read<HistoryProvider>().fetchBillingHistory(
           patientId: _patientId!,
           page: 1,
-          limit: 15,
+          limit: _pageLimit,
         );
   }
 
@@ -104,7 +131,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
               );
             }
 
-            final history = historyProvider.billingHistory?.history ?? [];
+            final history = historyProvider.billingItems;
 
             if (history.isEmpty) {
               return const HistoryEmptyState(
@@ -113,13 +140,30 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
               );
             }
 
+            final showFooterLoader = historyProvider.isLoadingMoreBilling;
+
             return ListView.builder(
+              controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              itemCount: history.length,
-              itemBuilder: (context, i) => BillingHistoryCard(
-                billingHistoryItem: history[i],
-              ),
+              itemCount: history.length + (showFooterLoader ? 1 : 0),
+              itemBuilder: (context, i) {
+                if (i >= history.length) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      ),
+                    ),
+                  );
+                }
+                return BillingHistoryCard(
+                  billingHistoryItem: history[i],
+                );
+              },
             );
           },
         ),

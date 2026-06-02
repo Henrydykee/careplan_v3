@@ -210,7 +210,7 @@ class CarePlanTeamMember {
 
     return CarePlanTeamMember(
       id: json['id'] as String?,
-      name: readString(['name']) ??
+      name: readString(['name', 'provider']) ??
           (composedName.isNotEmpty ? composedName : null),
       imageUrl: readString(['imageUrl', 'avatar', 'profilePicture']),
       type: readString(['type', 'providerType', 'role']),

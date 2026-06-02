@@ -6,6 +6,9 @@ class CarePlanEndpoints {
   static String getActiveCarePlan = "careplan/patient";
   static String getActiveCarePlanSummary = "careplan";
   static String getCarePlanTeam = "user/updated-careplan-team";
+
+  /// GET {{base_url}}/careteams/:id?page=1&limit=10
+  static String getCareTeam(String patientId) => "careteams/$patientId";
 }
 
 
