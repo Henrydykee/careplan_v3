@@ -2,7 +2,7 @@ library Constants;
 
 
 const String STAGING_BASE_URL = "https://careplan-backend-v2-4552e7abb649.herokuapp.com/v3/";
-const String PROD_BASE_URL = "";
+const String PROD_BASE_URL = "https://api.cp365.health/v3/";
 
 class SPref {
   static const SEEN_ONBOARDING = "onboarding";
