@@ -10,7 +10,7 @@ Flutter healthcare mobile app (Android + iOS) for patient care management. Dart 
 
 Clean Architecture + MVVM. Every feature follows this layered structure:
 
-```
+```text
 features/<feature>/
 ├── data/
 │   ├── datasources/        # Remote data source (abstract + impl)
@@ -32,6 +32,7 @@ features/<feature>/
 ### 1. Define endpoints
 
 Create `data/datasources/endpoint.dart` with static strings:
+
 ```dart
 class MyFeatureEndpoints {
   static String getData = "my-feature/data";
@@ -41,6 +42,7 @@ class MyFeatureEndpoints {
 ### 2. Create models
 
 In `data/models/`, use manual `fromJson`/`toJson` (no code generation):
+
 ```dart
 class MyModel {
   final String? id;
@@ -62,6 +64,7 @@ class MyModel {
 ### 3. Create remote data source
 
 Abstract interface + implementation. Inject `NetworkService`. Use `handleNetworkResponse()` to unwrap responses:
+
 ```dart
 abstract class MyFeatureRemoteDataSource {
   Future<MyModel> getData();
@@ -84,6 +87,7 @@ class MyFeatureRemoteDataSourceImpl implements MyFeatureRemoteDataSource {
 ### 4. Create repository
 
 Abstract interface in `domain/repositories/`, implementation in `data/repositories/`. Always wrap calls with `guardedApiCall<T>()`:
+
 ```dart
 // domain/repositories/
 abstract class MyFeatureRepository {
@@ -104,6 +108,7 @@ class MyFeatureRepositoryImpl implements MyFeatureRepository {
 ### 5. Create use cases
 
 Each use case implements `UseCase<ReturnType, ParamType>` and returns `Either<UIError, T>`. Catch `NetworkFailure` and `CacheFailure`:
+
 ```dart
 class GetData implements UseCase<MyModel, NoParams> {
   final MyFeatureRepository _repo;
@@ -124,6 +129,7 @@ class GetData implements UseCase<MyModel, NoParams> {
 ```
 
 Group use cases in a facade class:
+
 ```dart
 class MyFeatureUseCases {
   final GetData getData;
@@ -134,6 +140,7 @@ class MyFeatureUseCases {
 ### 6. Wire DI
 
 In `domain/di/my_feature_injector.dart`, register datasource -> repo -> usecases -> provider:
+
 ```dart
 Future<void> myFeatureInjector() async {
   inject.registerLazySingleton<MyFeatureRemoteDataSource>(
@@ -153,6 +160,7 @@ Then add the call in `core/di/di_config.dart` inside `initInjectors()`.
 ### 7. Create provider (state management)
 
 Extend `ChangeNotifier` with `ProviderState` mixin. Use `_setState` helper and `response.fold()`:
+
 ```dart
 class MyFeatureProvider with ChangeNotifier, ProviderState {
   final MyFeatureUseCases useCases;
@@ -183,6 +191,7 @@ Register in `ProviderInitializer.providers` list.
 ### 8. Build UI screens
 
 Use `ViewModelProvider` + `LoaderWrapper` pattern:
+
 ```dart
 @override
 Widget build(BuildContext context) {
@@ -205,7 +214,7 @@ Widget build(BuildContext context) {
 
 ## Error Handling Flow
 
-```
+```text
 DataSource throws exception
   → guardedApiCall catches → converts to NetworkFailure/CacheFailure
     → UseCase catches → converts to Left(UIError)
@@ -216,6 +225,7 @@ DataSource throws exception
 ## Navigation
 
 Use the global `router` (RouterService) — never use `Navigator.of(context)` directly:
+
 ```dart
 router.push(MyScreen());                                    // push
 router.pop();                                               // pop
@@ -228,26 +238,32 @@ All transitions use fade animation by default.
 ## Key Conventions
 
 ### Naming
+
 - **Files:** `snake_case.dart` — suffixes: `_screen`, `_model`, `_datasource`, `_repository_impl`, `_provider`
 - **Classes:** `PascalCase` — suffixes: `Screen`, `Model`, `RemoteDataSource`/`RemoteDataSourceImpl`, `Repository`/`RepositoryImpl`, `Provider`
 - **Param classes:** `PascalCase` with `Params` suffix, bundled in same file as use case
 - **Endpoints:** static strings in a per-feature `Endpoints` class
 
 ### DI Registration
+
 - `registerSingleton()` — one instance, created immediately (core services)
 - `registerLazySingleton()` — one instance, created on first access (features)
 - `registerFactory()` — new instance each time (interceptors)
 
 ### Storage
+
 - **Sensitive data** (tokens, PIN): `SecuredStorage` (flutter_secure_storage)
 - **General data** (user profile, preferences): `LocalStorageService` (SharedPreferences)
 - **In-memory cache**: `InMemory` class
 
 ### Colors & Styles
+
 Defined in `core/platform/color.dart` as `CarePlanColor` static constants. Font: Avenir (weights 300–700).
 
 ### Shared Widgets
+
 Located in `core/presentation/widgets/`:
+
 - `LoaderWrapper` — loading overlay
 - `CustomAppBar` — app bar with back button
 - `CustomTextField` — form input
@@ -260,18 +276,28 @@ Located in `core/presentation/widgets/`:
 
 ```bash
 # Run (production)
-flutter run -t lib/main-production.dart
+flutter run -t lib/main-production.dart --flavor production
 
 # Run (staging)
-flutter run -t lib/main-staging.dart
+flutter run -t lib/main-staging.dart --flavor staging
 
 # Build runner (code gen)
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 ```
+
+**`--flavor` is required.** The Xcode project defines two schemes (`production`,
+`staging`); iOS builds fail with "You must specify a --flavor option" without it.
+The flavor name must match the target's entry point.
+
+Do not add `meta` or `analyzer` to `dependency_overrides`. An override outranks
+the Flutter SDK's own constraints, and pinning `meta` below what the framework
+requires breaks the build inside `packages/flutter` itself (e.g. `Undefined name
+'awaitNotRequired'`), not in app code.
 
 ## Environment
 
 Two flavors configured via `EnvConfig`:
+
 - **Production:** `Constants.PROD_BASE_URL`
 - **Staging:** staging base URL
 

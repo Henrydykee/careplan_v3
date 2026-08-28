@@ -25,16 +25,12 @@ void main() async {
           baseUrl: Constants.STAGING_BASE_URL,
         ));
     await Firebase.initializeApp();
-
     // Crashlytics — enable in staging too for pre-release crash visibility
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-
     // Analytics
     await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
-
     // Performance monitoring
     await FirebasePerformance.instance.setPerformanceCollectionEnabled(true);
-
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -49,7 +45,6 @@ void main() async {
 }
 
 class careplan extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return OverlaySupport(

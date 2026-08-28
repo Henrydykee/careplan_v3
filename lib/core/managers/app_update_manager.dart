@@ -87,6 +87,7 @@ class AppUpdateManager {
                       'A new version of CarePlan is available. Please update to continue using the app.',
                   size: 14,
                   color: CarePlanColor.grey_3,
+                  align: TextAlign.center,
                 ),
                 const Gap(24),
                 CustomButtom(
