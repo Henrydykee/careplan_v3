@@ -51,7 +51,7 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
     return LoaderWrapper(
       isLoading: _isLoading,
       view: Scaffold(
-        appBar: CustomAppBar(),
+        appBar: CustomAppBar(showBackIcon: false),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

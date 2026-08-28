@@ -101,8 +101,7 @@ class EquityKeyCell extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 25,
                     fontWeight: FontWeight.w800,
-                    color: CarePlanColor
-                    .grey_2.withValues(alpha: 0.7)
+                    color: const Color.fromARGB(255, 42, 40, 40).withValues(alpha: 0.7)
                   ),
                 ),
         ),
