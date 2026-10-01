@@ -35,6 +35,23 @@ enum NetworkResult {
   NOT_IMPLEMENTED
 }
 
+/// Collapses whatever the API put in `message` into one readable string.
+///
+/// Validation errors come back as a list, e.g.
+/// `{"message": ["postalCode must be a string", "city should not be empty"]}`,
+/// so `error` cannot be assumed to be a String.
+String readableApiError(
+  dynamic error, {
+  String fallback = "Looks like something is wrong, we are working to fix it",
+}) {
+  if (error is String) return error.isEmpty ? fallback : error;
+  if (error is List) {
+    final messages = error.map((e) => "$e").where((e) => e.isNotEmpty).toList();
+    return messages.isEmpty ? fallback : messages.join("\n");
+  }
+  return error == null ? fallback : "$error";
+}
+
 handleNetworkResponse(NetworkServiceResponse response) {
   if (response.result != NetworkResult.SUCCESS) {
     if (response.result == NetworkResult.FAILURE  || response.result == NetworkResult.NO_INTERNET_CONNECTION) {
@@ -42,7 +59,7 @@ handleNetworkResponse(NetworkServiceResponse response) {
       throw NetworkConnectivityException(exceptionMessage: "${response.error}");
     }
    // bugsnag.notify(response.error, response.data);
-    throw ApiResponseException(exceptionMessage: response.error as String, data: response.data);
+    throw ApiResponseException(exceptionMessage: readableApiError(response.error), data: response.data);
   }
   return response.data;
 }

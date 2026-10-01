@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/text_field.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/features/nav_bar/presentation/nav_bar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
@@ -35,6 +38,7 @@ class _EditPersonalProfileScreenState extends State<EditPersonalProfileScreen> {
   String? _sex;
 
   DateTime? _date;
+  static final DateTime _firstDate = DateTime(1800);
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
   final DateFormat _displayDateFormat = DateFormat('d MMMM yyyy');
 
@@ -85,26 +89,74 @@ class _EditPersonalProfileScreenState extends State<EditPersonalProfileScreen> {
   }
 
   Future<void> _handleDatePicker() async {
+    if (Platform.isIOS) {
+      _showCupertinoDatePicker();
+    } else {
+      await _showMaterialDatePicker();
+    }
+  }
+
+  /// Both pickers assert that the initial date sits inside their range, and a
+  /// stored date of birth can fall outside it, so clamp before opening.
+  DateTime get _initialPickerDate {
+    final now = DateTime.now();
+    final date = _date ?? now;
+    if (date.isAfter(now)) return now;
+    if (date.isBefore(_firstDate)) return _firstDate;
+    return date;
+  }
+
+  void _setDate(DateTime date) {
+    setState(() {
+      _date = date;
+      dodController.text = _displayDateFormat.format(date);
+    });
+  }
+
+  Future<void> _showMaterialDatePicker() async {
     final DateTime? date = await showDatePicker(
       context: context,
-      initialDate: _date ?? DateTime.now(),
-      firstDate: DateTime(1800),
+      initialDate: _initialPickerDate,
+      firstDate: _firstDate,
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: ColorScheme.light(primary: CarePlanColor.orange),
           ),
-          child: child!,
+          child: child ?? const SizedBox.shrink(),
         );
       },
     );
-    if (date != null) {
-      setState(() {
-        _date = date;
-        dodController.text = _displayDateFormat.format(date);
-      });
-    }
+    if (date != null) _setDate(date);
+  }
+
+  void _showCupertinoDatePicker() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => Container(
+        height: MediaQuery.of(context).size.height / 3,
+        color: Colors.white,
+        child: Column(
+          children: [
+            SizedBox(
+              height: 200,
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: _initialPickerDate,
+                minimumDate: _firstDate,
+                maximumDate: DateTime.now(),
+                onDateTimeChanged: _setDate,
+              ),
+            ),
+            CupertinoButton(
+              child: const Text('Done'),
+              onPressed: () => router.pop(),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _sexDropdown() {

@@ -144,7 +144,7 @@ class _PhoneNumberConfrimationScreenState extends State<PhoneNumberConfrimationS
                         ),
                       ),
                       TextHolder(
-                        title: "Enter the 6-digit verification code sent to your email",
+                        title: "Enter the 4-digit verification code sent to your email",
                         size: 15,
                         fontWeight: FontWeight.w500,
                         align: TextAlign.center,

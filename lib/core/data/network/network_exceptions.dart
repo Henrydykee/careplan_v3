@@ -22,9 +22,15 @@ class NetworkConnectivityException implements Exception {
 }
 
 
+/// Pulls the API's `message` out of an error body without assuming its shape.
+///
+/// The body is not always a Map — gateways and proxies return plain
+/// text/HTML — so indexing it directly would throw from inside the catch block.
+dynamic _errorMessageFrom(dynamic data) => data is Map ? data["message"] : null;
+
 NetworkServiceResponse handleException(DioException e, StackTrace trace) {
   if (e.response != null) {
-    print(e.response?.data["message"]);
+    print(_errorMessageFrom(e.response?.data));
     // The request was made and the server responded with a status code
     // that falls out of the range of 2xx and is also not 304.
     dynamic errorData = {"error": e};
@@ -32,7 +38,7 @@ NetworkServiceResponse handleException(DioException e, StackTrace trace) {
       return NetworkServiceResponse(
         result: NetworkResult.SERVER_ERROR,
         data: errorData,
-        error: e.response?.data["message"] ?? "Internal sever error",
+        error: _errorMessageFrom(e.response?.data) ?? "Internal sever error",
       );
 
     }
@@ -41,12 +47,12 @@ NetworkServiceResponse handleException(DioException e, StackTrace trace) {
       return NetworkServiceResponse(
         result: NetworkResult.UNAUTHORISED,
         data: errorData,
-        error: e.response?.data["message"] ?? "Unauthorized",
+        error: _errorMessageFrom(e.response?.data) ?? "Unauthorized",
       );
     } else {
       return NetworkServiceResponse(
         data: errorData,
-        error: e.response?.data["message"] ?? "Looks like something is wrong, we are working to fix it",
+        error: _errorMessageFrom(e.response?.data) ?? "Looks like something is wrong, we are working to fix it",
       );
     }
 
