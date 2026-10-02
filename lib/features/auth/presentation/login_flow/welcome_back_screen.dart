@@ -226,8 +226,10 @@ class _WelcomeBackScreenState extends State<WelcomeBackScreen> {
     if (!mounted) return;
     setState(() => _isLoading = false);
     result.fold(
-      (error) =>
-          showErrorDialog(context, "Login Error", error.message),
+      (error) {
+        _pinCodeController?.clear();
+        showErrorDialog(context, "Login Error", error.message);
+      },
       (_) {
         resetUnauthorizedNavigation();
         googleAnalytics.logEvent(eventName: 'login', parameters: {'method': 'pin'});

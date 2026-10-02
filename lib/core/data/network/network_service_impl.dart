@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:sentry_dio/sentry_dio.dart';
 
 import '../../platform/env_config.dart';
 import 'network_config.dart';
@@ -34,6 +35,7 @@ class NetworkServiceImpl implements NetworkService {
     NetworkConfig? networkConfiguration,
     NetworkInterceptor? interceptor,
   }) {
+    _dio.addSentry();
     try {
       _networkConfiguration = networkConfiguration!;
       registerInterceptor(interceptor!);

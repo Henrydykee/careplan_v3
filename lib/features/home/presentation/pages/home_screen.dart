@@ -223,11 +223,12 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const Gap(70),
               HomeGreetingHeader(user: _user),
-              HomeWellbeingSection(
-                visible: _showWellbeingCheckIn,
-                question: _wellbeingQuestion,
-                onMoodSelected: _onMoodSelected,
-              ),
+              // HomeWellbeingSection(
+              //   visible: _showWellbeingCheckIn,
+              //   question: _wellbeingQuestion,
+              //   onMoodSelected: _onMoodSelected,
+              // ),
+                      const Gap(20),
               K10ScoreHolder(
                 width: width,
                 kycStatus: "",
