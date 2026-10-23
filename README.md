@@ -46,6 +46,19 @@ be patched.
 
 Store submission itself is unchanged: Shorebird produces the same AAB/IPA you upload today.
 
+> **Upload only artifacts built by `shorebird release`.** A plain `flutter build` writes to the
+> *same* output path, so the file sitting in `build/` may or may not contain the updater, and
+> nothing in the filename says which. `shorebird.yaml` is bundled as an asset either way, so its
+> presence proves nothing. Ship a `flutter build` artifact and those users can never receive a
+> patch — even though the Shorebird console will still show the release as `active`.
+>
+> To check an AAB before uploading — a Shorebird build reports a non-zero count, a plain
+> `flutter build` reports exactly `0`:
+>
+> ```bash
+> unzip -p <app>.aab base/lib/arm64-v8a/libflutter.so | grep -ac shorebird
+> ```
+
 ### Prerequisites
 
 ```bash
