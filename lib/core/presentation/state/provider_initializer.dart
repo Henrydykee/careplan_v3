@@ -11,6 +11,7 @@ import '../../../features/careplan/presentation/state/careplan_provider.dart';
 import '../../../features/history/presentation/state/history_provider.dart';
 import '../../../features/notifications/presentation/state/notification_provider.dart';
 import '../../di/di_config.dart';
+import 'app_update_provider.dart';
 
 class ProviderInitializer {
   static List<SingleChildWidget> providers = [
@@ -22,5 +23,6 @@ class ProviderInitializer {
     ChangeNotifierProvider<CardProvider>(create: (_) => CardProvider(inject())),
     ChangeNotifierProvider<KycProvider>(create: (_) => inject<KycProvider>()),
     ChangeNotifierProvider<NotificationProvider>(create: (_) => NotificationProvider(inject())),
+    ChangeNotifierProvider<AppUpdateProvider>(create: (_) => inject<AppUpdateProvider>()),
   ];
 }

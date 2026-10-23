@@ -48,7 +48,7 @@ def pass = keystoreProperties.getProperty('careplan.keyPassword')
 android {
     compileSdkVersion 36
     namespace "com.careplan.mobile"
-    ndkVersion "28.0.12433566"
+    ndkVersion "28.2.13676358"
 
     compileOptions {
         coreLibraryDesugaringEnabled true
@@ -127,7 +127,7 @@ android {
         staging {
             dimension "flavors"
             applicationId "com.careplan.staging"
-            versionNameSuffix "-stage-${getDate()}"
+            versionNameSuffix "-stage"
             resValue "string", "app_name", "CP365 Stage"
             resValue "string", "is_debug", "true"
         }

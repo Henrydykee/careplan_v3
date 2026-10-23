@@ -9,6 +9,7 @@ import '../data/network/network_service.dart';
 import '../data/network/network_service_impl.dart';
 import '../managers/device_manager.dart';
 import '../managers/remote_config_manager.dart';
+import '../presentation/state/app_update_provider.dart';
 import '../platform/storage/secure_storage_impl.dart';
 import '../platform/storage/secured_storage.dart';
 import 'di_config.dart';
@@ -32,4 +33,5 @@ Future<void> coreInjector() async {
   // inject.registerSingleton<FirebaseCloudMessagingManager>(FirebaseCloudMessagingManager.instance);
   inject.registerLazySingleton<InMemory>(() => InMemory.instance);
   inject.registerLazySingleton<ApiCacheService>(() => ApiCacheService.instance);
+  inject.registerLazySingleton<AppUpdateProvider>(() => AppUpdateProvider());
 }

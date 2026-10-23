@@ -6,7 +6,9 @@ import 'package:careplan/features/history/presentation/state/history_provider.da
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
+import '../../../core/presentation/state/app_update_provider.dart';
 import '../../../core/managers/google_analytics_manager.dart';
 import '../../../core/resources/assets.dart';
 import '../../../core/resources/color.dart';
@@ -42,6 +44,7 @@ class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAlive
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialCurrentCareplan();
+      _checkForAppUpdate();
     });
 
     // Initialize bottom nav items once
@@ -52,6 +55,27 @@ class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAlive
       FABBottomAppBarItem(iconName: Assets.account_icon, name: Strings.account),
     ];
 
+  }
+
+
+  /// Nudges the user to restart when Shorebird has staged a patch.
+  ///
+  /// Not awaited: the check is a network call and must not hold up the first
+  /// frame of the nav bar.
+  void _checkForAppUpdate() {
+    final provider = context.read<AppUpdateProvider>();
+    provider.checkForPatch().then((_) {
+      if (!mounted || !provider.patchReady || provider.prompted) return;
+      provider.markPrompted();
+      showSimpleNotification(
+        const Text('Update ready'),
+        subtitle: const Text('Close and reopen CP365 to apply the latest version.'),
+        background: CarePlanColor.green,
+        foreground: const Color(0xFFFFFFFF),
+        duration: const Duration(seconds: 6),
+        slideDismissDirection: DismissDirection.up,
+      );
+    });
   }
 
   // Future<void> _initializeApp() async {
