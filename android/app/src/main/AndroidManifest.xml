@@ -1,9 +1,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.careplan.mobile">
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
+    <!-- Firebase Analytics (play-services-measurement-api) merges in AD_ID.
+         The app serves no ads and does no ad attribution, so we strip it and
+         answer "no" to Play's advertising ID declaration. Removing it makes
+         the advertising ID read as all zeros; Analytics itself is unaffected.
+         Re-add it (delete this block) if CP365 ever runs Google Ads install
+         campaigns and needs attribution. -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
 
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.

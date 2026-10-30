@@ -8,7 +8,7 @@ import '../../resources/color.dart';
 /// filled slot is a solid brand dot. Input is driven by [CarePlanKeyPad] on
 /// every screen that uses this, so the field itself stays non-interactive by
 /// default ([ignoreTouch]).
-class newprojectPinCode extends StatelessWidget {
+class newprojectPinCode extends StatefulWidget {
   final onCompleted;
 
   final Function(String)? onChanged;
@@ -28,23 +28,43 @@ class newprojectPinCode extends StatelessWidget {
       this.ignoreTouch = true});
 
   @override
+  State<newprojectPinCode> createState() => _newprojectPinCodeState();
+}
+
+class _newprojectPinCodeState extends State<newprojectPinCode> {
+  /// Owned only when the caller did not supply one. Controllers and focus
+  /// nodes passed in belong to the calling screen, so [PinCodeTextField] is
+  /// told not to dispose them ([autoDisposeControllers]).
+  FocusNode? _fallbackFocusNode;
+
+  FocusNode get _focusNode =>
+      widget.focusNode ?? (_fallbackFocusNode ??= FocusNode());
+
+  @override
+  void dispose() {
+    _fallbackFocusNode?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      ignoring: ignoreTouch,
+      ignoring: widget.ignoreTouch,
       child: PinCodeTextField(
+        autoDisposeControllers: false,
         obscureText: true,
         // The dot is drawn by the slot's fill colour, so the character slot
         // itself renders nothing.
         obscuringWidget: const SizedBox.shrink(),
         blinkWhenObscuring: false,
-        controller: controller,
-        focusNode: focusNode,
+        controller: widget.controller,
+        focusNode: _focusNode,
         autoFocus: false,
-        onCompleted: onCompleted,
+        onCompleted: widget.onCompleted,
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         mainAxisAlignment: MainAxisAlignment.center,
-        length: length ?? 4,
+        length: widget.length ?? 4,
         enableActiveFill: true,
         showCursor: false,
         animationType: AnimationType.scale,
@@ -57,15 +77,15 @@ class newprojectPinCode extends StatelessWidget {
         pinTheme: PinTheme(
           shape: PinCodeFieldShape.circle,
           fieldOuterPadding: const EdgeInsets.symmetric(horizontal: 9),
-          fieldHeight: _dotSize,
-          fieldWidth: _dotSize,
+          fieldHeight: newprojectPinCode._dotSize,
+          fieldWidth: newprojectPinCode._dotSize,
           borderWidth: 1.5,
           activeBorderWidth: 1.5,
           selectedBorderWidth: 1.5,
           inactiveBorderWidth: 1.5,
           disabledBorderWidth: 1.5,
           errorBorderWidth: 1.5,
-          borderRadius: BorderRadius.circular(_dotSize / 2),
+          borderRadius: BorderRadius.circular(newprojectPinCode._dotSize / 2),
           activeColor: CarePlanColor.brown,
           activeFillColor: CarePlanColor.brown,
           selectedColor: CarePlanColor.brown,
@@ -74,7 +94,7 @@ class newprojectPinCode extends StatelessWidget {
           inactiveFillColor: CarePlanColor.grey_5,
           disabledColor: CarePlanColor.grey_5,
         ),
-        onChanged: onChanged ?? (value) {},
+        onChanged: widget.onChanged ?? (value) {},
         appContext: context,
       ),
     );

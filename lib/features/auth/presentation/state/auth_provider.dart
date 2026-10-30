@@ -9,6 +9,7 @@ import '../../domain/usecases/auth_usecases.dart';
 import '../../domain/usecases/login_user.dart';
 import '../../domain/usecases/recover_password.dart';
 import '../../domain/usecases/resend_verification_code.dart';
+import '../../domain/usecases/send_recovery_code.dart';
 import '../../domain/usecases/verify_email.dart';
 
 class AuthenticationProvider with ChangeNotifier, ProviderState {
@@ -73,9 +74,18 @@ class AuthenticationProvider with ChangeNotifier, ProviderState {
     });
   }
 
+  Future sendRecoveryCode(SendRecoveryCodeParams params) async {
+    _setState(loading: true, hasError: false);
+    Either<UIError, String>? response = await useCases.sendRecoveryCode(params);
+    response.fold(
+      (l) => _setState(loading: false, hasError: true, errorMsg: l.message),
+      (r) => _setState(loading: false, hasError: false, payload: r),
+    );
+  }
+
   Future recoverPassword(RecoverPasswordParams params) async {
     _setState(loading: true, hasError: false);
-    Either<UIError, String>? response = await useCases.recoverPassword(params);
+    Either<UIError, UserModel>? response = await useCases.recoverPassword(params);
     response.fold(
       (l) => _setState(loading: false, hasError: true, errorMsg: l.message),
       (r) => _setState(loading: false, isReady: true, payload: r),

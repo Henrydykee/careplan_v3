@@ -12,6 +12,7 @@ import '../usecases/login_user.dart';
 import '../usecases/login_with_pin.dart';
 import '../usecases/recover_password.dart';
 import '../usecases/resend_verification_code.dart';
+import '../usecases/send_recovery_code.dart';
 import '../usecases/set_password.dart';
 import '../usecases/set_pin.dart';
 import '../usecases/update_pin.dart';
@@ -31,6 +32,7 @@ Future<void> authInjector() async {
   inject.registerLazySingleton<LoginWithPin>(() => LoginWithPin(inject()));
   inject.registerLazySingleton<RecoverPassword>(() => RecoverPassword(inject()));
   inject.registerLazySingleton<ResendVerificationCode>(() => ResendVerificationCode(inject()));
+  inject.registerLazySingleton<SendRecoveryCode>(() => SendRecoveryCode(inject()));
   inject.registerLazySingleton<SetPassword>(() => SetPassword(inject()));
   inject.registerLazySingleton<SetPin>(() => SetPin(inject()));
   inject.registerLazySingleton<UpdatePin>(() => UpdatePin(inject()));
@@ -47,6 +49,7 @@ Future<void> authInjector() async {
         inject(), // loginWithPin
         inject(), // recoverPassword
         inject(), // resendVerificationCode
+        inject(), // sendRecoveryCode
         inject(), // setPassword
         inject(), // setPin
         inject(), // updatePin

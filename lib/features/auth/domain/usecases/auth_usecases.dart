@@ -11,6 +11,7 @@ import 'get_user_details.dart';
 import 'login_user.dart';
 import 'login_with_pin.dart';
 import 'recover_password.dart';
+import 'send_recovery_code.dart';
 import 'set_password.dart';
 import 'set_pin.dart';
 import 'update_pin.dart';
@@ -24,6 +25,7 @@ class AuthenticationUseCases {
   LoginWithPin loginWithPin;
   RecoverPassword recoverPassword;
   ResendVerificationCode resendVerificationCode;
+  SendRecoveryCode sendRecoveryCode;
   SetPassword setPassword;
   SetPin setPin;
   UpdatePin updatePin;
@@ -40,6 +42,7 @@ class AuthenticationUseCases {
     this.loginWithPin,
     this.recoverPassword,
     this.resendVerificationCode,
+    this.sendRecoveryCode,
     this.setPassword,
     this.setPin,
     this.updatePin,

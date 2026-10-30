@@ -37,7 +37,8 @@ abstract class AuthenticationRemoteDataSource extends RemoteDataSource {
   });
   Future<KycStatusResponse> getKycStatus();
   Future<UserModel> CreateUser(CreateUserModel createUserModel);
-  Future<String> recoverPassword({required String email, required String otp, required String newPassword});
+  Future<UserModel> recoverPassword({required String email, required String otp, required String newPassword});
+  Future<String> sendRecoveryCode({required String email});
 }
 
 class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSource {
@@ -305,10 +306,42 @@ class AuthenticationRemoteDataSourceImpl implements AuthenticationRemoteDataSour
   }
 
   @override
-  Future<String> recoverPassword({required String email, required String otp, required String newPassword}) async {
+  Future<UserModel> recoverPassword({required String email, required String otp, required String newPassword}) async {
     NetworkServiceResponse response = await _networkService.post(
       AuthenticationEndpoints.recoverPassword,
       body: {"email": email, "otp": otp, "newPassword": newPassword},
+    );
+    final data = handleNetworkResponse(response);
+    final jsonData = data is String ? json.decode(data) : data;
+
+    // Success returns the user logged in: {data: {user, accessToken, refreshToken}}
+    final responseData = jsonData['data'] as Map<String, dynamic>?;
+    final userData = responseData?['user'] as Map<String, dynamic>?;
+    final accessToken = responseData?['accessToken'] as String?;
+    final refreshToken = responseData?['refreshToken'] as String?;
+
+    final userModel = UserModel.fromJson(userData ?? jsonData);
+
+    if (userData != null) {
+      await inject<LocalStorageService>().setJson("user", userModel.toJson());
+    }
+
+    if (accessToken != null && accessToken.isNotEmpty) {
+      await inject<SecuredStorage>().add(key: SecureStorageStrings.TOKEN, value: accessToken);
+    }
+
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      await inject<SecuredStorage>().add(key: SecureStorageStrings.REFRESH_TOKEN, value: refreshToken);
+    }
+
+    return userModel;
+  }
+
+  @override
+  Future<String> sendRecoveryCode({required String email}) async {
+    NetworkServiceResponse response = await _networkService.post(
+      AuthenticationEndpoints.recoverPassword,
+      body: {"email": email.toString().toLowerCase()},
     );
     final data = handleNetworkResponse(response);
     final jsonData = data is String ? json.decode(data) : data;

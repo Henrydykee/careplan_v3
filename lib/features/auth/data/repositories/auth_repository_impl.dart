@@ -71,6 +71,11 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
       await guardedApiCall<String>(() => _remoteDataSource.updatePin(oldPin: oldPin, newPin: newPin), source: "updatePin", showNetworkError: true);
 
   @override
-  Future<String> recoverPassword({required String email, required String otp, required String newPassword}) async =>
-      await guardedApiCall<String>(() => _remoteDataSource.recoverPassword(email: email, otp: otp, newPassword: newPassword), source: "recoverPassword", showNetworkError: true);
+  Future<UserModel> recoverPassword({required String email, required String otp, required String newPassword}) async =>
+      await guardedApiCall<UserModel>(() => _remoteDataSource.recoverPassword(email: email, otp: otp, newPassword: newPassword), source: "recoverPassword", showNetworkError: true);
+
+  @override
+  Future<String> sendRecoveryCode({required String email}) async =>
+      await guardedApiCall<String>(() => _remoteDataSource.sendRecoveryCode(email: email), source: "sendRecoveryCode", showNetworkError: true);
+
 }

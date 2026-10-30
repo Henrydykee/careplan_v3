@@ -24,5 +24,6 @@ abstract class AuthenticationRepository {
   Future<UserModel> getUserDetails();
   Future<UserModel> updateProfile({required Map<String, dynamic> payload});
   Future<String> updatePin({required String oldPin, required String newPin});
-  Future<String> recoverPassword({required String email, required String otp, required String newPassword});
+  Future<UserModel> recoverPassword({required String email, required String otp, required String newPassword});
+  Future<String> sendRecoveryCode({required String email});
 }

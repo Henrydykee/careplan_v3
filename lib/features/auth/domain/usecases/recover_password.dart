@@ -4,15 +4,16 @@ import '../../../../core/data/database/db_exceptions.dart';
 import '../../../../core/presentation/domain/ui_exceptions.dart';
 import '../../../../core/presentation/domain/usercase_typedefs.dart';
 import '../../../../core/utils/error_helpers.dart';
+import '../../data/models/user_model.dart';
 import '../repositories/auth_repository.dart';
 
-class RecoverPassword implements UseCase<String, RecoverPasswordParams> {
+class RecoverPassword implements UseCase<UserModel, RecoverPasswordParams> {
   final AuthenticationRepository _repo;
 
   RecoverPassword(this._repo);
 
   @override
-  Future<Either<UIError, String>> call([RecoverPasswordParams? params]) async {
+  Future<Either<UIError, UserModel>> call([RecoverPasswordParams? params]) async {
     UseCase.assertParamsRequired(params);
     try {
       final result = await _repo.recoverPassword(
