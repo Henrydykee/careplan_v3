@@ -240,6 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (_user?.kycStatus?.toLowerCase().trim() != 'approved')
                 VerifyAccount(
                   kycStatus: _user?.kycStatus,
+                  user: _user,
                   onStartVerification: () =>
                       router.push(const KycVerificatonScreen1()),
                 ),

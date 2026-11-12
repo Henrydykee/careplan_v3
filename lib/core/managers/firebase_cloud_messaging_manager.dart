@@ -2,7 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:logger/logger.dart';
+import '../utils/logger.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,7 +10,6 @@ import '../../features/notifications/presentation/state/notification_provider.da
 import '../di/di_config.dart';
 import '../platform/string_constants.dart';
 
-final _logger = Logger();
 
 /// Android notification channel for high-importance messages.
 const AndroidNotificationChannel _androidChannel = AndroidNotificationChannel(
@@ -26,7 +25,7 @@ final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
 /// Top-level handler — must be a top-level function for background messages.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  if (kDebugMode) _logger.i('Background message received: ${message.messageId}');
+  if (kDebugMode) logger.i('Background message received: ${message.messageId}');
 }
 
 class FirebaseCloudMessagingManager {
@@ -60,7 +59,7 @@ class FirebaseCloudMessagingManager {
 
       final settings = await _requestPermission();
       if (settings.authorizationStatus == AuthorizationStatus.denied) {
-        if (kDebugMode) _logger.w('User declined push notification permission');
+        if (kDebugMode) logger.w('User declined push notification permission');
         return;
       }
 
@@ -78,9 +77,9 @@ class FirebaseCloudMessagingManager {
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
       _initialized = true;
-      if (kDebugMode) _logger.i('FCM initialized successfully');
+      if (kDebugMode) logger.i('FCM initialized successfully');
     } catch (e, s) {
-      if (kDebugMode) _logger.e('Error initialising FCM: $e\n$s');
+      if (kDebugMode) logger.e('Error initialising FCM: $e\n$s');
     }
   }
 
@@ -104,11 +103,11 @@ class FirebaseCloudMessagingManager {
     String? token = await _fcm.getToken();
 
     if (token == null) {
-      if (kDebugMode) _logger.w('FCM token is null');
+      if (kDebugMode) logger.w('FCM token is null');
       return;
     }
 
-    if (kDebugMode) _logger.i('FCM token: $token');
+    if (kDebugMode) logger.i('FCM token: $token');
 
     final prefs = inject<SharedPreferences>();
     final existingToken = prefs.getString(SPref.FCM_TOKEN);
@@ -133,7 +132,7 @@ class FirebaseCloudMessagingManager {
   void _configureForegroundHandler() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (kDebugMode) {
-        _logger.i('Foreground message: ${message.notification?.title}');
+        logger.i('Foreground message: ${message.notification?.title}');
       }
 
       final notification = message.notification;
@@ -174,7 +173,7 @@ class FirebaseCloudMessagingManager {
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       if (kDebugMode) {
-        _logger.i('Notification tapped: ${message.notification?.title}');
+        logger.i('Notification tapped: ${message.notification?.title}');
       }
       // Refresh notifications when user taps a notification to open the app.
       try {
@@ -188,9 +187,9 @@ class FirebaseCloudMessagingManager {
     try {
       final provider = inject<NotificationProvider>();
       await provider.registerPushToken(fcmToken: token);
-      if (kDebugMode) _logger.i('FCM token registered with server');
+      if (kDebugMode) logger.i('FCM token registered with server');
     } catch (e) {
-      if (kDebugMode) _logger.e('Failed to send FCM token to server: $e');
+      if (kDebugMode) logger.e('Failed to send FCM token to server: $e');
     }
   }
 }

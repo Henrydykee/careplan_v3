@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:logger/logger.dart';
+import '../utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../di/di_config.dart';
@@ -15,7 +15,7 @@ class BioMetricManager {
   BiometricType? biometricType;
   bool requireAuthentication = true;
   bool canDisableSecurity = false;
-  final _logger = Logger();
+
 
   Future checkAvailableBiometrics() async {
     try {
@@ -28,9 +28,9 @@ class BioMetricManager {
         }
       }
     } on PlatformException catch (e) {
-      _logger.e("Platform error checking biometrics", error: e);
+      logger.e("Platform error checking biometrics", error: e);
     } catch (e) {
-      _logger.e("Error checking biometrics", error: e);
+      logger.e("Error checking biometrics", error: e);
     }
   }
 
@@ -82,9 +82,9 @@ class BioMetricManager {
         }
       }
     } on PlatformException catch (e) {
-      _logger.e("Platform error during biometric auth", error: e);
+      logger.e("Platform error during biometric auth", error: e);
     } catch (e) {
-      _logger.e("Error during biometric auth", error: e);
+      logger.e("Error during biometric auth", error: e);
     }
     return requireAuthentication;
   }

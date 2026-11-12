@@ -1,16 +1,14 @@
 import 'dart:io';
 
-import 'package:careplan/core/presentation/widgets/app_bar.dart';
-import 'package:careplan/core/presentation/widgets/button.dart';
+import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_field.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
-import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
-import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/resources/color.dart';
-import 'package:careplan/core/resources/string.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:careplan/features/auth/presentation/kyc/kyc_step_4_screen.dart';
-import 'package:careplan/features/auth/presentation/kyc/widgets/kyc_step_indicator.dart';
+import 'package:careplan/features/auth/presentation/kyc/widgets/kyc_step_scaffold.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -35,24 +33,36 @@ class KycVerificationScreen3 extends StatefulWidget {
   });
 
   @override
-  State<KycVerificationScreen3> createState() =>
-      _KycVerificationScreen3State();
+  State<KycVerificationScreen3> createState() => _KycVerificationScreen3State();
 }
 
 class _KycVerificationScreen3State extends State<KycVerificationScreen3> {
+  static const _sexOptions = ['Male', 'Female'];
+
   final _dobFormat = DateFormat('yyyy-MM-dd');
-  late final DateFormat _pickerFormat = _dobFormat;
 
   late final TextEditingController _dobController;
-  DateTime _selectedDate = DateTime.now();
-
-  String dropdownValue = 'Male';
-  final List<String> items = ['Male', 'Female'];
+  late DateTime _selectedDate;
+  late String _sex;
+  String? _dobError;
 
   @override
   void initState() {
     super.initState();
-    _dobController = TextEditingController(text: "");
+
+    final userJson = inject<LocalStorageService>().getJson('user');
+    final user = userJson != null ? UserModel.fromJson(userJson) : null;
+
+    // UserModel carries no date of birth, so this always starts empty; the
+    // picker just opens on a sensible year instead of today.
+    _selectedDate = DateTime(DateTime.now().year - 30);
+    _dobController = TextEditingController();
+
+    final savedSex = user?.sex?.trim().toLowerCase();
+    _sex = _sexOptions.firstWhere(
+      (o) => o.toLowerCase() == savedSex,
+      orElse: () => _sexOptions.first,
+    );
   }
 
   @override
@@ -61,11 +71,20 @@ class _KycVerificationScreen3State extends State<KycVerificationScreen3> {
     super.dispose();
   }
 
+  void _setDate(DateTime date) {
+    setState(() {
+      _selectedDate = date;
+      _dobController.text = _dobFormat.format(date);
+      _dobError = null;
+    });
+  }
+
   Future<void> _handleDatePicker() async {
+    FocusScope.of(context).unfocus();
     if (Platform.isIOS) {
       _showCupertinoDatePicker();
     } else {
-      _showMaterialDatePicker();
+      await _showMaterialDatePicker();
     }
   }
 
@@ -73,64 +92,85 @@ class _KycVerificationScreen3State extends State<KycVerificationScreen3> {
     final DateTime? date = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(1800),
+      firstDate: DateTime(1900),
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            colorScheme:
-                ColorScheme.light(primary: CarePlanColor.orange),
+            colorScheme: ColorScheme.light(
+              primary: CarePlanColor.orange,
+              onPrimary: Colors.white,
+              onSurface: CarePlanColor.grey_2,
+            ),
           ),
           child: child ?? const SizedBox.shrink(),
         );
       },
     );
 
-    if (date == null || date == _selectedDate) return;
-
-    setState(() {
-      _selectedDate = date;
-      _dobController.text = _pickerFormat.format(date);
-    });
+    if (date == null) return;
+    _setDate(date);
   }
 
   void _showCupertinoDatePicker() {
+    // Mirrors the picker's own starting value so "Done" without scrolling
+    // still records a date.
+    DateTime pending = _selectedDate;
+
     showCupertinoModalPopup(
       context: context,
       builder: (_) => Container(
-        height: MediaQuery.of(context).size.height / 3,
-        color: Colors.white,
-        child: Column(
-          children: [
-            SizedBox(
-              height: 200,
-              child: CupertinoDatePicker(
-                mode: CupertinoDatePickerMode.date,
-                initialDateTime: _selectedDate,
-                minimumDate: DateTime(1800),
-                maximumDate: DateTime.now(),
-                onDateTimeChanged: (DateTime newDate) {
-                  setState(() {
-                    _selectedDate = newDate;
-                    _dobController.text = _pickerFormat.format(newDate);
-                  });
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.only(bottom: 10),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Gap(8),
+              Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: CarePlanColor.grey_5,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              SizedBox(
+                height: 220,
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.date,
+                  initialDateTime: _selectedDate,
+                  minimumDate: DateTime(1900),
+                  maximumDate: DateTime.now(),
+                  onDateTimeChanged: (date) => pending = date,
+                ),
+              ),
+              CupertinoButton(
+                child: TextHolder(
+                  title: 'Done',
+                  size: 16,
+                  fontWeight: FontWeight.w800,
+                  color: CarePlanColor.orange,
+                ),
+                onPressed: () {
+                  _setDate(pending);
+                  router.pop();
                 },
               ),
-            ),
-            CupertinoButton(
-              child: const Text('Done'),
-              onPressed: () => router.pop(),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   void _onContinue() {
-    final dob = _dobController.text.trim();
-    if (dob.isEmpty) {
-      GlobalSnackBar.show(context, 'Please select your date of birth.');
+    if (_dobController.text.trim().isEmpty) {
+      setState(() => _dobError = 'Please select your date of birth');
       return;
     }
 
@@ -142,96 +182,96 @@ class _KycVerificationScreen3State extends State<KycVerificationScreen3> {
         postalCode: widget.postalCode,
         city: widget.city,
         state: widget.state,
-        dob: dob,
-        gender: dropdownValue,
+        dob: _dobController.text.trim(),
+        gender: _sex,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return LoaderWrapper(
-      isLoading: false,
-      view: Scaffold(
-        appBar: CustomAppBar(showBackIcon: true),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+    return KycStepScaffold(
+      step: 3,
+      heading: 'About you',
+      subheading: 'These details must match your Medicare record.',
+      onContinue: _onContinue,
+      fields: [
+        CustomTextField(
+          title: 'Date of Birth',
+          hinttitle: 'Select Date of Birth',
+          readOnly: true,
+          autofocus: false,
+          onTap: _handleDatePicker,
+          controller: _dobController,
+          suffixIcon: Icon(
+            Icons.calendar_today_rounded,
+            size: 18,
+            color: CarePlanColor.grey_3,
+          ),
+        ),
+        if (_dobError != null) ...[
+          const Gap(6),
+          TextHolder(
+            title: _dobError!,
+            size: 12,
+            color: const Color(0xFFC0392B),
+          ),
+        ],
+        const Gap(18),
+        const KycFieldLabel(title: 'Sex at Birth'),
+        const Gap(8),
+        Row(
+          children: [
+            for (final option in _sexOptions) ...[
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextHolder(
-                            title: Strings.user_verification,
-                            size: 20,
-                            fontWeight: FontWeight.w800,
-                          ),
-                          const KycStepIndicator(step: '3'),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-                      TextHolder(
-                        title: "Date of Birth",
-                        size: 16,
-                        fontWeight: FontWeight.w800,
-                        color: CarePlanColor.brown,
-                      ),
-                      CustomTextField(
-                        readOnly: true,
-                        onTap: () {
-                          _handleDatePicker();
-                        },
-                        controller: _dobController,
-                        hinttitle: "Select Date of Birth",
-                      ),
-                      const Gap(20),
-                      TextHolder(
-                        title: "Sex at Birth",
-                        size: 16,
-                        fontWeight: FontWeight.w800,
-                        color: CarePlanColor.brown,
-                      ),
-                      const Gap(20),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5),
-                          color: Colors.grey.withValues(alpha: 0.3),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          underline: const SizedBox.shrink(),
-                          value: dropdownValue,
-                          items: items.map((v) {
-                            return DropdownMenuItem(
-                              value: v,
-                              child: Text(v),
-                            );
-                          }).toList(),
-                          onChanged: (newValue) {
-                            if (newValue == null) return;
-                            setState(() => dropdownValue = newValue);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                child: _SexOption(
+                  label: option,
+                  selected: _sex == option,
+                  onTap: () => setState(() => _sex = option),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 30),
-                child: CustomButtom(
-                  title: Strings.cotinue,
-                  onTap: _onContinue,
-                ),
-              ),
+              if (option != _sexOptions.last) const Gap(12),
             ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _SexOption extends StatelessWidget {
+  const _SexOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 50,
+        decoration: BoxDecoration(
+          color: selected ? CarePlanColor.light_orange : const Color(0xFFF3F5F7),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? CarePlanColor.orange : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Center(
+          child: TextHolder(
+            title: label,
+            size: 15,
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+            color: selected ? CarePlanColor.brown : CarePlanColor.grey_2,
           ),
         ),
       ),

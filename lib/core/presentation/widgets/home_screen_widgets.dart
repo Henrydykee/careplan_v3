@@ -244,141 +244,284 @@ class _CtaPillState extends State<_CtaPill>
   }
 }
 
+enum KycState { notStarted, pending, pendingIncomplete, rejected, verified }
+
+class _KycVisuals {
+  const _KycVisuals({
+    required this.accent,
+    required this.tint,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.chipLabel,
+    this.actionLabel,
+    this.footnote,
+  });
+
+  final Color accent;
+  final Color tint;
+  final String icon;
+  final String title;
+  final String subtitle;
+  final String chipLabel;
+
+  /// Null when the state has nothing for the user to do.
+  final String? actionLabel;
+  final String? footnote;
+}
+
 class VerifyAccount extends StatelessWidget {
   final String? kycStatus;
   final VoidCallback? onStartVerification;
 
-  const VerifyAccount({Key? key, this.kycStatus, this.onStartVerification})
-      : super(key: key);
+  /// Used to detect details that were never captured. When KYC is pending but
+  /// required details are missing, the card asks the user to complete them
+  /// instead of telling them to wait.
+  final UserModel? user;
 
-  bool get _isVerified {
-    final status = kycStatus?.toLowerCase().trim() ?? '';
-    return status == 'approved';
+  /// Called when the user is asked to fill in missing details. Falls back to
+  /// [onStartVerification].
+  final VoidCallback? onUpdateDetails;
+
+  const VerifyAccount({
+    Key? key,
+    this.kycStatus,
+    this.onStartVerification,
+    this.user,
+    this.onUpdateDetails,
+  }) : super(key: key);
+
+  static const _verifiedTint = Color(0xFFEFF5F2);
+  static const _rejectedAccent = Color(0xFFC0392B);
+  static const _rejectedTint = Color(0xFFFCEDEB);
+
+  /// Details the backend needs before a pending verification can be completed,
+  /// in the order the KYC flow collects them.
+  static List<String> missingDetailsFor(UserModel? user) {
+    if (user == null) return const [];
+    final fields = <String, String?>{
+      'street address': user.street,
+      'city': user.city,
+      'state': user.state,
+      'postal code': user.postalCode,
+      'Medicare number': user.medicareNum,
+      'Medicare referral number': user.medicareReferralNumber,
+    };
+    return fields.entries
+        .where((e) => (e.value ?? '').trim().isEmpty)
+        .map((e) => e.key)
+        .toList();
   }
 
-  bool get _isPending {
-    final status = kycStatus?.toLowerCase().trim() ?? '';
-    return status == 'pending';
+  List<String> get _missingDetails => missingDetailsFor(user);
+
+  KycState get _state {
+    switch ((kycStatus ?? user?.kycStatus)?.toLowerCase().trim()) {
+      case 'approved':
+        return KycState.verified;
+      case 'pending':
+        return _missingDetails.isEmpty
+            ? KycState.pending
+            : KycState.pendingIncomplete;
+      case 'rejected':
+        return KycState.rejected;
+      default:
+        return KycState.notStarted;
+    }
   }
 
-  bool get _isRejected {
-    final status = kycStatus?.toLowerCase().trim() ?? '';
-    return status == 'rejected';
+  /// "street address, city and Medicare number"
+  static String _joinHumanList(List<String> items) {
+    if (items.length == 1) return items.first;
+    return '${items.sublist(0, items.length - 1).join(', ')} and ${items.last}';
+  }
+
+  _KycVisuals get _visuals {
+    switch (_state) {
+      case KycState.verified:
+        return _KycVisuals(
+          accent: CarePlanColor.green,
+          tint: _verifiedTint,
+          icon: Assets.kyc_succesful_image,
+          title: 'Identity verified',
+          subtitle:
+              'You have full access to assessments and care planning features.',
+          chipLabel: 'Verified',
+        );
+      case KycState.pending:
+        return _KycVisuals(
+          accent: CarePlanColor.orange,
+          tint: CarePlanColor.light_orange,
+          icon: Assets.hour_glass,
+          title: 'Verification in review',
+          subtitle:
+              'We are reviewing your identity documents — this usually takes a few hours.',
+          chipLabel: 'In review',
+          footnote: "We'll notify you as soon as it's done.",
+        );
+      case KycState.pendingIncomplete:
+        return _KycVisuals(
+          accent: _rejectedAccent,
+          tint: _rejectedTint,
+          icon: Assets.notification_icon_2,
+          title: 'Finish your details',
+          subtitle:
+              'Your verification is on hold until you add your '
+              '${_joinHumanList(_missingDetails)}.',
+          chipLabel: 'Details needed',
+          actionLabel: 'Update details',
+        );
+      case KycState.rejected:
+        return _KycVisuals(
+          accent: _rejectedAccent,
+          tint: _rejectedTint,
+          icon: Assets.notification_icon_2,
+          title: 'Verification unsuccessful',
+          subtitle:
+              "We couldn't verify your documents. Please check the details and submit again.",
+          chipLabel: 'Action needed',
+          actionLabel: 'Re-submit documents',
+        );
+      case KycState.notStarted:
+        return _KycVisuals(
+          accent: CarePlanColor.orange,
+          tint: CarePlanColor.light_orange,
+          icon: Assets.notification_icon_2,
+          title: 'Verify your identity',
+          subtitle:
+              'Submit your identity details to unlock mental health assessments.',
+          chipLabel: 'Takes 2 mins',
+          actionLabel: 'Begin verification',
+        );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final title = _isVerified
-        ? 'Your KYC is verified'
-        : _isPending
-            ? 'KYC verification in progress'
-            : _isRejected
-                ? 'KYC verification rejected'
-                : 'Complete User Verification';
+    final v = _visuals;
+    final hasAction = v.actionLabel != null;
+    final onAction = _state == KycState.pendingIncomplete
+        ? (onUpdateDetails ?? onStartVerification)
+        : onStartVerification;
 
-    final subtitle = _isVerified
-        ? 'You have full access to assessments and care planning features.'
-        : _isPending
-            ? 'We are reviewing your identity documents. Please wait for confirmation.'
-            : _isRejected
-                ? 'Your verification was rejected. Please resubmit your KYC details.'
-                : 'Submit your identity details to unlock mental health assessments.';
-
-    final iconAsset = _isVerified
-        ? Assets.kyc_succesful_image
-        : _isPending
-            ? Assets.hour_glass
-            : Assets.notification_icon_2;
-
-    final btnText = _isVerified
-        ? 'Verified'
-        : _isPending
-            ? 'Pending'
-            : _isRejected
-                ? 'Re-submit'
-                : 'Begin Verification';
-
-    final bool hasAction = _isRejected || (!_isVerified && !_isPending);
-    final buttonColor = _isRejected || (!_isVerified && !_isPending)
-        ? CarePlanColor.orange
-        : CarePlanColor.grey_5;
-    final buttonTextColor = hasAction ? Colors.white : CarePlanColor.grey_2;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          border: Border.all(color: CarePlanColor.grey_5),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
+    final card = Container(
+      decoration: BoxDecoration(
+        color: v.tint,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: v.accent.withOpacity(0.22)),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: _isVerified
-                      ? CarePlanColor.green.withOpacity(0.13)
-                      : _isPending
-                          ? CarePlanColor.orange.withOpacity(0.13)
-                          : CarePlanColor.light_orange,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
                   child: SvgPicture.asset(
-                    iconAsset,
-                    width: 26,
-                    height: 26,
-                    color: _isVerified
-                        ? CarePlanColor.green
-                        : _isPending
-                            ? CarePlanColor.brown
-                            : CarePlanColor.brown,
+                    v.icon,
+                    width: 22,
+                    height: 22,
+                    color: v.accent,
                   ),
                 ),
               ),
-              const Gap(14),
+              const Gap(12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextHolder(
-                      title: title,
-                      size: 16,
-                      fontWeight: FontWeight.w800,
-                      color: CarePlanColor.brown,
-                    ),
-                    const Gap(8),
-                    TextHolder(
-                      title: subtitle,
-                      size: 14,
-                      color: CarePlanColor.grey,
-                    ),
-                    const Gap(16),
-                    CustomButtom(
-                      title: btnText,
-                      onTap: hasAction ? onStartVerification : null,
-                      isdisabled: !hasAction,
-                      btnColor: buttonColor,
-                      textColor: buttonTextColor,
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: TextHolder(
+                    title: v.title,
+                    size: 16,
+                    fontWeight: FontWeight.w800,
+                    color: CarePlanColor.brown,
+                  ),
                 ),
               ),
+              const Gap(8),
+              _StatusChip(label: v.chipLabel, accent: v.accent),
             ],
           ),
-        ),
+          const Gap(10),
+          TextHolder(
+            title: v.subtitle,
+            size: 13.5,
+            fontHeight: 1.45,
+            color: CarePlanColor.grey_2,
+          ),
+          if (v.footnote != null) ...[
+            const Gap(8),
+            TextHolder(
+              title: v.footnote!,
+              size: 12,
+              color: CarePlanColor.grey_3,
+            ),
+          ],
+          if (hasAction) ...[
+            const Gap(16),
+            CustomButtom(
+              title: v.actionLabel,
+              onTap: onAction,
+              height: 46,
+              textSize: 14,
+              btnColor: v.accent,
+              textColor: Colors.white,
+            ),
+          ],
+        ],
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: hasAction
+          ? GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onAction,
+              child: card,
+            )
+          : card,
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({required this.label, required this.accent});
+
+  final String label;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: accent.withOpacity(0.14),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+          ),
+          const Gap(6),
+          TextHolder(
+            title: label,
+            size: 11.5,
+            fontWeight: FontWeight.w700,
+            color: accent,
+          ),
+        ],
       ),
     );
   }

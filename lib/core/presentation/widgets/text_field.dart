@@ -21,6 +21,11 @@ class CustomTextField extends StatelessWidget {
   final FocusNode? nextFocusNode;
   final Color? cursorColor;
   final bool readOnly;
+  final bool autofocus;
+
+  /// Return-key action: [TextInputAction.next] moves to [nextFocusNode],
+  /// [TextInputAction.done] closes the keyboard.
+  final TextInputAction? textInputAction;
   final double? fontSize;
   final TextAlign? align;
   final String? value;
@@ -53,9 +58,22 @@ class CustomTextField extends StatelessWidget {
       this.cursorColor,
       this.showTittle = true,
       this.readOnly = false,
+      this.autofocus = true,
+      this.textInputAction,
       this.fontSize,
       this.value,
       this.validator});
+
+  /// Hand focus to the next field, or close the keyboard when this is the last
+  /// one. Creating a throwaway FocusNode here would leak and keep the keyboard
+  /// up, so unfocus explicitly instead.
+  void _moveOn(BuildContext context) {
+    if (nextFocusNode != null) {
+      FocusScope.of(context).requestFocus(nextFocusNode);
+    } else {
+      FocusScope.of(context).unfocus();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +90,8 @@ class CustomTextField extends StatelessWidget {
           onTap: onTap as void Function()?,
           obscureText: obscureText,
           readOnly: readOnly,
-          autofocus: true,
+          autofocus: autofocus,
+          textInputAction: textInputAction,
           controller: controller,
           maxLength: maxLength,
           maxLines: maxLines ?? 1,
@@ -85,12 +104,8 @@ class CustomTextField extends StatelessWidget {
           focusNode: currentFocusNode,
           inputFormatters: inputFormatters,
           style: TextStyle(color: cursorColor, fontSize: 14, fontFamily: 'avenir'),
-          onEditingComplete: () {
-            FocusScope.of(context).requestFocus(nextFocusNode ?? FocusNode());
-          },
-          onFieldSubmitted: (_) {
-            FocusScope.of(context).requestFocus(nextFocusNode ?? FocusNode());
-          },
+          onEditingComplete: () => _moveOn(context),
+          onFieldSubmitted: (_) => _moveOn(context),
           decoration: InputDecoration(
             contentPadding: padding ?? EdgeInsets.only(left: 10, right: 10),
             hintText: hinttitle,
@@ -99,6 +114,7 @@ class CustomTextField extends StatelessWidget {
             filled: true,
             //labelText: hinttitle,
             suffix: suffix,
+            suffixIcon: suffixIcon,
             prefixText: prefixText,
             prefix: prefix,
             prefixStyle: TextStyle(color: Colors.black, fontFamily: 'avenir'),

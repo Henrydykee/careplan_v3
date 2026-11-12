@@ -1,17 +1,16 @@
-import 'package:careplan/core/presentation/widgets/app_bar.dart';
-import 'package:careplan/core/presentation/widgets/button.dart';
+import 'package:careplan/core/di/di_config.dart';
+import 'package:careplan/core/managers/google_analytics_manager.dart';
+import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:careplan/core/presentation/widgets/error_component.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_field.dart';
-import 'package:careplan/core/presentation/widgets/text_holder.dart';
-import 'package:careplan/core/presentation/widgets/loader_wrapper.dart';
-import 'package:careplan/core/resources/color.dart';
 import 'package:careplan/core/resources/string.dart';
 import 'package:careplan/features/account/domain/usecases/register_kyc.dart';
 import 'package:careplan/features/account/presentation/state/kyc_provider.dart';
-import 'package:careplan/features/auth/presentation/kyc/widgets/kyc_step_indicator.dart';
+import 'package:careplan/features/auth/data/models/user_model.dart';
+import 'package:careplan/features/auth/domain/usecases/get_user_details.dart';
+import 'package:careplan/features/auth/presentation/kyc/widgets/kyc_step_scaffold.dart';
 import 'package:careplan/features/nav_bar/presentation/nav_bar.dart';
-import 'package:careplan/core/managers/google_analytics_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
@@ -49,23 +48,39 @@ class _KycVerificationScreen4State extends State<KycVerificationScreen4> {
   late final TextEditingController _medicareNumController;
   late final TextEditingController _medicareReferralNumberController;
 
+  final _medicareNumFocus = FocusNode();
+  final _irnFocus = FocusNode();
+
+  /// Keeps the loader up while the refreshed profile is fetched, between a
+  /// successful submit and landing on Home.
+  bool _finishing = false;
+
   @override
   void initState() {
     super.initState();
-    _medicareNumController = TextEditingController();
-    _medicareReferralNumberController = TextEditingController();
+
+    final userJson = inject<LocalStorageService>().getJson('user');
+    final user = userJson != null ? UserModel.fromJson(userJson) : null;
+
+    _medicareNumController = TextEditingController(text: user?.medicareNum ?? '');
+    _medicareReferralNumberController =
+        TextEditingController(text: user?.medicareReferralNumber ?? '');
   }
 
   @override
   void dispose() {
     _medicareNumController.dispose();
     _medicareReferralNumberController.dispose();
+    _medicareNumFocus.dispose();
+    _irnFocus.dispose();
     super.dispose();
   }
 
+  String? _required(String? val) =>
+      (val == null || val.trim().isEmpty) ? 'Field is required' : null;
+
   Future<void> _onConfirm() async {
-    final valid = _formKey.currentState?.validate() ?? false;
-    if (!valid) return;
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final kycProvider = context.read<KycProvider>();
 
@@ -93,6 +108,16 @@ class _KycVerificationScreen4State extends State<KycVerificationScreen4> {
     }
 
     googleAnalytics.logEvent(eventName: 'kyc_completed');
+
+    setState(() => _finishing = true);
+
+    // Pull the updated profile before leaving. getUserDetails also rewrites the
+    // cached user in local storage, which is what Home reads on mount — without
+    // this it would still show the pre-KYC status and empty details.
+    await inject<GetUserDetails>().call();
+
+    if (!mounted) return;
+
     router.pushAndRemoveUntil(const CarePlanNavBar(), (route) => false);
   }
 
@@ -100,87 +125,47 @@ class _KycVerificationScreen4State extends State<KycVerificationScreen4> {
   Widget build(BuildContext context) {
     return Consumer<KycProvider>(
       builder: (context, kycProvider, _) {
-        return LoaderWrapper(
-          isLoading: kycProvider.isLoading,
-          view: Scaffold(
-            appBar: CustomAppBar(showBackIcon: true),
-            body: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                TextHolder(
-                                  title: Strings.user_verification,
-                                  size: 20,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                                const KycStepIndicator(step: '4'),
-                              ],
-                            ),
-                            const SizedBox(height: 30),
-                            TextHolder(
-                              title: "Provide Medicare Information",
-                              size: 16,
-                              fontWeight: FontWeight.w800,
-                              color: CarePlanColor.brown,
-                            ),
-                            const SizedBox(height: 10),
-                            CustomTextField(
-                              title: "Medicare Card number",
-                              hinttitle: "Enter Medicare Card number",
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              controller: _medicareNumController,
-                              validator: (val) {
-                                if (val == null || val.trim().isEmpty) {
-                                  return "Field is required";
-                                }
-                                return null;
-                              },
-                            ),
-                            const Gap(10),
-                            CustomTextField(
-                              title: "IRN (Individual Reference Number)",
-                              hinttitle:
-                                  "Enter IRN (Individual Reference Number)",
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              controller: _medicareReferralNumberController,
-                              validator: (val) {
-                                if (val == null || val.trim().isEmpty) {
-                                  return "Field is required";
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 40),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 30),
-                      child: CustomButtom(
-                        title: Strings.confirm,
-                        onTap: _onConfirm,
-                      ),
-                    ),
-                  ],
-                ),
+        return Form(
+          key: _formKey,
+          child: KycStepScaffold(
+            step: 4,
+            numericFocusNodes: [_medicareNumFocus, _irnFocus],
+            heading: 'Medicare details',
+            subheading:
+                'Your card number and the reference number next to your name.',
+            buttonTitle: Strings.confirm,
+            isLoading: kycProvider.isLoading || _finishing,
+            onContinue: _onConfirm,
+            fields: [
+              CustomTextField(
+                title: 'Medicare Card number',
+                hinttitle: 'Enter Medicare Card number',
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(11),
+                ],
+                controller: _medicareNumController,
+                autofocus: false,
+                currentFocusNode: _medicareNumFocus,
+                nextFocusNode: _irnFocus,
+                validator: _required,
               ),
-            ),
+              const Gap(14),
+              CustomTextField(
+                title: 'IRN (Individual Reference Number)',
+                hinttitle: 'The number beside your name on the card',
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(2),
+                ],
+                controller: _medicareReferralNumberController,
+                autofocus: false,
+                currentFocusNode: _irnFocus,
+                validator: _required,
+              ),
+            ],
           ),
         );
       },
