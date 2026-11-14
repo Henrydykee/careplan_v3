@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:careplan/core/presentation/widgets/app_bar.dart';
 import 'package:careplan/core/presentation/widgets/loading_shimmers/list_loading_shimmers.dart';
-import 'package:careplan/core/presentation/widgets/button.dart';
 import 'package:careplan/core/presentation/widgets/router.dart';
 import 'package:careplan/core/presentation/widgets/text_holder.dart';
 import 'package:careplan/core/resources/assets.dart';
@@ -253,9 +252,7 @@ class _KycVisuals {
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.chipLabel,
     this.actionLabel,
-    this.footnote,
   });
 
   final Color accent;
@@ -263,11 +260,9 @@ class _KycVisuals {
   final String icon;
   final String title;
   final String subtitle;
-  final String chipLabel;
 
   /// Null when the state has nothing for the user to do.
   final String? actionLabel;
-  final String? footnote;
 }
 
 class VerifyAccount extends StatelessWidget {
@@ -330,10 +325,12 @@ class VerifyAccount extends StatelessWidget {
     }
   }
 
-  /// "street address, city and Medicare number"
+  /// Kept short so the card stays a single compact row: at most two names,
+  /// then "+N more" — "street address, city +4 more".
   static String _joinHumanList(List<String> items) {
     if (items.length == 1) return items.first;
-    return '${items.sublist(0, items.length - 1).join(', ')} and ${items.last}';
+    if (items.length == 2) return '${items.first} and ${items.last}';
+    return '${items.take(2).join(', ')} +${items.length - 2} more';
   }
 
   _KycVisuals get _visuals {
@@ -344,9 +341,7 @@ class VerifyAccount extends StatelessWidget {
           tint: _verifiedTint,
           icon: Assets.kyc_succesful_image,
           title: 'Identity verified',
-          subtitle:
-              'You have full access to assessments and care planning features.',
-          chipLabel: 'Verified',
+          subtitle: 'You have full access to all features.',
         );
       case KycState.pending:
         return _KycVisuals(
@@ -354,10 +349,7 @@ class VerifyAccount extends StatelessWidget {
           tint: CarePlanColor.light_orange,
           icon: Assets.hour_glass,
           title: 'Verification in review',
-          subtitle:
-              'We are reviewing your identity documents — this usually takes a few hours.',
-          chipLabel: 'In review',
-          footnote: "We'll notify you as soon as it's done.",
+          subtitle: "Usually takes a few hours — we'll notify you.",
         );
       case KycState.pendingIncomplete:
         return _KycVisuals(
@@ -365,10 +357,7 @@ class VerifyAccount extends StatelessWidget {
           tint: _rejectedTint,
           icon: Assets.notification_icon_2,
           title: 'Finish your details',
-          subtitle:
-              'Your verification is on hold until you add your '
-              '${_joinHumanList(_missingDetails)}.',
-          chipLabel: 'Details needed',
+          subtitle: 'Add ${_joinHumanList(_missingDetails)}.',
           actionLabel: 'Update details',
         );
       case KycState.rejected:
@@ -377,9 +366,7 @@ class VerifyAccount extends StatelessWidget {
           tint: _rejectedTint,
           icon: Assets.notification_icon_2,
           title: 'Verification unsuccessful',
-          subtitle:
-              "We couldn't verify your documents. Please check the details and submit again.",
-          chipLabel: 'Action needed',
+          subtitle: 'Check your details and submit again.',
           actionLabel: 'Re-submit documents',
         );
       case KycState.notStarted:
@@ -388,9 +375,7 @@ class VerifyAccount extends StatelessWidget {
           tint: CarePlanColor.light_orange,
           icon: Assets.notification_icon_2,
           title: 'Verify your identity',
-          subtitle:
-              'Submit your identity details to unlock mental health assessments.',
-          chipLabel: 'Takes 2 mins',
+          subtitle: 'Takes 2 mins and unlocks assessments.',
           actionLabel: 'Begin verification',
         );
     }
@@ -404,75 +389,65 @@ class VerifyAccount extends StatelessWidget {
         ? (onUpdateDetails ?? onStartVerification)
         : onStartVerification;
 
-    final card = Container(
+    // Deliberately compact: one tappable row rather than a full card, so the
+    // banner never dominates the home screen.
+    final row = Container(
       decoration: BoxDecoration(
         color: v.tint,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: v.accent.withOpacity(0.22)),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: v.accent.withOpacity(0.16)),
       ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    v.icon,
-                    width: 22,
-                    height: 22,
-                    color: v.accent,
-                  ),
-                ),
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: v.accent.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Center(
+              child: SvgPicture.asset(
+                v.icon,
+                width: 16,
+                height: 16,
+                color: v.accent,
               ),
-              const Gap(12),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: TextHolder(
-                    title: v.title,
-                    size: 16,
-                    fontWeight: FontWeight.w800,
-                    color: CarePlanColor.brown,
-                  ),
-                ),
-              ),
-              const Gap(8),
-              _StatusChip(label: v.chipLabel, accent: v.accent),
-            ],
+            ),
           ),
           const Gap(10),
-          TextHolder(
-            title: v.subtitle,
-            size: 13.5,
-            fontHeight: 1.45,
-            color: CarePlanColor.grey_2,
-          ),
-          if (v.footnote != null) ...[
-            const Gap(8),
-            TextHolder(
-              title: v.footnote!,
-              size: 12,
-              color: CarePlanColor.grey_3,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextHolder(
+                  title: v.title,
+                  size: 14,
+                  fontWeight: FontWeight.w700,
+                  color: CarePlanColor.brown,
+                  maxLines: 1,
+                  textOverflow: TextOverflow.ellipsis,
+                ),
+                const Gap(2),
+                TextHolder(
+                  title: v.subtitle,
+                  size: 11.5,
+                  fontHeight: 1.3,
+                  color: CarePlanColor.grey_2,
+                  maxLines: 2,
+                  textOverflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-          ],
+          ),
           if (hasAction) ...[
-            const Gap(16),
-            CustomButtom(
-              title: v.actionLabel,
-              onTap: onAction,
-              height: 46,
-              textSize: 14,
-              btnColor: v.accent,
-              textColor: Colors.white,
+            const Gap(8),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 13,
+              color: v.accent,
             ),
           ],
         ],
@@ -480,49 +455,14 @@ class VerifyAccount extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: hasAction
           ? GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: onAction,
-              child: card,
+              child: row,
             )
-          : card,
-    );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.label, required this.accent});
-
-  final String label;
-  final Color accent;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: accent.withOpacity(0.14),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
-          ),
-          const Gap(6),
-          TextHolder(
-            title: label,
-            size: 11.5,
-            fontWeight: FontWeight.w700,
-            color: accent,
-          ),
-        ],
-      ),
+          : row,
     );
   }
 }

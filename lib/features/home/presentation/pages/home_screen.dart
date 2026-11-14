@@ -210,6 +210,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    // The nav bar floats over the page, so the list has to end above it.
+    final bottomInset = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -280,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const Gap(10),
               const HomeCareplanSection(),
-              const Gap(30),
+              Gap(30 + bottomInset),
             ],
           ),
         ),

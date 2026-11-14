@@ -42,6 +42,21 @@ class _EditPersonalProfileScreenState extends State<EditPersonalProfileScreen> {
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
   final DateFormat _displayDateFormat = DateFormat('d MMMM yyyy');
 
+  /// Reads a stored date of birth. Accepts both "yyyy-MM-dd" and full ISO
+  /// timestamps; returns null when there is nothing stored, so the field stays
+  /// empty instead of showing a made-up date.
+  static DateTime? _parseDate(dynamic raw) {
+    final value = raw?.toString().trim() ?? '';
+    if (value.isEmpty) return null;
+    final parsed = DateTime.tryParse(value);
+    if (parsed != null) return DateTime(parsed.year, parsed.month, parsed.day);
+    try {
+      return DateFormat('yyyy-MM-dd').parseLoose(value);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Strips Australian dial code (+61 / 61) so the prefix "+61 " is not duplicated in the field.
   static String _phoneWithoutDialCode(String? phone) {
     if (phone == null || phone.isEmpty) return '';
@@ -52,26 +67,19 @@ class _EditPersonalProfileScreenState extends State<EditPersonalProfileScreen> {
   void initState() {
     super.initState();
     final d = widget.userData ?? {};
-    firstNameController =
-        TextEditingController(text: d['firstName'] ?? 'John');
-    lastNameController =
-        TextEditingController(text: d['lastName'] ?? 'Smith');
-    emailController =
-        TextEditingController(text: d['email'] ?? 'john.smith@example.com');
-    final phoneDisplay = _phoneWithoutDialCode(d['phone']?.toString());
-    phoneController =
-        TextEditingController(text: phoneDisplay.isEmpty ? '412345678' : phoneDisplay);
-    try {
-      _date = _dateFormat.parse(d['dateOfBirth']?.toString() ?? '1990-01-15');
-    } catch (_) {
-      _date = DateTime(1990, 1, 15);
-    }
-    dodController =
-        TextEditingController(text: _date != null ? _displayDateFormat.format(_date!) : '');
-    medicareController =
-        TextEditingController(text: d['medicareNum'] ?? '');
+    firstNameController = TextEditingController(text: d['firstName'] ?? '');
+    lastNameController = TextEditingController(text: d['lastName'] ?? '');
+    emailController = TextEditingController(text: d['email'] ?? '');
+    phoneController = TextEditingController(
+      text: _phoneWithoutDialCode(d['phone']?.toString()),
+    );
+    _date = _parseDate(d['dateOfBirth']);
+    dodController = TextEditingController(
+      text: _date != null ? _displayDateFormat.format(_date!) : '',
+    );
+    medicareController = TextEditingController(text: d['medicareNum'] ?? '');
     medicareIRNController =
-        TextEditingController(text: d['medicareReferralNumber'] ?? '1');
+        TextEditingController(text: d['medicareReferralNumber'] ?? '');
     _sex = d['sex']?.toString().trim();
     if (_sex != null && _sex!.isEmpty) _sex = null;
   }
@@ -255,6 +263,7 @@ class _EditPersonalProfileScreenState extends State<EditPersonalProfileScreen> {
               CustomTextField(
                 title: "Date of Birth",
                 controller: dodController,
+                hinttitle: "Select your date of birth",
                 readOnly: true,
                 onTap: _handleDatePicker,
               ),

@@ -1,11 +1,10 @@
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
-import 'package:careplan/core/presentation/widgets/text_holder.dart';
+import 'package:careplan/core/presentation/widgets/liquid_glass_nav_bar.dart';
 import 'package:careplan/features/auth/data/models/user_model.dart';
 import 'package:careplan/features/history/presentation/state/history_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import '../../../core/presentation/state/app_update_provider.dart';
@@ -17,6 +16,9 @@ import '../../account/presentation/account_screen.dart';
 import '../../assement/presentation/pages/assement_screen.dart';
 import '../../careplan/presentation/careplan/careplan_screen.dart';
 import '../../home/presentation/pages/home_screen.dart';
+
+/// Height of the floating glass bar plus its bottom margin.
+const double _navBarFootprint = 74;
 
 class CarePlanNavBar extends StatefulWidget {
   final int? index;
@@ -31,7 +33,7 @@ class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAlive
   late final PageController _pageController;
 
   // Cache for bottom nav bar items to avoid recreating them
-  late final List<FABBottomAppBarItem> _bottomNavItems;
+  late final List<LiquidGlassNavItem> _bottomNavItems;
 
   @override
   bool get wantKeepAlive => true;
@@ -49,10 +51,12 @@ class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAlive
 
     // Initialize bottom nav items once
     _bottomNavItems = [
-      FABBottomAppBarItem(iconName: Assets.home_icon, name: Strings.home),
-      FABBottomAppBarItem(iconName: Assets.appointment_icon, name: "Assessments"),
-      FABBottomAppBarItem(iconName: Assets.care_plan_icon, name: "History"),
-      FABBottomAppBarItem(iconName: Assets.account_icon, name: Strings.account),
+      LiquidGlassNavItem(svgAsset: Assets.home_icon, label: Strings.home),
+      const LiquidGlassNavItem(
+          svgAsset: Assets.appointment_icon, label: "Assessments"),
+      const LiquidGlassNavItem(
+          svgAsset: Assets.care_plan_icon, label: "History"),
+      LiquidGlassNavItem(svgAsset: Assets.account_icon, label: Strings.account),
     ];
 
   }
@@ -122,8 +126,8 @@ class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAlive
 
   static const _tabNames = ['Home', 'Assessments', 'History', 'Account'];
 
-  void _onTabSelected(int? index) {
-    if (index == null || index == selectedTab) return;
+  void _onTabSelected(int index) {
+    if (index == selectedTab) return;
     googleAnalytics.logScreenView(screenName: _tabNames[index]);
     setState(() {
       selectedTab = index;
@@ -178,164 +182,38 @@ class _CarePlanNavBarState extends State<CarePlanNavBar> with AutomaticKeepAlive
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final mq = MediaQuery.of(context);
+
     return Scaffold(
-      bottomNavigationBar: FABBottomAppBar(
-        notchedShape: const CircularNotchedRectangle(),
-        selectedColor: CarePlanColor.brown,
-        color: CarePlanColor.black_3.withOpacity(0.5),
-        onTabSelected: _onTabSelected,
-        initialIndex: selectedTab,
+      // Content runs under the glass so there is something for it to refract.
+      extendBody: true,
+      bottomNavigationBar: LiquidGlassNavBar(
         items: _bottomNavItems,
+        currentIndex: selectedTab,
+        onTap: _onTabSelected,
       ),
-      body: PageView(
-        controller: _pageController,
-        physics: NeverScrollableScrollPhysics(),
-        onPageChanged: (index) {
-          setState(() {
-            selectedTab = index;
-          });
-        },
-        children: [
-          HomeScreen(),
-          SelectAssementHistoryScreen(),
-          CarePlanScreen(),
-          AccountScreen(),
-        ],
-      ),
-    );
-  }
-}
-
-class FABBottomAppBarItem {
-  const FABBottomAppBarItem({this.iconName, this.name});
-
-  final String? iconName;
-  final String? name;
-}
-
-class FABBottomAppBar extends StatefulWidget {
-  final List<FABBottomAppBarItem>? items;
-  final String? centerItemText;
-  final double height;
-  final double iconSize;
-  final Color? backgroundColor;
-  final Color? color;
-  final Color? selectedColor;
-  final NotchedShape? notchedShape;
-  final ValueChanged<int?>? onTabSelected;
-  final int? initialIndex;
-
-  const FABBottomAppBar({
-    super.key,
-    this.items,
-    this.centerItemText,
-    this.height = 60.0,
-    this.iconSize = 24.0,
-    this.backgroundColor,
-    this.color,
-    this.selectedColor,
-    this.notchedShape,
-    this.onTabSelected,
-    this.initialIndex = 0,
-  }) : assert(items == null || items.length == 2 || items.length == 4);
-
-  @override
-  State<StatefulWidget> createState() => FABBottomAppBarState();
-}
-
-class FABBottomAppBarState extends State<FABBottomAppBar> {
-  int? _selectedIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedIndex = widget.initialIndex;
-  }
-
-  void _updateIndex(int? index) {
-    if (index == _selectedIndex) return; // Prevent unnecessary updates
-
-    widget.onTabSelected?.call(index);
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomAppBar(
-      shape: widget.notchedShape,
-      color: widget.backgroundColor,
-      child: SizedBox(
-        height: widget.height,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(
-            widget.items!.length,
-                (index) => _TabItem(
-              item: widget.items![index],
-              index: index,
-              isSelected: _selectedIndex == index,
-              selectedColor: widget.selectedColor,
-              unselectedColor: widget.color,
-              height: widget.height,
-              onPressed: _updateIndex,
-            ),
+      body: MediaQuery(
+        // Tell the tab screens how much glass they are flowing under, so
+        // their SafeAreas keep the last row clear of it.
+        data: mq.copyWith(
+          padding: mq.padding.copyWith(
+            bottom: mq.padding.bottom + _navBarFootprint,
           ),
         ),
-      ),
-    );
-  }
-}
-
-// Extracted as separate widget to optimize rebuilds
-class _TabItem extends StatelessWidget {
-  final FABBottomAppBarItem item;
-  final int index;
-  final bool isSelected;
-  final Color? selectedColor;
-  final Color? unselectedColor;
-  final double height;
-  final ValueChanged<int?> onPressed;
-
-  const _TabItem({
-    required this.item,
-    required this.index,
-    required this.isSelected,
-    required this.selectedColor,
-    required this.unselectedColor,
-    required this.height,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isSelected ? selectedColor : unselectedColor;
-
-    return Expanded(
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: () => onPressed(index),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SvgPicture.asset(
-                item.iconName!,
-                height: 24,
-                width: 24,
-                colorFilter: color != null
-                    ? ColorFilter.mode(color, BlendMode.srcIn)
-                    : null,
-              ),
-              TextHolder(
-                title: item.name,
-                color: color,
-                size: 14,
-              ),
-            ],
-          ),
+        child: PageView(
+          controller: _pageController,
+          physics: NeverScrollableScrollPhysics(),
+          onPageChanged: (index) {
+            setState(() {
+              selectedTab = index;
+            });
+          },
+          children: [
+            HomeScreen(),
+            SelectAssementHistoryScreen(),
+            CarePlanScreen(),
+            AccountScreen(),
+          ],
         ),
       ),
     );

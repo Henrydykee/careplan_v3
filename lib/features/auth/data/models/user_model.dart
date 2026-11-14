@@ -20,6 +20,7 @@ class UserModel {
     this.state,
     this.street,
     this.dateOfApproval,
+    this.dateOfBirth,
     this.isDeleted,
     this.address,
     this.businessInformation,
@@ -55,6 +56,7 @@ class UserModel {
   final String? state;
   final String? street;
   final String? dateOfApproval;
+  final String? dateOfBirth;
   final bool? isDeleted;
   final String? address;
   final BusinessInformation? businessInformation;
@@ -91,6 +93,7 @@ class UserModel {
       state: json['state'] as String?,
       street: json['street'] as String?,
       dateOfApproval: json['dateOfApproval'] as String?,
+      dateOfBirth: json['dateOfBirth']?.toString(),
       isDeleted: json['isDeleted'] as bool?,
       address: json['address'] as String?,
       businessInformation: json['businessInformation'] != null
@@ -136,6 +139,7 @@ class UserModel {
       'state': state,
       'street': street,
       'dateOfApproval': dateOfApproval,
+      'dateOfBirth': dateOfBirth,
       'isDeleted': isDeleted,
       'address': address,
       'businessInformation': businessInformation?.toJson(),

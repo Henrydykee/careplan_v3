@@ -1,3 +1,4 @@
+import 'package:careplan/core/platform/env_config.dart';
 import 'package:careplan/core/di/di_config.dart';
 import 'package:careplan/core/managers/local_storage_service.dart';
 import 'package:careplan/core/platform/storage/secured_storage.dart';
@@ -42,6 +43,12 @@ class _AccountScreenState extends State<AccountScreen> {
     _initPackageInfo();
     _loadUserData();
   }
+
+  /// Build numbers are a debugging detail: staging shows them, production
+  /// shows the marketing version only.
+  String get _versionLabel => EnvConfig.isProduction()
+      ? "Version ${_packageInfo.version}"
+      : "Version ${_packageInfo.version} (${_packageInfo.buildNumber})";
 
   Future<void> _initPackageInfo() async {
     final PackageInfo info = await PackageInfo.fromPlatform();
@@ -234,8 +241,7 @@ class _AccountScreenState extends State<AccountScreen> {
               const Gap(20),
               Center(
                 child: TextHolder(
-                  title:
-                      "Version ${_packageInfo.version} (${_packageInfo.buildNumber})",
+                  title: _versionLabel,
                   size: 12,
                   color: CarePlanColor.grey_3,
                   fontWeight: FontWeight.w400,
